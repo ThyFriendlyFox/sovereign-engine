@@ -25,12 +25,30 @@ class RevenueCatBillingCore:
         return hmac.compare_digest(expected_sig, signature_header)
 
     def process_lifecycle_event(self, user_id: str, event_type: str, plan_id: str, amount: float) -> Dict[str, Any]:
-        logger.info(f"[Billing Core] Processed {event_type} for User: {user_id} | Plan: {plan_id} | Amount: ${amount:.2f}")
+        grant = self._grant(plan_id, event_type, amount)
+        entitlements = grant.get("entitlements") or ["pro_access", "unlimited_ai"]
+        logger.info(
+            f"[Billing Core] Processed {event_type} for User: {user_id} | "
+            f"Plan: {grant.get('plan_id', plan_id)} | Amount: ${amount:.2f}"
+        )
         return {
             "core": "BILLING_CORE",
             "user_id": user_id,
             "event_type": event_type,
-            "entitlements": ["pro_access", "unlimited_ai"],
+            "plan_id": grant.get("plan_id", plan_id),
+            "requested_plan": plan_id,
+            "catalog": grant if grant.get("ok") else None,
+            "entitlements": entitlements,
             "mrr_delta": amount if event_type in ["INITIAL_PURCHASE", "RENEWAL"] else -amount,
-            "status": "PROCESSED"
+            "status": "PROCESSED",
         }
+
+    @staticmethod
+    def _grant(plan_id: str, event_type: str, amount: float) -> Dict[str, Any]:
+        try:
+            from itsnotai_internal.billing_sdk import BillingSDK
+
+            return BillingSDK().grant(plan_id, event_type, amount)
+        except Exception as e:
+            logger.warning("[Billing Core] shared catalog unavailable: %s", e)
+            return {"ok": False, "error": str(e), "entitlements": ["pro_access", "unlimited_ai"]}
