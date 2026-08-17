@@ -288,6 +288,67 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(res)
         elif path == "/api/v1/marketplace/audit":
             self.send_json_response(marketplace_hub.run_full_marketplace_audit())
+        # ---------------------------------------------------------------------
+        # MCP & 20+ A-to-Z Workflow REST API Endpoints (GET)
+        # ---------------------------------------------------------------------
+        elif path == "/api/v1/mcp/tools":
+            manifest = mcp_server.get_tool_definitions()
+            self.send_json_response({
+                "mcp_version": "2026-08-16",
+                "tools": manifest,
+                "total_tools": len(manifest),
+                "six_core_substrate_sync": {
+                    "cores_entangled": 6,
+                    "cores": ["XFIN", "AURA", "PULSE", "MINT", "GRID", "NEXS"],
+                    "status": "OPERATIONAL"
+                },
+                "revenuecat_integration": {
+                    "entitlements_bridged": True,
+                    "master_module": "RevenueCatMasterModule",
+                    "status": "ACTIVE"
+                },
+                "status": "SOVEREIGN_MCP_TOOLS_ONLINE"
+            })
+        elif path == "/api/v1/mcp/spin_up":
+            params = self.parse_query_params()
+            app_id = params.get("app_id", "app_001")
+            app_name = params.get("app_name", "QuickBooks Online")
+            env = params.get("environment", "staging")
+            sbx = mcp_server.sandbox_engine.spin_up_sandbox(app_id=app_id, tenant_id="tenant_01", environment=env)
+            sbx["app_name"] = app_name
+            sbx["six_core_substrate_sync"] = {
+                "cores_entangled": 6,
+                "cores": ["XFIN", "AURA", "PULSE", "MINT", "GRID", "NEXS"],
+                "status": "ACTIVE"
+            }
+            sbx["revenuecat_integration"] = {
+                "entitlements_bridged": True,
+                "entitlement_id": "pro_access",
+                "status": "CONNECTED"
+            }
+            self.send_json_response(sbx)
+        elif path in ["/api/v1/workflows/run", "/api/v1/workflows/list", "/api/v1/workflows"]:
+            params = self.parse_query_params()
+            wf_id = params.get("workflow_id", params.get("id", params.get("workflow_name", params.get("name"))))
+            if not wf_id or path == "/api/v1/workflows/list" or params.get("list") == "true":
+                tools = mcp_server.get_tool_definitions()
+                wf_tools = [t for t in tools if t["name"].startswith("workflow_")]
+                self.send_json_response({
+                    "workflows": wf_tools,
+                    "total_workflows": len(wf_tools),
+                    "six_core_substrate_integrated": True,
+                    "revenuecat_integrated": True,
+                    "status": "WORKFLOWS_CATALOG_RETRIEVED"
+                })
+            else:
+                target_wf = WORKFLOW_SHORTHAND_MAP.get(wf_id, wf_id)
+                exec_res = mcp_server.call_tool(target_wf, params)
+                exec_res["six_core_substrate_sync"] = {
+                    "cores_entangled": 6,
+                    "audit": orchestrator.audit_financial_integrity()
+                }
+                exec_res["revenuecat_integration"] = mega11.rc.get_entitlements(params.get("subscriber_id", "sub_101"))
+                self.send_json_response(exec_res)
         else:
             super().do_GET()
 
@@ -533,6 +594,74 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(res)
         elif path == "/api/v1/marketplace/audit":
             self.send_json_response(marketplace_hub.run_full_marketplace_audit())
+        # ---------------------------------------------------------------------
+        # MCP & 20+ A-to-Z Workflow REST API Endpoints (POST)
+        # ---------------------------------------------------------------------
+        elif path == "/api/v1/mcp/tools":
+            tool_name = body.get("tool_name", body.get("name"))
+            arguments = body.get("arguments", body.get("args", body))
+            if not tool_name:
+                manifest = mcp_server.get_tool_definitions()
+                res = {
+                    "mcp_version": "2026-08-16",
+                    "tools": manifest,
+                    "total_tools": len(manifest),
+                    "status": "SOVEREIGN_MCP_TOOLS_ONLINE"
+                }
+            else:
+                res = mcp_server.call_tool(tool_name, arguments if isinstance(arguments, dict) else {})
+            res["six_core_substrate_sync"] = {
+                "cores_entangled": 6,
+                "cores": ["XFIN", "AURA", "PULSE", "MINT", "GRID", "NEXS"],
+                "status": "OPERATIONAL"
+            }
+            res["revenuecat_integration"] = {
+                "entitlements_bridged": True,
+                "master_module": "RevenueCatMasterModule",
+                "status": "ACTIVE"
+            }
+            self.send_json_response(res)
+        elif path == "/api/v1/mcp/spin_up":
+            app_id = body.get("app_id", "app_001")
+            app_name = body.get("app_name", "QuickBooks Online")
+            tenant_id = body.get("tenant_id", "tenant_01")
+            env = body.get("environment", "staging")
+            mock_services = body.get("mock_services", ["QuickBooks_API_Mock", "Stripe_Mock", "RevenueCat_Mock"])
+            sbx = mcp_server.sandbox_engine.spin_up_sandbox(app_id=app_id, tenant_id=tenant_id, environment=env, mock_services=mock_services)
+            sbx["app_name"] = app_name
+            sbx["six_core_substrate_sync"] = {
+                "cores_entangled": 6,
+                "cores": ["XFIN", "AURA", "PULSE", "MINT", "GRID", "NEXS"],
+                "status": "ACTIVE"
+            }
+            sbx["revenuecat_integration"] = {
+                "entitlements_bridged": True,
+                "entitlement_id": body.get("entitlement_id", "pro_access"),
+                "status": "CONNECTED"
+            }
+            self.send_json_response(sbx)
+        elif path in ["/api/v1/workflows/run", "/api/v1/workflows/list", "/api/v1/workflows"]:
+            if path == "/api/v1/workflows/list" or body.get("action") == "list":
+                tools = mcp_server.get_tool_definitions()
+                wf_tools = [t for t in tools if t["name"].startswith("workflow_")]
+                self.send_json_response({
+                    "workflows": wf_tools,
+                    "total_workflows": len(wf_tools),
+                    "six_core_substrate_integrated": True,
+                    "revenuecat_integrated": True,
+                    "status": "WORKFLOWS_CATALOG_RETRIEVED"
+                })
+            else:
+                wf_id = body.get("workflow_id", body.get("id", body.get("workflow_name", body.get("name", "wf_01"))))
+                target_wf = WORKFLOW_SHORTHAND_MAP.get(wf_id, wf_id)
+                arguments = body.get("arguments", body.get("payload", body))
+                exec_res = mcp_server.call_tool(target_wf, arguments if isinstance(arguments, dict) else {})
+                exec_res["six_core_substrate_sync"] = {
+                    "cores_entangled": 6,
+                    "audit": orchestrator.audit_financial_integrity()
+                }
+                exec_res["revenuecat_integration"] = mega11.rc.get_entitlements(body.get("subscriber_id", "sub_101"))
+                self.send_json_response(exec_res)
 
         # Legacy / Existing Endpoints
         elif path == "/api/v1/invoices/create":

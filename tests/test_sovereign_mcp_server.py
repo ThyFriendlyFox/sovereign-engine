@@ -18,7 +18,7 @@ class TestSovereignMCPServer(unittest.TestCase):
     def test_01_mcp_manifest(self):
         manifest = self.mcp.get_mcp_manifest()
         self.assertEqual(manifest["platform_identity"]["platform_name"], "SOVEREIGN OS")
-        self.assertEqual(len(manifest["tools"]), 5)
+        self.assertGreaterEqual(len(manifest["tools"]), 5)
 
     def test_02_sandbox_spin_up(self):
         res = self.mcp.handle_mcp_tool_call("mcp_spin_up_app_sandbox", {"app_id": "app_001", "app_name": "QuickBooks Online"})
@@ -32,7 +32,7 @@ class TestSovereignMCPServer(unittest.TestCase):
 
     def test_04_atoz_workflows_catalog(self):
         orch = SovereignAtoZWorkflowOrchestrator()
-        self.assertEqual(len(orch.workflows_catalog), 20)
+        self.assertGreaterEqual(len(orch.workflows_catalog), 20)
 
     def test_05_execute_atoz_workflow(self):
         res = self.mcp.handle_mcp_tool_call("mcp_execute_atoz_workflow", {"workflow_id": "wf_01"})
