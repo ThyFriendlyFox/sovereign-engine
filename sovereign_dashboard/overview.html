@@ -293,49 +293,161 @@
       </div>
     </div>
 
-    <!-- VIEW 3: 26 A-TO-Z WORKFLOW EXECUTION STUDIO -->
-    <div id="sec-az-view" style="display: none;" class="glass-panel">
+    <!-- VIEW 3: ALPHA AUTONOMIC WORK STUDIO (200 APPS TASK GENERATOR) -->
+    <div id="sec-autonomic-view" style="display: none;" class="glass-panel autonomic-studio-panel">
       <div class="panel-header">
         <div>
-          <h3 class="panel-title">⚡ 26 A-to-Z Enterprise Workflow Execution Studio</h3>
-          <div style="font-size: 0.8rem; color: var(--text-muted);">Select from 26 pre-built A-to-Z enterprise workflows, configure pipeline arguments, and execute multi-core operations in real time</div>
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+            <h3 class="panel-title">🤖 Alpha Autonomic Work Studio</h3>
+            <span class="status-pill cyan">● 200 Apps Real-Time Task Mesh</span>
+            <span id="autonomic-loop-badge" class="status-pill success glow-pulse">● Live Stream Active</span>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">
+            SOVEREIGN OS autonomic multi-agent task synthesizer continuously generating, scheduling, and executing tasks for all 200 apps across 6 entangled core modules.
+          </div>
         </div>
-        <span class="status-pill cyan">26 Workflows Ready</span>
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+          <button class="btn-primary" onclick="triggerBatchTaskGeneration()">⚡ Generate Tasks for 200 Apps</button>
+          <button id="btn-toggle-autonomic-loop" class="btn-card-action btn-card-primary" onclick="toggleAutonomicLiveLoop()">⏸ Pause Live Loop</button>
+          <button class="btn-card-action" onclick="clearAutonomicTaskQueue()">🧹 Clear Queue</button>
+        </div>
       </div>
 
-      <div class="mcp-console-grid">
-        <div>
-          <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.6rem;">A-to-Z Workflows Directory</div>
-          <div class="az-workflow-catalog" id="az-workflows-grid">
-            <!-- Rendered by JS -->
+      <!-- AUTONOMIC WORK STUDIO METRICS BAR -->
+      <div class="autonomic-metrics-bar">
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(0, 242, 254, 0.12); color: var(--accent-cyan);">⚡</div>
+          <div>
+            <div class="autonomic-metric-label">Real-Time Tasks Generated</div>
+            <div class="autonomic-metric-value" id="metric-tasks-generated">1,482</div>
+            <div class="autonomic-metric-sub">▲ All 200 Apps Entangled</div>
+          </div>
+        </div>
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(121, 40, 202, 0.15); color: #c084fc;">🤖</div>
+          <div>
+            <div class="autonomic-metric-label">Active App Agents</div>
+            <div class="autonomic-metric-value" id="metric-apps-active">200 / 200</div>
+            <div class="autonomic-metric-sub">▲ 100% Autonomic Coverage</div>
+          </div>
+        </div>
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--accent-green);">🚀</div>
+          <div>
+            <div class="autonomic-metric-label">Task Synthesizer Rate</div>
+            <div class="autonomic-metric-value" id="metric-task-speed">48.5 / sec</div>
+            <div class="autonomic-metric-sub">⚡ Sub-millisecond Execution</div>
+          </div>
+        </div>
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--accent-gold);">🪙</div>
+          <div>
+            <div class="autonomic-metric-label">Autonomic Cost Efficiency</div>
+            <div class="autonomic-metric-value" id="metric-cost-saved">$54,920 / mo</div>
+            <div class="autonomic-metric-sub">▲ Zero Human Touchpoint</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN STUDIO 3-COLUMN / GRID LAYOUT -->
+      <div class="autonomic-studio-grid" style="margin-top: 1.25rem;">
+        
+        <!-- COLUMN 1: APP SELECTOR & DOMAIN FILTERS & 26 A-Z WORKFLOWS -->
+        <div class="autonomic-panel-box">
+          <div class="panel-header-sub">
+            <h4 style="font-family: var(--font-heading); color: #fff; font-size: 1.05rem; margin: 0;">🎯 Target App & Domain Filter</h4>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">Select any of the 200 apps to generate targeted autonomic tasks</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.4rem;">Select App (200 Ecosystem Apps)</label>
+              <select id="autonomic-app-selector" class="select-custom" style="width: 100%; font-size: 0.85rem;" onchange="handleAutonomicAppSelect(this.value)">
+                <option value="all">⚡ ALL 200 APPS (Global Ecosystem Mesh)</option>
+                <!-- Dynamically populated with all 200 apps by JS -->
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.4rem;">Domain Filter</label>
+              <div class="autonomic-domain-pills" id="autonomic-domain-pills">
+                <button class="domain-pill active" onclick="filterStudioByDomain('all')">All (200)</button>
+                <button class="domain-pill" onclick="filterStudioByDomain('ai')">🤖 AI (35)</button>
+                <button class="domain-pill" onclick="filterStudioByDomain('finance')">💼 Finance (30)</button>
+                <button class="domain-pill" onclick="filterStudioByDomain('payments')">💳 Pay (25)</button>
+                <button class="domain-pill" onclick="filterStudioByDomain('web3')">🪙 Web3 (30)</button>
+                <button class="domain-pill" onclick="filterStudioByDomain('iot')">⌚ IoT (25)</button>
+                <button class="domain-pill" onclick="filterStudioByDomain('zk')">🔒 ZK (25)</button>
+                <button class="domain-pill" onclick="filterStudioByDomain('workflow')">⚡ Workflows (30)</button>
+              </div>
+            </div>
+
+            <button class="btn-primary" style="width: 100%; justify-content: center; padding: 0.65rem; margin-top: 0.25rem;" onclick="generateTaskForSelectedApp()">
+              ⚡ Synthesize Task for Selected App
+            </button>
+          </div>
+
+          <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-glass); padding-top: 1rem;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.6rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>📜 26 A-to-Z Workflows</span>
+              <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-size: 0.72rem;">Ready</span>
+            </div>
+            <div class="az-workflow-catalog" id="az-workflows-grid" style="max-height: 260px; overflow-y: auto;">
+              <!-- Rendered by JS -->
+            </div>
           </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <div style="background: rgba(10, 15, 26, 0.8); border: 1px solid var(--border-glow); border-radius: 16px; padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <!-- COLUMN 2: LIVE GENERATED TASKS FEED -->
+        <div class="autonomic-panel-box">
+          <div class="panel-header-sub" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4 style="font-family: var(--font-heading); color: #fff; font-size: 1.05rem; margin: 0;">⚡ Real-Time Generated Tasks</h4>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">Live task generation feed across all 200 apps</div>
+            </div>
+            <span class="status-pill success" style="font-size: 0.7rem;" id="task-feed-count-badge">Active Feed</span>
+          </div>
+
+          <div id="autonomic-tasks-feed-container" class="autonomic-task-feed">
+            <!-- Rendered dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- COLUMN 3: PIPELINE EXECUTION & TERMINAL LOGS -->
+        <div class="autonomic-panel-box">
+          <div class="panel-header-sub">
+            <h4 style="font-family: var(--font-heading); color: #fff; font-size: 1.05rem; margin: 0;">⚙️ Pipeline Runner & Terminal</h4>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem;">Substrate Core execution telemetry stream</div>
+          </div>
+
+          <div style="background: rgba(6, 9, 18, 0.85); border: 1px solid var(--border-glow); border-radius: 14px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
                 <div class="az-badge" id="az-selected-badge">A</div>
                 <div>
-                  <h4 id="az-selected-title" style="font-family: var(--font-heading); color: #fff; font-size: 1.2rem; margin: 0;">Automated Financial Audit</h4>
-                  <div id="az-selected-desc" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">Scans double-entry transactions and reconciles bank deposits vs ACH payouts.</div>
+                  <h4 id="az-selected-title" style="font-family: var(--font-heading); color: #fff; font-size: 0.98rem; margin: 0;">Automated Financial Audit</h4>
+                  <div id="az-selected-desc" style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.1rem;">Scans double-entry transactions and reconciles bank deposits vs ACH payouts.</div>
                 </div>
               </div>
-              <button id="az-run-btn" class="btn-primary" onclick="runAZWorkflow()">▶ Execute Workflow Pipeline</button>
+              <button id="az-run-btn" class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="runAZWorkflow()">▶ Execute Pipeline</button>
             </div>
 
-            <div class="pipeline-flow-container" id="pipeline-flow-container">
+            <div class="pipeline-flow-container" id="pipeline-flow-container" style="margin-top: 0.85rem; padding: 0.75rem 0.5rem;">
               <!-- Pipeline steps rendered by JS -->
             </div>
           </div>
 
-          <div style="background: #04060c; border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem;">
-            <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Pipeline Execution Terminal</div>
-            <div id="az-terminal-output" style="font-family: var(--font-mono); font-size: 0.8rem; color: #a7f3d0; height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem;">
-              <div>[INFO] Select a workflow and click 'Execute Workflow Pipeline' to run.</div>
+          <div style="background: #04060c; border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem; flex: 1; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">🖥️ Substrate Task Telemetry Terminal</div>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-cyan);" id="autonomic-terminal-rate">48.5 ev/s</span>
+            </div>
+            <div id="az-terminal-output" style="font-family: var(--font-mono); font-size: 0.78rem; color: #a7f3d0; height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem;">
+              <div>[INFO] Alpha Autonomic Work Studio connected. Real-time task generator active for all 200 apps.</div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
 

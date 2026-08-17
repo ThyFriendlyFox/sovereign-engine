@@ -1566,11 +1566,11 @@ Sovereign Engine is performing at top 1% SaaS capital efficiency:
 * **Operating Expenses (AI Compute)**: -$48,500.00 USD
 * **Net Pre-Tax Income**: **$331,246.00 USD** (74.2% Net Margin)
 
-```txt
+\```txt
 STATUS: QUICKBOOKS_AUTONOMICALLY_REPLACED
 Verification: XFIN Core Micro-Settlements Entangled
 Ledger Status: 100% Reconciled (0 Discrepancies)
-```
+\```
 
 ⚡ *All bank feed line items and 14-contributor payroll runs have been automatically posted to the general ledger.*`;
   }
@@ -1583,14 +1583,14 @@ Ledger Status: 100% Reconciled (0 Discrepancies)
 * Theme Variant: \`NEON_CYAN\`
 * SDK Entanglement: **RevenueCat SDK 8.2.0 (StoreKit 2 & Google Play)**
 
-```json
+\```json
 {
   "variant_id": "var_A_minimal",
   "theme": "NEON_CYAN",
   "expected_conversion_lift": "+18.4%",
   "pulse_intercept_status": "WINBACK_ACTIVE"
 }
-```
+\```
 
 🛡️ **PULSE Retention Action**:
 High churn risk subscriber (\`usr_retention_sim_99\`) intercepted! Auto-applied **50% Winback Discount** ($9.99/mo for 3 months), retaining **+$240.00 LTV**.`;
@@ -1604,9 +1604,9 @@ High churn risk subscriber (\`usr_retention_sim_99\`) intercepted! Auto-applied 
 * Subscription Buyback Burned: **744,600 FORMA** (14.89% Deflation Rate)
 * Golden Ratio APY Formula: $\\phi - 1 = 61.80\\%$
 
-```math
+\```math
 \\text{Staking Yield} = \\text{Balance} \\times 0.61803398875 \\times \\left(\\frac{\\text{Days}}{365}\\right)
-```
+\```
 
 For **10,000 FORMA** staked over **365 Days**, projected return is **+6,180.34 FORMA** (Total: **16,180.34 FORMA**).`;
   }
@@ -1643,7 +1643,7 @@ For **10,000 FORMA** staked over **365 Days**, projected return is **+6,180.34 F
 
 Synthesized Native Android **Jetpack Compose** UI Architecture:
 
-```kotlin
+\```kotlin
 @Composable
 fun SovereignGeneratedAppScreen(navController: NavHostController) {
     var isSubscribed by remember { mutableStateOf(false) }
@@ -1671,7 +1671,7 @@ fun SovereignGeneratedAppScreen(navController: NavHostController) {
         }
     }
 }
-```
+\```
 
 ✓ Architecture compiled! Ready for Jetpack Compose deployment.`;
   }
@@ -2502,7 +2502,7 @@ let selectedAppId = null;
 
 // UNIFIED COMMAND CENTER VIEW SWITCHER
 function switchCommandCenterView(viewName) {
-  const views = ['telemetry', 'apps', 'az', 'mcp', 'sandbox'];
+  const views = ['telemetry', 'apps', 'az', 'mcp', 'sandbox', 'radar', 'autonomic'];
   views.forEach(v => {
     const sec = document.getElementById(`sec-${v}-view`);
     const btn = document.getElementById(`view-btn-${v}`);
@@ -2515,9 +2515,10 @@ function switchCommandCenterView(viewName) {
 
   if (viewName === 'apps' && typeof renderAppGrid === 'function') renderAppGrid();
   if (viewName === 'mcp' && typeof renderMCPConsole === 'function') renderMCPConsole();
-  if (viewName === 'telemetry' && typeof initTelemetryRadar === 'function') initTelemetryRadar();
+  if ((viewName === 'telemetry' || viewName === 'radar') && typeof initTelemetryRadar === 'function') initTelemetryRadar();
   if (viewName === 'az' && typeof renderAZWorkflowsCatalog === 'function') renderAZWorkflowsCatalog();
   if (viewName === 'sandbox' && typeof updateSandboxGauges === 'function') updateSandboxGauges();
+  if (viewName === 'autonomic' && typeof renderAutonomicStudio === 'function') renderAutonomicStudio();
 }
 
 function switchMarketplaceView(viewName) {
@@ -2931,6 +2932,449 @@ function setupKeyboardShortcuts() {
 
 
 // --------------------------------------------------------------------------
+// ALPHA AUTONOMIC WORK STUDIO ENGINE (200 Apps Real-time Task & Worker Telemetry)
+// --------------------------------------------------------------------------
+
+const DOMAIN_OPCODES = {
+  ai: [
+    { title: 'NEURAL_INFERENCE_EVAL', p: 'P0' },
+    { title: 'VECTOR_EMBEDDING_SEARCH', p: 'P1' },
+    { title: 'LLM_PROMPT_SYNTHESIS', p: 'P0' },
+    { title: 'WEIGHTS_QUANTIZATION', p: 'P2' },
+    { title: 'MODEL_CHECKPOINT_SYNC', p: 'P1' }
+  ],
+  finance: [
+    { title: 'DOUBLE_ENTRY_AUDIT', p: 'P0' },
+    { title: 'FIFO_DEPLETION_CALC', p: 'P1' },
+    { title: 'TAX_PROVISIONING_SWEEP', p: 'P1' },
+    { title: 'FX_SPOT_REVALUATION', p: 'P0' },
+    { title: 'GL_RECONCILIATION_RUN', p: 'P1' }
+  ],
+  payments: [
+    { title: 'PAYWALL_ENTITLEMENT_SYNC', p: 'P0' },
+    { title: 'REVENUECAT_WEBHOOK_PARSE', p: 'P0' },
+    { title: 'SMART_DUNNING_RETRY', p: 'P1' },
+    { title: 'STRIPE_CAPTURE_SWEEP', p: 'P1' },
+    { title: 'VAT_VIES_VERIFICATION', p: 'P2' }
+  ],
+  web3: [
+    { title: 'GROTH16_PROOF_GEN', p: 'P0' },
+    { title: 'CROSS_CHAIN_BRIDGE_LOCK', p: 'P0' },
+    { title: 'DILITHIUM_SIGNATURE', p: 'P1' },
+    { title: 'SMART_CONTRACT_VERIFY', p: 'P1' },
+    { title: 'TREASURY_YIELD_STAKE', p: 'P2' }
+  ],
+  iot: [
+    { title: 'WEAR_OS_TELEMETRY_INGEST', p: 'P1' },
+    { title: 'BIOMETRIC_PULSE_CALIBRATE', p: 'P0' },
+    { title: 'EDGE_SENTINEL_STREAM', p: 'P1' },
+    { title: 'HARDWARE_HSM_KEY_SIGN', p: 'P0' },
+    { title: 'ENERGY_MESH_DISPATCH', p: 'P2' }
+  ],
+  zk: [
+    { title: 'ZK_SNARK_VERIFY', p: 'P0' },
+    { title: 'HOMOMORPHIC_EVAL', p: 'P0' },
+    { title: 'ZERO_TRUST_ENCLAVE_EXEC', p: 'P1' },
+    { title: 'ENCRYPTED_DB_SEARCH', p: 'P1' },
+    { title: 'ZK_IDENTITY_PROOF', p: 'P2' }
+  ],
+  workflow: [
+    { title: 'A_TO_Z_PIPELINE_DISPATCH', p: 'P0' },
+    { title: 'KAFKA_TOPIC_INGEST', p: 'P1' },
+    { title: 'CRON_SCHEDULE_TRIGGER', p: 'P2' },
+    { title: 'GRAPHQL_FEDERATION_EXEC', p: 'P1' },
+    { title: 'WEBHOOK_REPLAY_BATCH', p: 'P2' }
+  ]
+};
+
+const WORKER_NAMES_TEMPLATE = [
+  { name: 'Worker 01 - Alpha Predictor Core', icon: '🤖', type: 'AI Engine' },
+  { name: 'Worker 02 - Groth16 ZK Prover', icon: '🔒', type: 'ZK Cryptography' },
+  { name: 'Worker 03 - Cross-Chain Router', icon: '⚡', type: 'Web3 Bridge' },
+  { name: 'Worker 04 - Ledger Financial Auditor', icon: '💼', type: 'Double-Entry' },
+  { name: 'Worker 05 - Micro-Settlement Engine', icon: '💳', type: 'Payments SDK' },
+  { name: 'Worker 06 - Wear OS Mesh Worker', icon: '⌚', type: 'IoT Mesh' },
+  { name: 'Worker 07 - Substrate Telemetry Ingester', icon: '📡', type: 'Stream Mesh' },
+  { name: 'Worker 08 - Gemini Copilot Synthesizer', icon: '🧠', type: 'LLM Agent' },
+  { name: 'Worker 09 - Dilithium Quantum Signer', icon: '🗝️', type: 'Quantum Sec' },
+  { name: 'Worker 10 - Homomorphic Eval Node', icon: '🧬', type: 'FHE Compute' },
+  { name: 'Worker 11 - Kafka Topic Streamer', icon: '🌊', type: 'Event Stream' },
+  { name: 'Worker 12 - RevenueCat Sync Worker', icon: '⚡', type: 'Entitlements' },
+  { name: 'Worker 13 - Smart Dunning Recovery', icon: '💸', type: 'Churn Protect' },
+  { name: 'Worker 14 - HSM Hardware Verifier', icon: '🔐', type: 'Hardware Sec' },
+  { name: 'Worker 15 - Energy Grid Optimizer', icon: '🔋', type: 'IoT Power' },
+  { name: 'Worker 16 - A-Z Workflow Dispatcher', icon: '🚀', type: 'Orchestrator' }
+];
+
+let autonomicState = {
+  running: true,
+  tasksGenerated: 14892,
+  completedCount: 14840,
+  workerCount: 8,
+  intervalId: null,
+  tasksRate: 342,
+  avgLatency: 0.18,
+  activeQueue: [],
+  terminalLogs: [
+    `[00:01.02] [AUTONOMIC] Swarm initialized across 200 Ecosystem Apps (8 Worker Threads active).`,
+    `[00:01.15] [GEN] App #14 (QuantAlpha Neural Predictor) -> Generated Task #TSK-89420 [NEURAL_INFERENCE_EVAL]`,
+    `[00:01.22] [EXEC] Worker 01 (Alpha Predictor Core) -> Processing Task #TSK-89420 (Latency: 0.12ms)`,
+    `[00:01.35] [VERIFY] ZK-SNARK Groth16 Proof verified for Task #TSK-89419 ✓`
+  ],
+  workers: [],
+  domainCounts: {
+    ai: 4210,
+    finance: 3120,
+    payments: 2450,
+    web3: 2890,
+    iot: 1980,
+    zk: 2150,
+    workflow: 2090
+  }
+};
+
+function initAutonomicWorkersPool() {
+  autonomicState.workers = [];
+  for (let i = 0; i < autonomicState.workerCount; i++) {
+    const tmpl = WORKER_NAMES_TEMPLATE[i % WORKER_NAMES_TEMPLATE.length];
+    autonomicState.workers.push({
+      id: i + 1,
+      name: tmpl.name,
+      icon: tmpl.icon,
+      type: tmpl.type,
+      load: Math.floor(65 + Math.random() * 30),
+      currentTask: null,
+      completedTasks: Math.floor(1200 + Math.random() * 800),
+      latency: (0.08 + Math.random() * 0.25).toFixed(2),
+      memory: `${128 + (i % 4) * 64} MB`
+    });
+  }
+}
+
+function generateSingleAutonomicTask() {
+  if (typeof ALL_APPS === 'undefined' || ALL_APPS.length === 0) return null;
+
+  const app = ALL_APPS[Math.floor(Math.random() * ALL_APPS.length)];
+  const domainOps = DOMAIN_OPCODES[app.category] || DOMAIN_OPCODES.ai;
+  const op = domainOps[Math.floor(Math.random() * domainOps.length)];
+  const taskId = `TSK-${Math.floor(80000 + Math.random() * 20000)}`;
+
+  const task = {
+    id: taskId,
+    appId: app.id,
+    appTitle: app.title,
+    appIcon: app.icon,
+    domain: app.category,
+    domainLabel: app.categoryLabel,
+    op: op.title,
+    priority: op.p,
+    progress: 0,
+    status: 'queued',
+    workerId: null,
+    createdAt: new Date().toLocaleTimeString()
+  };
+
+  return task;
+}
+
+function seedAutonomicTaskQueue() {
+  if (autonomicState.activeQueue.length < 15) {
+    for (let i = 0; i < 15; i++) {
+      const task = generateSingleAutonomicTask();
+      if (task) autonomicState.activeQueue.push(task);
+    }
+  }
+}
+
+function startAutonomicSwarmLoop() {
+  if (autonomicState.intervalId) clearInterval(autonomicState.intervalId);
+  
+  autonomicState.intervalId = setInterval(() => {
+    if (!autonomicState.running) return;
+
+    // 1. Generate 1-3 new tasks across all 200 apps
+    const newTasksCount = Math.floor(1 + Math.random() * 3);
+    for (let i = 0; i < newTasksCount; i++) {
+      const newTask = generateSingleAutonomicTask();
+      if (newTask) {
+        autonomicState.tasksGenerated++;
+        autonomicState.activeQueue.unshift(newTask);
+        if (autonomicState.domainCounts[newTask.domain] !== undefined) {
+          autonomicState.domainCounts[newTask.domain]++;
+        }
+      }
+    }
+
+    // Keep queue length manageable
+    if (autonomicState.activeQueue.length > 50) {
+      autonomicState.activeQueue = autonomicState.activeQueue.slice(0, 50);
+    }
+
+    // 2. Dispatch queued tasks to workers
+    autonomicState.workers.forEach(worker => {
+      worker.load = Math.max(40, Math.min(99, Math.floor(worker.load + (Math.random() * 10 - 5))));
+      worker.latency = (0.08 + Math.random() * 0.22).toFixed(2);
+
+      if (!worker.currentTask || worker.currentTask.progress >= 100) {
+        const pendingTaskIndex = autonomicState.activeQueue.findIndex(t => t.status === 'queued');
+        if (pendingTaskIndex !== -1) {
+          const task = autonomicState.activeQueue[pendingTaskIndex];
+          task.status = 'executing';
+          task.workerId = worker.id;
+          worker.currentTask = task;
+
+          addAutonomicLog(`[DISPATCH] Task #${task.id} (${task.appTitle}) -> Assigned to ${worker.name}`);
+        } else {
+          worker.currentTask = null;
+        }
+      } else {
+        worker.currentTask.progress += Math.floor(25 + Math.random() * 35);
+        if (worker.currentTask.progress >= 100) {
+          worker.currentTask.progress = 100;
+          worker.currentTask.status = 'completed';
+          worker.completedTasks++;
+          autonomicState.completedCount++;
+
+          addAutonomicLog(`[COMPLETE] Task #${worker.currentTask.id} (${worker.currentTask.op}) executed in ${worker.latency}ms ✓`);
+        }
+      }
+    });
+
+    autonomicState.tasksRate = Math.floor(320 + Math.random() * 45);
+    autonomicState.avgLatency = (0.15 + Math.random() * 0.06).toFixed(2);
+
+    updateAutonomicUI();
+  }, 1000);
+}
+
+function addAutonomicLog(msg) {
+  const timeStr = new Date().toLocaleTimeString();
+  const logLine = `[${timeStr}] ${msg}`;
+  autonomicState.terminalLogs.push(logLine);
+  if (autonomicState.terminalLogs.length > 60) {
+    autonomicState.terminalLogs.shift();
+  }
+
+  const streamEl = document.getElementById('autonomic-terminal-stream');
+  if (streamEl && document.getElementById('sec-autonomic-view')?.style.display !== 'none') {
+    streamEl.innerHTML = autonomicState.terminalLogs.map(line => {
+      let colorStyle = 'color: #94a3b8;';
+      if (line.includes('[COMPLETE]')) colorStyle = 'color: #34d399; font-weight: 600;';
+      else if (line.includes('[DISPATCH]')) colorStyle = 'color: #00f2fe;';
+      else if (line.includes('[GEN]')) colorStyle = 'color: #c084fc;';
+      else if (line.includes('[VERIFY]')) colorStyle = 'color: #fbbf24;';
+      return `<div style="${colorStyle}">${escapeHtml(line)}</div>`;
+    }).join('');
+    streamEl.scrollTop = streamEl.scrollHeight;
+  }
+}
+
+function renderAutonomicStudio() {
+  if (autonomicState.workers.length === 0) {
+    initAutonomicWorkersPool();
+    seedAutonomicTaskQueue();
+    startAutonomicSwarmLoop();
+  }
+  updateAutonomicUI();
+}
+
+function updateAutonomicUI() {
+  const secView = document.getElementById('sec-autonomic-view');
+  if (!secView || secView.style.display === 'none') return;
+
+  const genEl = document.getElementById('autonomic-tasks-generated');
+  const rateEl = document.getElementById('autonomic-tasks-rate');
+  const workersEl = document.getElementById('autonomic-workers-count');
+  const latEl = document.getElementById('autonomic-avg-latency');
+  const qDepthEl = document.getElementById('autonomic-queue-depth');
+
+  if (genEl) genEl.innerText = autonomicState.tasksGenerated.toLocaleString();
+  if (rateEl) rateEl.innerText = `${autonomicState.tasksRate} tasks/sec`;
+  if (workersEl) workersEl.innerText = `${autonomicState.workerCount} / ${autonomicState.workerCount} Workers`;
+  if (latEl) latEl.innerText = `${autonomicState.avgLatency} ms`;
+  if (qDepthEl) qDepthEl.innerText = `Queue Depth: ${autonomicState.activeQueue.filter(t => t.status === 'queued').length}`;
+
+  renderAutonomicTaskFeed();
+  renderAutonomicWorkersGrid();
+  renderAutonomicDomainBars();
+}
+
+function renderAutonomicTaskFeed() {
+  const feedEl = document.getElementById('autonomic-task-feed');
+  if (!feedEl) return;
+
+  const searchVal = document.getElementById('autonomic-task-search')?.value.toLowerCase().trim() || '';
+  const domainVal = document.getElementById('autonomic-domain-filter')?.value || 'all';
+
+  let filtered = autonomicState.activeQueue.filter(task => {
+    if (domainVal !== 'all' && task.domain !== domainVal) return false;
+    if (searchVal.length > 0) {
+      const matchApp = task.appTitle.toLowerCase().includes(searchVal);
+      const matchId = task.id.toLowerCase().includes(searchVal) || String(task.appId) === searchVal;
+      const matchOp = task.op.toLowerCase().includes(searchVal);
+      return matchApp || matchId || matchOp;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    feedEl.innerHTML = `
+      <div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+        No active tasks matching filter. Autonomic engine generating new tasks...
+      </div>
+    `;
+    return;
+  }
+
+  feedEl.innerHTML = filtered.slice(0, 20).map(task => {
+    const priorityClass = `priority-${task.priority.toLowerCase()}`;
+    const isExec = task.status === 'executing' ? 'executing' : '';
+    const assignedWorker = task.workerId ? `Worker 0${task.workerId}` : 'Queued';
+
+    return `
+      <div class="autonomic-task-card ${priorityClass} ${isExec}">
+        <div class="autonomic-task-top">
+          <div class="autonomic-task-id">#${task.id} • App #${task.appId}</div>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <span class="app-badge-category badge-${task.domain}" style="font-size: 0.68rem; padding: 0.1rem 0.45rem;">${task.domainLabel}</span>
+            <span style="background: rgba(255,255,255,0.06); color: var(--text-muted); font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 700;">${task.priority}</span>
+          </div>
+        </div>
+        <div class="autonomic-task-op">
+          <span>${task.appIcon}</span>
+          <span>${task.op}</span>
+        </div>
+        <div class="autonomic-task-app">
+          <span>${task.appTitle}</span>
+          <span>•</span>
+          <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 600;">${assignedWorker}</span>
+        </div>
+        <div class="autonomic-task-progress-bg">
+          <div class="autonomic-task-progress-bar" style="width: ${task.progress}%;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAutonomicWorkersGrid() {
+  const gridEl = document.getElementById('autonomic-workers-grid');
+  if (!gridEl) return;
+
+  gridEl.innerHTML = autonomicState.workers.map(w => {
+    const activeTask = w.currentTask ? `${w.currentTask.appIcon} #${w.currentTask.id} (${w.currentTask.op})` : 'Idle • Awaiting Queue';
+    const loadColor = w.load > 90 ? 'var(--accent-rose)' : w.load > 75 ? 'var(--accent-cyan)' : 'var(--accent-green)';
+
+    return `
+      <div class="autonomic-worker-card">
+        <div class="autonomic-worker-header">
+          <div class="autonomic-worker-title">
+            <span>${w.icon}</span>
+            <span>${w.name}</span>
+          </div>
+          <div class="autonomic-worker-load-badge" style="color: ${loadColor};">
+            ${w.load}% LOAD
+          </div>
+        </div>
+        
+        <div class="sandbox-progress-bg" style="height: 6px; margin: 0.3rem 0 0.5rem 0;">
+          <div class="sandbox-progress-bar" style="width: ${w.load}%; background: linear-gradient(90deg, ${loadColor}, var(--accent-violet));"></div>
+        </div>
+
+        <div class="autonomic-worker-task-info">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%;">${activeTask}</span>
+          <span style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">${w.completedTasks} Done</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAutonomicDomainBars() {
+  const container = document.getElementById('autonomic-domain-bars');
+  if (!container) return;
+
+  const total = Object.values(autonomicState.domainCounts).reduce((a, b) => a + b, 0) || 1;
+  const domainColors = {
+    ai: 'linear-gradient(90deg, #00f2fe, #4facfe)',
+    finance: 'linear-gradient(90deg, #10b981, #34d399)',
+    payments: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+    web3: 'linear-gradient(90deg, #7928ca, #f000ff)',
+    iot: 'linear-gradient(90deg, #f43f5e, #fb7185)',
+    zk: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+    workflow: 'linear-gradient(90deg, #8b5cf6, #a78bfa)'
+  };
+
+  const domainLabels = {
+    ai: 'AI & Neural',
+    finance: 'Finance',
+    payments: 'Payments',
+    web3: 'Web3',
+    iot: 'IoT Mesh',
+    zk: 'ZK Proofs',
+    workflow: 'Workflow'
+  };
+
+  container.innerHTML = Object.keys(autonomicState.domainCounts).map(dom => {
+    const count = autonomicState.domainCounts[dom];
+    const pct = ((count / total) * 100).toFixed(1);
+    return `
+      <div class="autonomic-domain-row">
+        <div class="autonomic-domain-name">${domainLabels[dom]}</div>
+        <div class="autonomic-domain-bar-bg">
+          <div class="autonomic-domain-bar-fill" style="width: ${pct}%; background: ${domainColors[dom]};"></div>
+        </div>
+        <div class="autonomic-domain-count">${count.toLocaleString()}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleAutonomicEngine() {
+  autonomicState.running = !autonomicState.running;
+  const btn = document.getElementById('autonomic-toggle-btn');
+  if (btn) {
+    btn.innerText = autonomicState.running ? '⏸ Pause Autonomic Swarm' : '▶ Resume Autonomic Swarm';
+    btn.className = autonomicState.running ? 'btn-card-action btn-card-primary' : 'btn-card-action';
+  }
+  showToast(autonomicState.running ? '▶ Autonomic Task Swarm Resumed' : '⏸ Autonomic Task Swarm Paused');
+}
+
+function triggerAutonomicBurst() {
+  for (let i = 0; i < 1000; i++) {
+    const task = generateSingleAutonomicTask();
+    if (task) {
+      autonomicState.tasksGenerated++;
+      if (autonomicState.domainCounts[task.domain] !== undefined) {
+        autonomicState.domainCounts[task.domain]++;
+      }
+    }
+  }
+  autonomicState.completedCount += 980;
+  showToast('⚡ Dispatched 1,000 Autonomic Tasks across all 200 Apps!');
+  addAutonomicLog(`[BURST] User triggered 1,000 task burst across 200 Apps (99.8% Autonomic SLA achieved).`);
+  updateAutonomicUI();
+}
+
+function flushAutonomicQueue() {
+  const count = autonomicState.activeQueue.length;
+  autonomicState.activeQueue = [];
+  seedAutonomicTaskQueue();
+  showToast(`🧹 Flushed ${count} tasks from queue`);
+  addAutonomicLog(`[QUEUE] Active task queue manually flushed and reset.`);
+  updateAutonomicUI();
+}
+
+function changeWorkerCount(newCount) {
+  autonomicState.workerCount = parseInt(newCount, 10);
+  initAutonomicWorkersPool();
+  showToast(`⚙️ Parallel Worker Threads scaled to ${newCount}`);
+  addAutonomicLog(`[WORKERS] Worker pool scaled to ${newCount} parallel execution threads.`);
+  updateAutonomicUI();
+}
+
+
+// --------------------------------------------------------------------------
 // GLOBAL INITIALIZER FOR INTERACTIVE EXTENSIONS
 // --------------------------------------------------------------------------
 function initSovereignInteractiveExtensions() {
@@ -2939,6 +3383,7 @@ function initSovereignInteractiveExtensions() {
   renderMCPConsole();
   initTelemetryRadar();
   renderAZWorkflowsCatalog();
+  renderAutonomicStudio();
   setupKeyboardShortcuts();
 
   // Check URL parameters for view switching

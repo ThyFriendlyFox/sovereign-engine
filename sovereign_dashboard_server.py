@@ -57,6 +57,7 @@ from mega_11_platform_master_suite import (
 )
 from embedded_marketplace_integrations_hub import EmbeddedMarketplaceHub
 from sovereign_mcp_server import SovereignMCPServer
+from alpha_unlimited_work_engine import AlphaUnlimitedWorkEngine, AlphaAppWorkGenerator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -103,6 +104,9 @@ marketplace_hub = EmbeddedMarketplaceHub()
 
 # Initialize Sovereign MCP Server & Workflow Map
 mcp_server = SovereignMCPServer()
+
+# Initialize Sovereign OS Alpha Unlimited Work Engine
+alpha_work_engine = AlphaUnlimitedWorkEngine(gl_engine=gl, orchestrator=orchestrator)
 
 WORKFLOW_SHORTHAND_MAP = {
     "wf_01": "workflow_end_to_end_subscriber_lifecycle",
@@ -225,6 +229,18 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(orchestrator.audit_financial_integrity())
         elif path == "/api/v1/orchestrator/statement":
             self.send_json_response(orchestrator.generate_consolidated_sovereign_statement())
+
+        # ---------------------------------------------------------------------
+        # Alpha Work REST API Endpoints (GET)
+        # ---------------------------------------------------------------------
+        elif path in ["/api/v1/alpha/work/generate", "/api/v1/alpha/work/generate_work"]:
+            params = self.parse_query_params()
+            app_id = params.get("app_id", params.get("app_id_or_name", "app_001"))
+            self.send_json_response(alpha_work_engine.generate_work(app_id=app_id))
+        elif path in ["/api/v1/alpha/work/dispatch_200", "/api/v1/alpha/work/dispatch200"]:
+            self.send_json_response(alpha_work_engine.dispatch_200())
+        elif path == "/api/v1/alpha/work/audit":
+            self.send_json_response(alpha_work_engine.run_alpha_audit())
 
         # ---------------------------------------------------------------------
         # 11 Platform Master Suite GET Endpoints
@@ -508,6 +524,18 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(orchestrator.process_full_subscriber_lifecycle(
                 user_id, country, device_id, fiat_amount, currency
             ))
+
+        # ---------------------------------------------------------------------
+        # Alpha Work REST API Endpoints (POST)
+        # ---------------------------------------------------------------------
+        elif path in ["/api/v1/alpha/work/generate", "/api/v1/alpha/work/generate_work"]:
+            app_id = body.get("app_id", body.get("app_id_or_name", "app_001"))
+            parameters = body.get("parameters")
+            self.send_json_response(alpha_work_engine.generate_work(app_id=app_id, parameters=parameters))
+        elif path in ["/api/v1/alpha/work/dispatch_200", "/api/v1/alpha/work/dispatch200"]:
+            self.send_json_response(alpha_work_engine.dispatch_200())
+        elif path == "/api/v1/alpha/work/audit":
+            self.send_json_response(alpha_work_engine.run_alpha_audit())
 
         # ---------------------------------------------------------------------
         # 11 Platform Master Suite POST Endpoints
