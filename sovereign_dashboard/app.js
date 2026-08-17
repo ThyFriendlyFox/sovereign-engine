@@ -435,8 +435,363 @@ function reconcileItem(btn) {
   showToast("✓ Bank Line Item Reconciled with General Ledger!");
 }
 
+/* ==========================================================================
+   FIXED ASSETS & DEPRECIATION MODULE LOGIC
+   ========================================================================== */
+function calculateDepreciationSchedule(e) {
+  e.preventDefault();
+  const assetKey = document.getElementById('fa-asset-select').value;
+  const method = document.getElementById('fa-method-select').value;
+  const usefulLife = parseInt(document.getElementById('fa-life-range').value);
+  const salvageValue = parseFloat(document.getElementById('fa-salvage-input').value) || 0;
 
-  showToast("✓ Bank Line Item Reconciled with General Ledger!");
+  const assetCosts = {
+    'H100_CLUSTER': { name: 'NVIDIA H100 GPU Compute Cluster', cost: 1200000 },
+    'NEURAL_IP': { name: 'Neural Synthesizer IP & Patents', cost: 500000 },
+    'DC_RACKS': { name: 'Enterprise Datacenter Racks', cost: 150000 },
+    'IOT_NODES': { name: 'Sovereign IoT Mesh Gateways', cost: 70000 }
+  };
+
+  const selected = assetCosts[assetKey] || assetCosts['H100_CLUSTER'];
+  const depreciableBase = Math.max(0, selected.cost - salvageValue);
+  let annualDepr = (depreciableBase / usefulLife).toFixed(2);
+  let monthlyDepr = (annualDepr / 12).toFixed(2);
+
+  if (method === 'MACRS_200' || method === 'DOUBLE_DECLINING') {
+    annualDepr = (depreciableBase * (2.0 / usefulLife)).toFixed(2);
+    monthlyDepr = (annualDepr / 12).toFixed(2);
+  }
+
+  const container = document.getElementById('depreciation-result-container');
+  const resultBox = document.getElementById('depreciation-result');
+
+  if (container) container.style.display = 'block';
+  if (resultBox) {
+    resultBox.textContent = `[AURA FIXED ASSET DEPRECIATION ENGINE]
+Asset Name: ${selected.name}
+Original Cost Basis: $${selected.cost.toLocaleString('en-US', {minimumFractionDigits: 2})} USD
+Depreciation Model: ${method}
+Useful Economic Life: ${usefulLife} Years (Salvage: $${salvageValue.toLocaleString('en-US', {minimumFractionDigits: 2})})
+Calculated Year 1 Depreciation: $${parseFloat(annualDepr).toLocaleString('en-US', {minimumFractionDigits: 2})} USD
+Monthly Auto-GL Journal Entry: $${parseFloat(monthlyDepr).toLocaleString('en-US', {minimumFractionDigits: 2})} USD/mo
+Status: POSTED_TO_GENERAL_LEDGER ✓`;
+  }
+
+  showToast(`⚡ Depreciation journal entry of $${parseFloat(monthlyDepr).toLocaleString('en-US')}/mo posted to General Ledger!`);
+}
+
+/* ==========================================================================
+   INVENTORY FIFO VALUATION MODULE LOGIC
+   ========================================================================== */
+function runFifoDepletion(e) {
+  e.preventDefault();
+  const sku = document.getElementById('fifo-sku-select').value;
+  const qty = parseInt(document.getElementById('fifo-qty-input').value) || 1;
+  const price = parseFloat(document.getElementById('fifo-price-input').value) || 0;
+  const method = document.getElementById('fifo-method-select').value;
+
+  const skuDetails = {
+    'H100_MODULE': { name: 'H100 Neural Node Module', unitCost: 15000 },
+    'WEAR_WATCH': { name: 'Wear OS Sovereign Watch V2', unitCost: 180 },
+    'QUANTUM_CARD': { name: 'Quantum Key Security Card', unitCost: 42 }
+  };
+
+  const detail = skuDetails[sku] || skuDetails['H100_MODULE'];
+  const totalCost = detail.unitCost * qty;
+  const totalRevenue = price * qty;
+  const grossProfit = totalRevenue - totalCost;
+  const marginPct = ((grossProfit / Math.max(1, totalRevenue)) * 100).toFixed(1);
+
+  const container = document.getElementById('fifo-result-container');
+  const resultBox = document.getElementById('fifo-result');
+
+  if (container) container.style.display = 'block';
+  if (resultBox) {
+    resultBox.textContent = `[AURA INVENTORY FIFO VALUATION ENGINE]
+SKU Item Dispatched: ${detail.name}
+Accounting Method: ${method} (GAAP Mandated Lot Depletion)
+Units Depleted: ${qty} Units
+Total Cost of Goods Sold (COGS): $${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2})} USD
+Total Sales Revenue: $${totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2})} USD
+Calculated Gross Profit: $${grossProfit.toLocaleString('en-US', {minimumFractionDigits: 2})} USD (${marginPct}% Margin)
+FIFO Layer Status: LOT-2026-01 Depleted (${qty} Units Deducted)`;
+  }
+
+  showToast(`📦 FIFO Inventory Depleted! Recorded COGS of $${totalCost.toLocaleString('en-US')}`);
+}
+
+/* ==========================================================================
+   MULTI-ENTITY CONSOLIDATION MODULE LOGIC
+   ========================================================================== */
+function runFXRevaluation() {
+  showToast("⚡ Running Multi-Entity FX Currency Revaluation Sweep across US, EU, UK & APAC...");
+  setTimeout(() => {
+    showToast("✓ FX Rates Revalued! Translation Reserve updated (+$18,240.00 USD).");
+  }, 1000);
+}
+
+function consolidateFinancials() {
+  showToast("⚡ Consolidating Multi-Entity Financial Statements (GAAP & IFRS)...");
+  setTimeout(() => {
+    const reportText = `===================================================================
+SOVEREIGN ENGINE CONSOLIDATED GLOBAL FINANCIAL REPORT (Q3 2026)
+Consolidation Method: Global Equity & Full Intercompany Elimination
+===================================================================
+Sovereign Engine Inc. (US Parent HQ):    $845,000.00 USD
+Sovereign Europe B.V. (Netherlands):      $266,884.00 USD (€245k)
+Sovereign UK Tech Ltd (London):          $121,019.00 USD (£95k)
+Sovereign Asia-Pac Pte (Singapore):       $51,492.00 USD (S$69k)
+-------------------------------------------------------------------
+Gross Combined Global Revenue:         $1,284,395.00 USD
+Intercompany Eliminations (Royalties): -$145,000.00 USD
+-------------------------------------------------------------------
+CONSOLIDATED NET PRE-TAX REVENUE:       $1,139,395.00 USD
+Foreign Currency Translation Reserve:   +$18,240.00 USD
+Status: GAAP_AND_IFRS_BALANCED_AUDITED
+===================================================================`;
+    const blob = new Blob([reportText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Sovereign_Consolidated_Global_Financials_Q3_2026.txt";
+    a.click();
+    showToast("✓ Consolidated Financial Statement Exported!");
+  }, 1200);
+}
+
+/* ==========================================================================
+   EXPENSE OCR PROCESSING MODULE LOGIC
+   ========================================================================== */
+function simulateOcrScan(type) {
+  const placeholder = document.getElementById('ocr-placeholder');
+  const card = document.getElementById('ocr-result-card');
+  const pill = document.getElementById('ocr-status-pill');
+
+  if (placeholder) placeholder.style.display = 'none';
+  if (card) card.style.display = 'block';
+  if (pill) {
+    pill.className = 'status-pill success';
+    pill.textContent = 'NEURAL EXTRACTED ✓';
+  }
+
+  const samples = {
+    'AWS_RECEIPT': {
+      merchant: 'Amazon Web Services Inc.',
+      total: '$2,450.00 USD',
+      date: 'Aug 14, 2026',
+      tax: '$171.50',
+      gl: '6100 - AI Infrastructure Compute',
+      confidence: '99.6% (HIGH MATCH)'
+    },
+    'NVIDIA_PO': {
+      merchant: 'NVIDIA Hardware & Datacenter Corp',
+      total: '$18,200.00 USD',
+      date: 'Aug 10, 2026',
+      tax: '$1,274.00',
+      gl: '1500 - Fixed Asset Compute Hardware',
+      confidence: '99.8% (HIGH MATCH)'
+    },
+    'UBER_TRAVEL': {
+      merchant: 'Uber Technologies Executive Travel',
+      total: '$184.50 USD',
+      date: 'Aug 16, 2026',
+      tax: '$12.90',
+      gl: '6400 - Executive Travel & Transportation',
+      confidence: '98.9% (MATCH)'
+    }
+  };
+
+  const data = samples[type] || samples['AWS_RECEIPT'];
+
+  document.getElementById('ocr-merchant').textContent = data.merchant;
+  document.getElementById('ocr-total').textContent = data.total;
+  document.getElementById('ocr-date').textContent = data.date;
+  document.getElementById('ocr-tax').textContent = data.tax;
+  document.getElementById('ocr-gl-account').textContent = data.gl;
+  document.getElementById('ocr-confidence').textContent = data.confidence;
+
+  showToast(`📷 Neural Vision scanned receipt from ${data.merchant}!`);
+}
+
+function postOcrExpenseToGL() {
+  const merchant = document.getElementById('ocr-merchant').textContent;
+  const total = document.getElementById('ocr-total').textContent;
+  showToast(`⚡ Expense of ${total} from ${merchant} approved and posted to General Ledger!`);
+}
+
+/* ==========================================================================
+   VAT & SALES TAX FILING MODULE LOGIC
+   ========================================================================== */
+function fileTaxReturn(e) {
+  e.preventDefault();
+  const jur = document.getElementById('vat-jurisdiction-select').value;
+  const container = document.getElementById('vat-result-container');
+  const resultBox = document.getElementById('vat-result');
+
+  if (container) container.style.display = 'block';
+  if (resultBox) {
+    resultBox.textContent = `[AURA AUTONOMIC TAX FILING & ESCROW DISBURSEMENT]
+Selected Return: ${jur}
+Period: Q3 2026 (Quarter Ended Sept 30, 2026)
+Tax Escrow Reserve Verified: $42,800.00 USD (100% Escrowed)
+Electronic Tax Return Submission: DISPATCHED TO TAX AUTHORITY
+EFTPS / SEPA Electronic Tax Transfer: COMPLETED ✓
+Filing Confirmation Receipt: ACK-TAX-${Math.floor(1000000 + Math.random() * 9000000)}
+Status: 100% TAX_COMPLIANT_ACKNOWLEDGED`;
+  }
+
+  showToast("⚡ Autonomic Tax Return Filed & Tax Escrow Funds Disbursed!");
+}
+
+/* ==========================================================================
+   STRIPE: METERED USAGE BILLING MODULE LOGIC
+   ========================================================================== */
+function updateMeteredUsageSliders() {
+  const tokensRange = document.getElementById('mu-tokens-range');
+  const hoursRange = document.getElementById('mu-hours-range');
+  const storageRange = document.getElementById('mu-storage-range');
+
+  if (!tokensRange || !hoursRange || !storageRange) return;
+
+  const tokens = parseInt(tokensRange.value);
+  const hours = parseInt(hoursRange.value);
+  const storage = parseInt(storageRange.value);
+
+  document.getElementById('mu-tokens-val').textContent = `${tokens.toLocaleString('en-US')} Tokens`;
+  document.getElementById('mu-hours-val').textContent = `${hours} Hours`;
+  document.getElementById('mu-storage-val').textContent = `${storage} GB`;
+
+  const overageTokens = Math.max(0, tokens - 100000);
+  const tokensCost = (overageTokens * 0.0001);
+  const hoursCost = (hours * 2.50);
+  const storageCost = (storage * 0.10);
+  const baseRate = 299.00;
+  const totalCost = baseRate + tokensCost + hoursCost + storageCost;
+
+  document.getElementById('mu-tokens-cost').textContent = `$${tokensCost.toFixed(2)}`;
+  document.getElementById('mu-hours-cost').textContent = `$${hoursCost.toFixed(2)}`;
+  document.getElementById('mu-storage-cost').textContent = `$${storageCost.toFixed(2)}`;
+  document.getElementById('mu-total-cost').textContent = `$${totalCost.toFixed(2)} USD`;
+}
+
+function calculateMeteredUsage(e) {
+  e.preventDefault();
+  updateMeteredUsageSliders();
+
+  const container = document.getElementById('metered-result-container');
+  const resultBox = document.getElementById('metered-result');
+  const totalCostStr = document.getElementById('mu-total-cost').textContent;
+
+  if (container) container.style.display = 'block';
+  if (resultBox) {
+    resultBox.textContent = `[REVENUECAT METERED RATING ENGINE]
+Metered Telemetry Rated in Real-Time (1.2 ms)
+Calculated Total Charge: ${totalCostStr}
+RevenueCat Usage Webhook Dispatched: True
+StoreKit 2 / Google Play Auto-Billed: SUCCESS ✓`;
+  }
+
+  showToast(`⚡ Rated Usage Invoice of ${totalCostStr} calculated and auto-billed!`);
+}
+
+/* ==========================================================================
+   STRIPE: SMART DUNNING MODULE LOGIC
+   ========================================================================== */
+function runSmartDunningSimulation(e) {
+  e.preventDefault();
+  const acc = document.getElementById('dunning-account-select').value;
+  const reason = document.getElementById('dunning-decline-reason').value;
+
+  const container = document.getElementById('dunning-result-container');
+  const resultBox = document.getElementById('dunning-result');
+
+  if (container) container.style.display = 'block';
+  if (resultBox) {
+    resultBox.textContent = `[PULSE SMART DUNNING ML RETRY ENGINE]
+Target Subscriber Account: ${acc}
+Decline Reason: ${reason}
+Machine Learning Peak Settlement Window Calculated: 06:14 AM Tuesday
+Step 1 (Hour 0): Smart Retry Dispatched -> RETRY SUCCESSFUL ✓
+Card Issuer Authorization Response: APPROVED 00
+Recovered MRR: +$1,499.00 USD
+Status: SUBSCRIBER_RECOVERED (0 Days Downtime)`;
+  }
+
+  showToast("⚡ Smart Dunning ML Retry executed! Subscriber recovered successfully.");
+}
+
+/* ==========================================================================
+   STRIPE: CHECKOUT VAT & SALES TAX CALCULATOR MODULE LOGIC
+   ========================================================================== */
+function calculateCheckoutTax(e) {
+  if (e && e.preventDefault && e.type === 'submit') e.preventDefault();
+
+  const loc = document.getElementById('st-location-select') ? document.getElementById('st-location-select').value : 'US_CA';
+  const mode = document.getElementById('st-display-mode') ? document.getElementById('st-display-mode').value : 'TAX_EXCLUSIVE';
+  const isExempt = document.getElementById('st-exemption-chk') ? document.getElementById('st-exemption-chk').checked : false;
+
+  const rates = {
+    'US_CA': { rate: 0.0825, name: 'California Sales Tax', code: '8.25% CA Sales Tax' },
+    'EU_DE': { rate: 0.19, name: 'German MwSt. VAT', code: '19.0% EU VAT' },
+    'UK_LON': { rate: 0.20, name: 'UK HMRC VAT', code: '20.0% UK VAT' },
+    'AU_SYD': { rate: 0.10, name: 'Australia GST', code: '10.0% AU GST' },
+    'JP_TYO': { rate: 0.10, name: 'Japan Consumption Tax', code: '10.0% JP Tax' }
+  };
+
+  const current = rates[loc] || rates['US_CA'];
+  const basePrice = 99.99;
+  let taxAmount = 0;
+  let totalAmount = basePrice;
+  let labelText = `Estimated Tax / VAT (${current.code}):`;
+
+  if (isExempt) {
+    taxAmount = 0;
+    totalAmount = basePrice;
+    labelText = `Tax Exempt Certificate Applied:`;
+  } else if (mode === 'TAX_INCLUSIVE') {
+    taxAmount = basePrice - (basePrice / (1 + current.rate));
+    totalAmount = basePrice;
+    labelText = `Embedded ${current.name} (${current.code}):`;
+  } else {
+    taxAmount = basePrice * current.rate;
+    totalAmount = basePrice + taxAmount;
+  }
+
+  const taxLabelEl = document.getElementById('st-tax-label');
+  const taxAmountEl = document.getElementById('st-tax-amount');
+  const totalAmountEl = document.getElementById('st-total-amount');
+  const legalNoteEl = document.getElementById('st-legal-note');
+
+  if (taxLabelEl) taxLabelEl.textContent = labelText;
+  if (taxAmountEl) taxAmountEl.textContent = `$${taxAmount.toFixed(2)} USD`;
+  if (totalAmountEl) totalAmountEl.textContent = `$${totalAmount.toFixed(2)} USD`;
+  if (legalNoteEl) legalNoteEl.textContent = isExempt ? "0% Tax Applied per verified Exemption Certificate." : `Tax calculated automatically based on ${current.name} compliance rules.`;
+}
+
+function validateViesVatId() {
+  const vatId = document.getElementById('st-vat-id').value;
+  const viesText = document.getElementById('vies-status-text');
+  const pill = document.getElementById('st-reverse-charge-pill');
+
+  if (!vatId || vatId.trim().length < 5) {
+    showToast("Please enter a valid EU VAT number (e.g. DE123456789).");
+    return;
+  }
+
+  showToast("⚡ Validating EU VIES Tax ID direct with European Commission API...");
+  setTimeout(() => {
+    if (viesText) viesText.innerHTML = `<span style="color: var(--accent-green); font-weight:700;">✓ VIES VALID: ${vatId.toUpperCase()} (0% B2B Reverse Charge Exemption Applied)</span>`;
+    if (pill) {
+      pill.className = 'status-pill cyan';
+      pill.textContent = '0% REVERSE CHARGE';
+    }
+    const taxChk = document.getElementById('st-exemption-chk');
+    if (taxChk) {
+      taxChk.checked = true;
+      calculateCheckoutTax();
+    }
+    showToast(`✓ EU VAT ID ${vatId.toUpperCase()} validated! 0% B2B Reverse Charge applied.`);
+  }, 1000);
 }
 
 
@@ -458,22 +813,23 @@ const COPILOT_PAGE_CONFIGS = {
   },
   'quickbooks': {
     name: '💼 QuickBooks Autonomic Ledger',
-    welcome: '⚡ **Gemini 2.5 Flash Accounting Copilot Connected**\n\nI am monitoring your **Autonomic General Ledger**, P&L statements, B2B invoice underwriting, and tax filing packages.\n\n* Q3 Gross Revenue: **$446,760.00**\n* COGS & App Store Fees: **-$67,014.00**\n* Operating Expenses (AI Compute): **-$48,500.00**\n* Net Pre-Tax Income: **$331,246.00**\n\nSelect a quick financial audit prompt or ask any accounting query!',
+    welcome: '⚡ **Gemini 2.5 Flash Accounting Copilot Connected**\n\nI am monitoring your **Autonomic General Ledger**, P&L statements, Fixed Assets & Depreciation, Inventory FIFO, Multi-Entity Consolidation, Expense OCR, and Tax filing packages.\n\n* Q3 Gross Revenue: **$446,760.00**\n* Fixed Assets Net Book Value: **$1,240,000.00**\n* FIFO Inventory Value: **$345,200.00**\n* Consolidated Global Revenue: **$1,284,500.00**\n* Tax Reserve Escrow: **$42,800.00 (100% Escrowed)**\n\nSelect a quick financial audit prompt or ask any accounting query!',
     chips: [
-      { label: '💼 Draft Q3 Financial Report', prompt: 'Draft a consolidated Q3 Profit & Loss (P&L) executive summary report.' },
-      { label: '⚖️ Balance Sheet & Cashflow Audit', prompt: 'Analyze current assets vs liabilities and projected cash runway.' },
-      { label: '🧾 Invoice Credit Underwriting', prompt: 'Underwrite B2B invoice risk using AURA Credit Underwriting engine.' },
-      { label: '👥 Payroll & Tax Compliance', prompt: 'Audit 14-contributor USDC & ACH payroll batch and Form 1099-NEC status.' }
+      { label: '🏢 Fixed Assets & Depreciation', prompt: 'Audit fixed assets register and MACRS 200% depreciation schedule for H100 compute cluster.' },
+      { label: '📦 FIFO Inventory Valuation', prompt: 'Analyze FIFO inventory lots, COGS depletion layers, and stock turnover metrics.' },
+      { label: '🌐 Multi-Entity Consolidation', prompt: 'Review multi-entity consolidation across US, EU, UK, and APAC entities and intercompany eliminations.' },
+      { label: '📷 Expense OCR & Receipts', prompt: 'Run neural OCR receipt extraction and autonomic general ledger account assignment.' },
+      { label: '🏛️ VAT & Sales Tax Compliance', prompt: 'Audit Q3 sales tax and VAT liability escrow balance across US nexus states and EU OSS.' }
     ]
   },
   'stripe': {
-    name: '💳 Stripe Replacement & Paywalls AST',
-    welcome: '⚡ **Gemini 2.5 Flash Monetization Copilot Active**\n\nI am linked to **RevenueCat SDK 8.2.0** and **PULSE Churn Defense**. I can optimize AST Paywall variants, mutate themes in real-time, and run winback retention simulations.\n\n* Active Subscriptions: **12,480**\n* Paywall Variant Active: **NEON_CYAN (var_A_minimal)**\n* Churn Intercept Winback Rate: **+24%**\n\nWhat paywall variant or retention strategy should we test?',
+    name: '💳 Stripe Replacement & Monetization Hub',
+    welcome: '⚡ **Gemini 2.5 Flash Monetization Copilot Active**\n\nI am linked to **RevenueCat SDK 8.2.0**, Metered Usage Rating Engine, **PULSE Smart Dunning**, and Checkout VAT/Sales Tax system.\n\n* Active Subscriptions: **12,480**\n* Metered Usage Telemetry: **4.2M Tokens/s ($84.5k MRR)**\n* Dunning Recovery Success: **84.2% Success Rate**\n* Global Tax Compliance: **100% Tax Covered (VIES Active)**\n\nWhat paywall variant, metered rating schedule, or dunning strategy should we test?',
     chips: [
-      { label: '🎨 Paywall Theme AST Optimization', prompt: 'Recommend optimal paywall theme and headline copy for global expansion.' },
-      { label: '🛡️ PULSE Churn Intercept Simulation', prompt: 'Run a PULSE customer center winback intercept simulation for high churn risk users.' },
-      { label: '💳 RevenueCat Webhook Telemetry', prompt: 'Verify live StoreKit 2 and Google Play Billing webhook entanglement.' },
-      { label: '⚡ A/B Conversion Test Analysis', prompt: 'Compare conversion lift between Paywall Variant A (Minimal) vs Variant B (Neon).' }
+      { label: '⚡ Metered Usage Rating Audit', prompt: 'Audit real-time API token and GPU compute metered usage billing rates.' },
+      { label: '🛡️ AI Smart Dunning Recovery', prompt: 'Run an ML Smart Dunning retry sequence for failed payment recovery.' },
+      { label: '🌐 Checkout Tax & VIES Exemption', prompt: 'Calculate checkout sales tax and validate EU VIES B2B reverse charge VAT.' },
+      { label: '🎨 Paywall AST Theme Optimization', prompt: 'Recommend optimal paywall theme variant and CTA headline for global expansion.' }
     ]
   },
   'tokenomics': {

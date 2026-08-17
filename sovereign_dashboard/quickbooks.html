@@ -56,6 +56,11 @@
       <button class="qb-tab-btn" data-tab="payroll" onclick="switchQbTab('payroll')">👥 Payroll & Tax</button>
       <button class="qb-tab-btn" data-tab="vendor-bills" onclick="switchQbTab('vendor-bills')">📑 Vendor Bills</button>
       <button class="qb-tab-btn" data-tab="reconciliation" onclick="switchQbTab('reconciliation')">🏦 Bank Reconciliation</button>
+      <button class="qb-tab-btn" data-tab="fixed-assets" onclick="switchQbTab('fixed-assets')">🏢 Fixed Assets & Depreciation</button>
+      <button class="qb-tab-btn" data-tab="inventory-fifo" onclick="switchQbTab('inventory-fifo')">📦 Inventory FIFO</button>
+      <button class="qb-tab-btn" data-tab="multi-entity" onclick="switchQbTab('multi-entity')">🌐 Multi-Entity Consolidation</button>
+      <button class="qb-tab-btn" data-tab="expense-ocr" onclick="switchQbTab('expense-ocr')">📷 Expense OCR Processing</button>
+      <button class="qb-tab-btn" data-tab="vat-tax" onclick="switchQbTab('vat-tax')">🏛️ VAT & Sales Tax</button>
     </div>
   </div>
 
@@ -954,6 +959,662 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 8: FIXED ASSETS & DEPRECIATION        -->
+    <!-- ========================================== -->
+    <div id="tab-fixed-assets" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Total Fixed Assets</div>
+          <div class="metric-value" style="color: #fff; font-family: var(--font-mono);">$1,720,000.00</div>
+          <div class="metric-change positive">▲ 4 Verified Asset Cards</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Accumulated Depreciation</div>
+          <div class="metric-value" style="color: var(--accent-rose); font-family: var(--font-mono);">-$480,000.00</div>
+          <div class="metric-change positive">MACRS 200% DB Active</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Net Book Value (NBV)</div>
+          <div class="metric-value" style="color: var(--accent-cyan); font-family: var(--font-mono);">$1,240,000.00</div>
+          <div class="metric-change positive">▲ 100% General Ledger Synced</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Autonomic Post Cycle</div>
+          <div class="metric-value" style="color: var(--accent-green);">Daily Auto-GL</div>
+          <div class="metric-change positive">▲ Zero Manual Schedule Overhead</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🏢 Sovereign Fixed Asset Register</h3>
+            <span class="status-pill success">Audited Schedule</span>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Asset Name</th>
+                  <th>Class</th>
+                  <th>Cost Basis</th>
+                  <th>Method</th>
+                  <th>Useful Life</th>
+                  <th>Accum. Depr.</th>
+                  <th>Net Book Value</th>
+                </tr>
+              </thead>
+              <tbody id="fixed-assets-tbody">
+                <tr>
+                  <td><strong>NVIDIA H100 Compute Cluster</strong></td>
+                  <td><span class="status-pill cyan">Infra</span></td>
+                  <td style="font-family: var(--font-mono);">$1,200,000.00</td>
+                  <td>MACRS 200%</td>
+                  <td>5 Yrs</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$360,000.00</td>
+                  <td style="color: var(--accent-green); font-family: var(--font-mono); font-weight: 700;">$840,000.00</td>
+                </tr>
+                <tr>
+                  <td><strong>Neural Synthesizer IP & Patents</strong></td>
+                  <td><span class="status-pill purple" style="background: rgba(121,40,202,0.15); border:1px solid rgba(121,40,202,0.35); color:#a855f7;">Intangible</span></td>
+                  <td style="font-family: var(--font-mono);">$500,000.00</td>
+                  <td>Straight-Line</td>
+                  <td>10 Yrs</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$100,000.00</td>
+                  <td style="color: var(--accent-green); font-family: var(--font-mono); font-weight: 700;">$400,000.00</td>
+                </tr>
+                <tr>
+                  <td><strong>Enterprise Datacenter Racks</strong></td>
+                  <td><span class="status-pill gold">Equipment</span></td>
+                  <td style="font-family: var(--font-mono);">$150,000.00</td>
+                  <td>Double Declining</td>
+                  <td>3 Yrs</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$20,000.00</td>
+                  <td style="color: var(--accent-green); font-family: var(--font-mono); font-weight: 700;">$130,000.00</td>
+                </tr>
+                <tr>
+                  <td><strong>Sovereign IoT Mesh Gateways</strong></td>
+                  <td><span class="status-pill success">Hardware</span></td>
+                  <td style="font-family: var(--font-mono);">$70,000.00</td>
+                  <td>Straight-Line</td>
+                  <td>5 Yrs</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">$0.00</td>
+                  <td style="color: var(--accent-green); font-family: var(--font-mono); font-weight: 700;">$70,000.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🧮 Autonomic Depreciation Simulator</h3>
+            <span class="status-pill cyan">AURA Core Engine</span>
+          </div>
+
+          <form onsubmit="calculateDepreciationSchedule(event)">
+            <div class="form-group">
+              <label class="form-label">Target Asset for Amortization</label>
+              <select id="fa-asset-select" class="form-select">
+                <option value="H100_CLUSTER">NVIDIA H100 GPU Compute Cluster ($1,200,000.00)</option>
+                <option value="NEURAL_IP">Neural Synthesizer IP & Patents ($500,000.00)</option>
+                <option value="DC_RACKS">Enterprise Datacenter Racks ($150,000.00)</option>
+                <option value="IOT_NODES">Sovereign IoT Mesh Gateways ($70,000.00)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Depreciation Convention & Model</label>
+              <select id="fa-method-select" class="form-select">
+                <option value="MACRS_200">MACRS 200% Declining Balance (Tax Preferred)</option>
+                <option value="STRAIGHT_LINE">Straight-Line Depreciation (SL)</option>
+                <option value="DOUBLE_DECLINING">Double Declining Balance (200% DDB)</option>
+                <option value="SUM_OF_YEARS">Sum-of-Years-Digits (SYD)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" style="display: flex; justify-content: space-between;">
+                <span>Useful Economic Life (Years)</span>
+                <strong id="fa-life-val" style="color: var(--accent-cyan);">5 Years</strong>
+              </label>
+              <input type="range" id="fa-life-range" class="form-range" min="1" max="15" value="5" oninput="document.getElementById('fa-life-val').textContent = this.value + ' Years'">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Estimated Residual Salvage Value ($)</label>
+              <input type="number" id="fa-salvage-input" class="form-input" value="50000.00" step="5000">
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">⚡ Post Autonomic Depreciation Journal Entry</button>
+          </form>
+
+          <div id="depreciation-result-container" style="margin-top: 1.25rem; display: none;">
+            <div class="terminal-wrapper">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <div class="dot red"></div>
+                  <div class="dot yellow"></div>
+                  <div class="dot green"></div>
+                </div>
+                <span class="terminal-title">fixed_assets_depreciation_engine.log</span>
+              </div>
+              <div id="depreciation-result" class="code-preview-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 9: INVENTORY FIFO                      -->
+    <!-- ========================================== -->
+    <div id="tab-inventory-fifo" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Total FIFO Inventory Value</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">$345,200.00</div>
+          <div class="metric-change positive">▲ 18 Active Inventory Lots</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">COGS (FIFO Accounting)</div>
+          <div class="metric-value" style="color: var(--accent-rose); font-family: var(--font-mono);">$68,400.00</div>
+          <div class="metric-change positive">▼ First-In Depleted First</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Inventory Turnover Ratio</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">14.2x / Year</div>
+          <div class="metric-change positive">▲ High Liquidity Velocity</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Reorder Point Threshold</div>
+          <div class="metric-value" style="color: var(--accent-gold);">2 Lots Low Stock</div>
+          <div class="metric-change positive">Auto-PO Replenishment On</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📦 FIFO Inventory Lots Ledger</h3>
+            <span class="status-pill success">Real-Time Valuation</span>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Lot ID</th>
+                  <th>SKU / Product</th>
+                  <th>Qty Left</th>
+                  <th>Date Acquired</th>
+                  <th>Unit Cost</th>
+                  <th>Total Value</th>
+                  <th>FIFO Layer</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">LOT-2026-01</strong></td>
+                  <td>H100 Neural Node Module</td>
+                  <td>12 Units</td>
+                  <td>Jan 10, 2026</td>
+                  <td style="font-family: var(--font-mono);">$15,000.00</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">$180,000.00</td>
+                  <td><span class="status-pill rose">FIFO #1 (NEXT OUT)</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">LOT-2026-02</strong></td>
+                  <td>Wear OS Sovereign Watch V2</td>
+                  <td>450 Units</td>
+                  <td>Feb 04, 2026</td>
+                  <td style="font-family: var(--font-mono);">$180.00</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">$81,000.00</td>
+                  <td><span class="status-pill gold">FIFO #2</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">LOT-2026-03</strong></td>
+                  <td>Quantum Key Security Card</td>
+                  <td>1,200 Units</td>
+                  <td>Mar 15, 2026</td>
+                  <td style="font-family: var(--font-mono);">$42.00</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">$50,400.00</td>
+                  <td><span class="status-pill cyan">FIFO #3</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">LOT-2026-04</strong></td>
+                  <td>H100 Neural Node Module (Batch 2)</td>
+                  <td>2 Units</td>
+                  <td>Apr 01, 2026</td>
+                  <td style="font-family: var(--font-mono);">$16,900.00</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">$33,800.00</td>
+                  <td><span class="status-pill success">UNTOUCHED</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">⚡ FIFO COGS & Inventory Depletion Engine</h3>
+            <span class="status-pill cyan">AURA Valuation</span>
+          </div>
+
+          <form onsubmit="runFifoDepletion(event)">
+            <div class="form-group">
+              <label class="form-label">Select SKU to Fulfill / Deplete</label>
+              <select id="fifo-sku-select" class="form-select">
+                <option value="H100_MODULE">H100 Neural Node Module ($15,000.00 Cost Basis)</option>
+                <option value="WEAR_WATCH">Wear OS Sovereign Watch V2 ($180.00 Cost Basis)</option>
+                <option value="QUANTUM_CARD">Quantum Key Security Card ($42.00 Cost Basis)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Quantity Units Sold / Dispatched</label>
+              <input type="number" id="fifo-qty-input" class="form-input" value="4" min="1" max="100" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Unit Selling Price ($ USD)</label>
+              <input type="number" id="fifo-price-input" class="form-input" value="24000.00" step="100" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Valuation Method</label>
+              <select id="fifo-method-select" class="form-select">
+                <option value="FIFO">FIFO (First-In First-Out - GAAP Mandated)</option>
+                <option value="LIFO">LIFO (Last-In First-Out)</option>
+                <option value="WAV">Weighted Average Cost (WAV)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">⚡ Deplete Inventory Lot & Record COGS</button>
+          </form>
+
+          <div id="fifo-result-container" style="margin-top: 1.25rem; display: none;">
+            <div class="terminal-wrapper">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <div class="dot red"></div>
+                  <div class="dot yellow"></div>
+                  <div class="dot green"></div>
+                </div>
+                <span class="terminal-title">fifo_valuation_engine.log</span>
+              </div>
+              <div id="fifo-result" class="code-preview-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 10: MULTI-ENTITY CONSOLIDATION         -->
+    <!-- ========================================== -->
+    <div id="tab-multi-entity" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Consolidated Global Revenue</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">$1,284,500.00</div>
+          <div class="metric-change positive">▲ 4 Entangled Subsidiaries</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Intercompany Eliminations</div>
+          <div class="metric-value" style="color: var(--accent-rose); font-family: var(--font-mono);">-$145,000.00</div>
+          <div class="metric-change positive">Zero Double-Counted Revenue</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Consolidated Net Pre-Tax</div>
+          <div class="metric-value" style="color: var(--accent-cyan); font-family: var(--font-mono);">$842,500.00</div>
+          <div class="metric-change positive">▲ 65.6% Consolidated Margin</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">FX Translation Reserve</div>
+          <div class="metric-value" style="color: var(--accent-gold); font-family: var(--font-mono);">+$18,240.00</div>
+          <div class="metric-change positive">▲ Multi-Currency Hedged</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🌐 Global Entity Matrix & FX Exchange Rates</h3>
+            <span class="status-pill success">US GAAP / IFRS</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Sovereign Engine Inc. (US Parent HQ)</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Functional Currency: USD ($1.000)</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-green);">$845,000.00</div>
+                <span class="status-pill success" style="font-size: 0.68rem;">PARENT ENTITY</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Sovereign Europe B.V. (Amsterdam)</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Functional: EUR (€0.918 / $1.00)</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan);">€245,000.00 ($266,884.00)</div>
+                <span class="status-pill cyan" style="font-size: 0.68rem;">SUBSIDIARY</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Sovereign UK Tech Ltd (London)</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Functional: GBP (£0.785 / $1.00)</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-gold);">£95,000.00 ($121,019.00)</div>
+                <span class="status-pill gold" style="font-size: 0.68rem;">SUBSIDIARY</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Sovereign Asia-Pac Pte (Singapore)</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Functional: SGD (S$1.340 / $1.00)</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-magenta);">S$69,000.00 ($51,492.00)</div>
+                <span class="status-pill rose" style="font-size: 0.68rem;">SUBSIDIARY</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" style="width: 100%;" onclick="runFXRevaluation()">⚡ Run FX Currency Revaluation & Translation</button>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">⚖️ Intercompany Elimination Matrix</h3>
+            <span class="status-pill cyan">Auto-Eliminated</span>
+          </div>
+
+          <div class="table-responsive" style="margin-bottom: 1.25rem;">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Elimination Item</th>
+                  <th>Origin Entity</th>
+                  <th>Target</th>
+                  <th>Amount (USD)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>AI IP License Royalty</strong></td>
+                  <td>Sovereign EU B.V.</td>
+                  <td>US Parent HQ</td>
+                  <td style="font-family: var(--font-mono); color: var(--accent-rose);">$85,000.00</td>
+                  <td><span class="status-pill success">ELIMINATED ✓</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Intercompany Compute Loan</strong></td>
+                  <td>Sovereign UK Ltd</td>
+                  <td>US Parent HQ</td>
+                  <td style="font-family: var(--font-mono); color: var(--accent-rose);">$40,000.00</td>
+                  <td><span class="status-pill success">ELIMINATED ✓</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Management Fee Allocation</strong></td>
+                  <td>Sovereign APAC Pte</td>
+                  <td>US Parent HQ</td>
+                  <td style="font-family: var(--font-mono); color: var(--accent-rose);">$20,000.00</td>
+                  <td><span class="status-pill success">ELIMINATED ✓</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <button class="btn-secondary" style="width: 100%; justify-content: center;" onclick="consolidateFinancials()">
+            ⚡ Export Consolidated Financial Statement (PDF/XML)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 11: EXPENSE OCR PROCESSING             -->
+    <!-- ========================================== -->
+    <div id="tab-expense-ocr" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Receipts Processed (Monthly)</div>
+          <div class="metric-value" style="color: #fff;">142 Receipts</div>
+          <div class="metric-change positive">▲ 100% Neural Vision Scanned</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Neural OCR Accuracy</div>
+          <div class="metric-value" style="color: var(--accent-green);">99.4%</div>
+          <div class="metric-change positive">▲ Field Extraction Confidence</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Auto-Approved Expenses</div>
+          <div class="metric-value" style="color: var(--accent-cyan); font-family: var(--font-mono);">$28,450.00</div>
+          <div class="metric-change positive">96.8% Auto-GL Posted</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Time Saved vs Manual Entry</div>
+          <div class="metric-value" style="color: var(--accent-gold);">48.5 Hours / Mo</div>
+          <div class="metric-change positive">▲ Autonomic Accounting</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- OCR UPLOAD & SCAN DROPZONE -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📷 Neural Receipt OCR Dropzone</h3>
+            <span class="status-pill success">AURA Vision Active</span>
+          </div>
+
+          <div style="border: 2px dashed var(--accent-cyan-glow); border-radius: 18px; padding: 2rem; text-align: center; background: rgba(0, 242, 254, 0.02); margin-bottom: 1.5rem; transition: var(--transition-fast);" id="ocr-dropzone">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📷</div>
+            <h4 style="font-family: var(--font-heading); color: #fff; margin-bottom: 0.25rem;">Drop Receipt Image or Invoice PDF</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">Supports PNG, JPG, WEBP, PDF (Neural Vision extracts merchant, tax, total, & GL account)</p>
+            <button class="btn-primary" onclick="simulateOcrScan('AWS_RECEIPT')">⚡ Select & Neural Scan Receipt</button>
+          </div>
+
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">Or Select Sample Receipt Preset:</div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="chip" onclick="simulateOcrScan('AWS_RECEIPT')">☁️ AWS Cloud Infra ($2,450.00)</button>
+            <button class="chip" onclick="simulateOcrScan('NVIDIA_PO')">🤖 NVIDIA Hardware PO ($18,200.00)</button>
+            <button class="chip" onclick="simulateOcrScan('UBER_TRAVEL')">🚗 Executive Uber Travel ($184.50)</button>
+          </div>
+        </div>
+
+        <!-- OCR EXTRACTION & GL CLASSIFICATION CARD -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🧠 Neural Field Extraction Result</h3>
+            <span class="status-pill cyan" id="ocr-status-pill">AWAITING SCAN</span>
+          </div>
+
+          <div id="ocr-placeholder" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+            Select or upload a receipt to trigger Gemini & AURA Neural Vision OCR Field Extraction.
+          </div>
+
+          <div id="ocr-result-card" style="display: none;">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass-bright); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Extracted Merchant</div>
+                  <h3 id="ocr-merchant" style="font-family: var(--font-heading); color: #fff; font-size: 1.2rem;">Amazon Web Services Inc.</h3>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Total Amount</div>
+                  <div id="ocr-total" style="font-family: var(--font-mono); font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">$2,450.00 USD</div>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; font-size: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--border-glass);">
+                <div>
+                  <span style="color: var(--text-muted);">Transaction Date:</span> <strong id="ocr-date" style="color: #fff;">Aug 14, 2026</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted);">Extracted Tax/VAT:</span> <strong id="ocr-tax" style="color: var(--accent-cyan);">$171.50</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted);">Autonomic GL Account:</span> <strong id="ocr-gl-account" style="color: var(--accent-gold);">6100 - AI Infrastructure Compute</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted);">Neural Confidence:</span> <strong id="ocr-confidence" style="color: var(--accent-green);">99.6% (MATCH)</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+              <button class="btn-primary" style="flex: 1;" onclick="postOcrExpenseToGL()">⚡ Approve & Post to GL</button>
+              <button class="btn-secondary" style="flex: 1;" onclick="showToast('Receipt flagged for manual review.')">🚩 Flag Review</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 12: VAT & SALES TAX                    -->
+    <!-- ========================================== -->
+    <div id="tab-vat-tax" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Quarterly Tax Collected (Q3)</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">$42,800.00</div>
+          <div class="metric-change positive">▲ 100% Tax Compliant</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Tax Liability Reserve</div>
+          <div class="metric-value" style="color: var(--accent-cyan); font-family: var(--font-mono);">$42,800.00</div>
+          <div class="metric-change positive">▲ 100% Escrowed in Vault</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active Tax Jurisdictions</div>
+          <div class="metric-value" style="color: #fff;">32 States + EU/UK</div>
+          <div class="metric-change positive">▲ Automated Tax Calculation</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Exempt B2B Subscriptions</div>
+          <div class="metric-value" style="color: var(--accent-gold); font-family: var(--font-mono);">$185,000.00</div>
+          <div class="metric-change positive">▲ Reverse Charge VAT Validated</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🏛️ Tax Jurisdiction Matrix & Rates</h3>
+            <span class="status-pill success">Live Tax Engine</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Jurisdiction</th>
+                  <th>Tax Type</th>
+                  <th>Standard Rate</th>
+                  <th>Q3 Taxable Revenue</th>
+                  <th>Tax Collected</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>United States (CA, NY, TX Nexus)</strong></td>
+                  <td>State Sales Tax</td>
+                  <td>7.25% - 8.875%</td>
+                  <td style="font-family: var(--font-mono);">$240,000.00</td>
+                  <td style="font-family: var(--font-mono); color: var(--accent-green);">$19,800.00</td>
+                  <td><span class="status-pill success">READY TO FILE</span></td>
+                </tr>
+                <tr>
+                  <td><strong>European Union (One Stop Shop)</strong></td>
+                  <td>OSS VAT</td>
+                  <td>19.0% - 21.0%</td>
+                  <td style="font-family: var(--font-mono);">$85,000.00</td>
+                  <td style="font-family: var(--font-mono); color: var(--accent-green);">$16,150.00</td>
+                  <td><span class="status-pill success">READY TO FILE</span></td>
+                </tr>
+                <tr>
+                  <td><strong>United Kingdom (HMRC)</strong></td>
+                  <td>UK VAT</td>
+                  <td>20.0%</td>
+                  <td style="font-family: var(--font-mono);">$28,000.00</td>
+                  <td style="font-family: var(--font-mono); color: var(--accent-green);">$5,600.00</td>
+                  <td><span class="status-pill cyan">SCHEDULED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Australia (ATO)</strong></td>
+                  <td>AU GST</td>
+                  <td>10.0%</td>
+                  <td style="font-family: var(--font-mono);">$12,500.00</td>
+                  <td style="font-family: var(--font-mono); color: var(--accent-green);">$1,250.00</td>
+                  <td><span class="status-pill success">READY TO FILE</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📄 Autonomic Tax Filing & Escrow Vault</h3>
+            <span class="status-pill cyan">IRS / HMRC Direct</span>
+          </div>
+
+          <form onsubmit="fileTaxReturn(event)">
+            <div class="form-group">
+              <label class="form-label">Select Tax Jurisdiction Return</label>
+              <select id="vat-jurisdiction-select" class="form-select">
+                <option value="US_SALES_TAX">US State Nexus Sales Tax Batch (CA, NY, TX)</option>
+                <option value="EU_OSS_VAT">EU One Stop Shop (OSS) VAT Return (€14,820.00)</option>
+                <option value="UK_HMRC_VAT">UK HMRC Electronic VAT Return (£4,396.00)</option>
+                <option value="AU_ATO_GST">Australia ATO Goods & Services Tax (GST)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Filing Period</label>
+              <input type="text" class="form-input" value="Q3 2026 (July 1 - Sept 30, 2026)" readonly>
+            </div>
+
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 14px; padding: 1.1rem; margin-bottom: 1.25rem;">
+              <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase;">Tax Reserve Escrow Vault</div>
+              <div style="font-family: var(--font-mono); font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">$42,800.00 USD</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">100% Escrowed — Ready for Instant EFTPS / SEPA Transfer</div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">⚡ File Autonomic Tax Return & Disburse Tax Escrow</button>
+          </form>
+
+          <div id="vat-result-container" style="margin-top: 1.25rem; display: none;">
+            <div class="terminal-wrapper">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <div class="dot red"></div>
+                  <div class="dot yellow"></div>
+                  <div class="dot green"></div>
+                </div>
+                <span class="terminal-title">tax_filing_engine.log</span>
+              </div>
+              <div id="vat-result" class="code-preview-box"></div>
+            </div>
           </div>
         </div>
       </div>
