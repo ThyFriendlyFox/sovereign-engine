@@ -652,6 +652,7 @@ class BankReconciliationEngine:
         return {
             "total_transactions": total_tx,
             "matched_transactions": matched_count,
+            "reconciled_transactions": matched_count,
             "unmatched_transactions": unmatched_count,
             "reconciliation_confidence_pct": confidence_pct,
             "reconciled_items": reconciled_items,

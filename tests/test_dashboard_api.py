@@ -169,6 +169,67 @@ class TestDashboardAPI(unittest.TestCase):
         res = self.invoke_endpoint("/api/v1/gemini/chat", "POST", {"message": "Audit cores"})
         self.assertIn("reply", res)
 
+    def test_26_quickbooks_endpoints(self):
+        pnl = self.invoke_endpoint("/api/v1/quickbooks/pnl", "GET")
+        self.assertEqual(pnl["net_income"], 331246.0)
+        proj = self.invoke_endpoint("/api/v1/quickbooks/project", "POST", {"project_id": "PRJ-101"})
+        self.assertEqual(proj["status"], "QUICKBOOKS_JOB_COSTING_ACTIVE")
+
+    def test_27_stripe_endpoints(self):
+        pay = self.invoke_endpoint("/api/v1/stripe/payment", "POST", {"amount": 100.0, "currency": "USD"})
+        self.assertEqual(pay["status"], "STRIPE_PAYMENT_SUCCESS")
+        coupon = self.invoke_endpoint("/api/v1/stripe/coupon", "POST", {"code": "OFF50", "percent_off": 50.0})
+        self.assertEqual(coupon["code"], "OFF50")
+
+    def test_28_revenuecat_endpoints(self):
+        ent = self.invoke_endpoint("/api/v1/revenuecat/entitlements", "GET")
+        self.assertEqual(ent["status"], "REVENUECAT_ENTITLED")
+        exp = self.invoke_endpoint("/api/v1/revenuecat/experiment", "POST", {"experiment_id": "exp_v2"})
+        self.assertEqual(exp["status"], "REVENUECAT_EXPERIMENT_ACTIVE")
+
+    def test_29_netsuite_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/netsuite/asc606", "POST", {"total_contract_value": 120000.0})
+        self.assertEqual(res["recognized_month_1"], 9863.01)
+
+    def test_30_xero_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/xero/forecast", "POST", {"current_cash": 100000.0, "expected_ar": 50000.0, "expected_ap": 20000.0})
+        self.assertEqual(res["projected_30day_cash"], 130000.0)
+
+    def test_31_gusto_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/gusto/payroll", "POST", {"gross_payroll": 10000.0})
+        self.assertEqual(res["federal_tax"], 2200.0)
+
+    def test_32_bill_com_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/bill/ap_approval", "POST", {"bill_id": "BILL-101", "amount": 15000.0})
+        self.assertEqual(res["approval_level_2"], "APPROVED (CFO)")
+
+    def test_33_expensify_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/expensify/audit", "POST", {"employee_id": "EMP-1", "expenses": [{"merchant": "AWS", "amount": 100.0, "receipt_ocr": True}]})
+        self.assertEqual(res["reimbursement_status"], "APPROVED_FOR_PAYOUT")
+
+    def test_34_plaid_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/plaid/balance", "GET")
+        self.assertEqual(res["available_balance"], 1420500.0)
+
+    def test_35_avalara_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/avalara/tax_nexus", "POST", {"amount": 100.0, "state_or_country": "US_CA"})
+        self.assertEqual(res["tax_due"], 8.75)
+
+    def test_36_freshbooks_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/freshbooks/time_invoice", "POST", {"client": "Client A", "hourly_rate": 150.0, "hours_logged": 10.0})
+        self.assertEqual(res["total_invoiced"], 1500.0)
+
+    def test_37_mega11_audit_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/mega11/audit", "GET")
+        self.assertEqual(res["status"], "ALL_11_PLATFORMS_FULLY_OPERATIONAL")
+
+    def test_38_integrated_core_audit_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/platforms/integrated_core_audit", "GET")
+        self.assertEqual(res["status"], "ALL_11_PLATFORMS_AND_6_CORES_FULLY_INTEGRATED")
+        self.assertIn("mega_11_platforms", res)
+        self.assertIn("nextgen_6_cores", res)
+
 
 if __name__ == "__main__":
     unittest.main()
+

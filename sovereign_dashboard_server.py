@@ -1,7 +1,7 @@
 """
 SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER (Port 8090)
-QuickBooks, Xero, NetSuite, Gusto, Bill.com, Expensify & Stripe Replacement Server
-Powered by RevenueCat, Gemini AI, 6 Next-Gen Fintech Cores & Complete Enterprise SaaS Ecosystem
+QuickBooks, Xero, NetSuite, Gusto, Bill.com, Expensify, Stripe, RevenueCat, Plaid, Avalara & FreshBooks Replacement Server
+Powered by RevenueCat, Gemini AI, 11 Platform Master Suite, 6 Next-Gen Fintech Cores & Complete Enterprise SaaS Ecosystem
 """
 
 import os
@@ -41,6 +41,20 @@ from complete_enterprise_saas_ecosystem import (
     PurchaseOrderMatchingEngine
 )
 from nextgen_master_orchestrator import NextGenMasterOrchestrator
+from mega_11_platform_master_suite import (
+    Mega11PlatformOrchestrator,
+    QuickBooksMasterModule,
+    StripeMasterModule,
+    RevenueCatMasterModule,
+    NetSuiteMasterModule,
+    XeroMasterModule,
+    GustoMasterModule,
+    BillComMasterModule,
+    ExpensifyMasterModule,
+    PlaidMasterModule,
+    AvalaraMasterModule,
+    FreshBooksMasterModule
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -61,6 +75,9 @@ cf = orchestrator.cf
 payroll = orchestrator.payroll
 ap = orchestrator.ap
 bank = orchestrator.bank
+
+# Initialize Mega 11-Platform Master Suite
+mega11 = Mega11PlatformOrchestrator(master_orchestrator=orchestrator)
 
 # Initialize 9 Enterprise SaaS Ecosystem Engines
 depreciation = FixedAssetDepreciationEngine()
@@ -158,6 +175,42 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(orchestrator.audit_financial_integrity())
         elif path == "/api/v1/orchestrator/statement":
             self.send_json_response(orchestrator.generate_consolidated_sovereign_statement())
+
+        # ---------------------------------------------------------------------
+        # 11 Platform Master Suite GET Endpoints
+        # ---------------------------------------------------------------------
+        elif path in ["/api/v1/quickbooks/pnl", "/api/v1/qb/pnl"]:
+            self.send_json_response(mega11.qb.get_pnl_statement())
+        elif path in ["/api/v1/quickbooks/project", "/api/v1/qb/project"]:
+            self.send_json_response(mega11.qb.get_project_profitability("PRJ-101"))
+        elif path in ["/api/v1/stripe/payment", "/api/v1/stripe/charge"]:
+            self.send_json_response(mega11.stripe.process_payment(100.0, "USD"))
+        elif path == "/api/v1/stripe/coupon":
+            self.send_json_response(mega11.stripe.create_coupon("PRO20", 20.0))
+        elif path == "/api/v1/revenuecat/entitlements":
+            self.send_json_response(mega11.rc.get_entitlements("sub_101"))
+        elif path == "/api/v1/revenuecat/experiment":
+            self.send_json_response(mega11.rc.trigger_paywall_experiment("exp_paywall_v2"))
+        elif path == "/api/v1/netsuite/asc606":
+            self.send_json_response(mega11.netsuite.execute_asc606_revenue_recognition(120000.0))
+        elif path == "/api/v1/xero/forecast":
+            self.send_json_response(mega11.xero.get_30day_cash_forecast(1420500.0, 185400.0, 48200.0))
+        elif path == "/api/v1/gusto/payroll":
+            self.send_json_response(mega11.gusto.run_full_payroll(148500.0))
+        elif path in ["/api/v1/bill/ap_approval", "/api/v1/bill_com/ap_approval"]:
+            self.send_json_response(mega11.bill.execute_ap_approval_workflow("BILL-901", 24500.0))
+        elif path == "/api/v1/expensify/audit":
+            self.send_json_response(mega11.expensify.audit_expense_report("EMP-01", [{"merchant": "AWS", "amount": 250.0, "receipt_ocr": True}]))
+        elif path == "/api/v1/plaid/balance":
+            self.send_json_response(mega11.plaid.get_realtime_auth_balance("acc_101"))
+        elif path == "/api/v1/avalara/tax_nexus":
+            self.send_json_response(mega11.avalara.calculate_global_tax_nexus(1000.0, "US_CA"))
+        elif path == "/api/v1/freshbooks/time_invoice":
+            self.send_json_response(mega11.freshbooks.log_time_and_create_invoice("Apex Global", 150.0, 40.0))
+        elif path in ["/api/v1/mega11/audit", "/api/v1/platforms/audit"]:
+            self.send_json_response(mega11.run_full_11_platform_audit())
+        elif path == "/api/v1/platforms/integrated_core_audit":
+            self.send_json_response(mega11.run_integrated_11_platform_6_core_audit(orchestrator))
         else:
             super().do_GET()
 
@@ -318,6 +371,67 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 user_id, country, device_id, fiat_amount, currency
             ))
 
+        # ---------------------------------------------------------------------
+        # 11 Platform Master Suite POST Endpoints
+        # ---------------------------------------------------------------------
+        elif path in ["/api/v1/quickbooks/pnl", "/api/v1/qb/pnl"]:
+            self.send_json_response(mega11.qb.get_pnl_statement())
+        elif path in ["/api/v1/quickbooks/project", "/api/v1/qb/project"]:
+            project_id = body.get("project_id", "PRJ-101")
+            self.send_json_response(mega11.qb.get_project_profitability(project_id))
+        elif path in ["/api/v1/stripe/payment", "/api/v1/stripe/charge"]:
+            amount = float(body.get("amount", 100.0))
+            currency = body.get("currency", "USD")
+            payment_method = body.get("payment_method", "card")
+            self.send_json_response(mega11.stripe.process_payment(amount, currency, payment_method))
+        elif path == "/api/v1/stripe/coupon":
+            code = body.get("code", "PRO20")
+            percent_off = float(body.get("percent_off", 20.0))
+            self.send_json_response(mega11.stripe.create_coupon(code, percent_off))
+        elif path == "/api/v1/revenuecat/entitlements":
+            subscriber_id = body.get("subscriber_id", "sub_101")
+            self.send_json_response(mega11.rc.get_entitlements(subscriber_id))
+        elif path == "/api/v1/revenuecat/experiment":
+            experiment_id = body.get("experiment_id", "exp_paywall_v2")
+            self.send_json_response(mega11.rc.trigger_paywall_experiment(experiment_id))
+        elif path == "/api/v1/netsuite/asc606":
+            total_contract_value = float(body.get("total_contract_value", 120000.0))
+            contract_days = int(body.get("contract_days", 365))
+            self.send_json_response(mega11.netsuite.execute_asc606_revenue_recognition(total_contract_value, contract_days))
+        elif path == "/api/v1/xero/forecast":
+            current_cash = float(body.get("current_cash", 1420500.0))
+            expected_ar = float(body.get("expected_ar", 185400.0))
+            expected_ap = float(body.get("expected_ap", 48200.0))
+            self.send_json_response(mega11.xero.get_30day_cash_forecast(current_cash, expected_ar, expected_ap))
+        elif path == "/api/v1/gusto/payroll":
+            gross_payroll = float(body.get("gross_payroll", 148500.0))
+            self.send_json_response(mega11.gusto.run_full_payroll(gross_payroll))
+        elif path in ["/api/v1/bill/ap_approval", "/api/v1/bill_com/ap_approval"]:
+            bill_id = body.get("bill_id", "BILL-901")
+            amount = float(body.get("amount", 24500.0))
+            self.send_json_response(mega11.bill.execute_ap_approval_workflow(bill_id, amount))
+        elif path == "/api/v1/expensify/audit":
+            employee_id = body.get("employee_id", "EMP-01")
+            expenses = body.get("expenses", [{"merchant": "AWS", "amount": 250.0, "receipt_ocr": True}])
+            self.send_json_response(mega11.expensify.audit_expense_report(employee_id, expenses))
+        elif path == "/api/v1/plaid/balance":
+            account_id = body.get("account_id", "acc_101")
+            self.send_json_response(mega11.plaid.get_realtime_auth_balance(account_id))
+        elif path == "/api/v1/avalara/tax_nexus":
+            amount = float(body.get("amount", 1000.0))
+            jurisdiction = body.get("state_or_country", body.get("jurisdiction", "US_CA"))
+            is_b2b = bool(body.get("is_b2b_reseller", False))
+            self.send_json_response(mega11.avalara.calculate_global_tax_nexus(amount, jurisdiction, is_b2b))
+        elif path == "/api/v1/freshbooks/time_invoice":
+            client = body.get("client", "Apex Global")
+            hourly_rate = float(body.get("hourly_rate", 150.0))
+            hours_logged = float(body.get("hours_logged", 40.0))
+            self.send_json_response(mega11.freshbooks.log_time_and_create_invoice(client, hourly_rate, hours_logged))
+        elif path in ["/api/v1/mega11/audit", "/api/v1/platforms/audit"]:
+            self.send_json_response(mega11.run_full_11_platform_audit())
+        elif path == "/api/v1/platforms/integrated_core_audit":
+            self.send_json_response(mega11.run_integrated_11_platform_6_core_audit(orchestrator))
+
         # Legacy / Existing Endpoints
         elif path == "/api/v1/invoices/create":
             client = body.get("client", "Apex Global")
@@ -380,7 +494,7 @@ def run_server(port: int = 8090):
     httpd = HTTPServer(server_address, SovereignDashboardHandler)
     logger.info(f"===================================================================")
     logger.info(f"  SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER RUNNING          ")
-    logger.info(f"  All 15+ Enterprise SaaS & 6 Next-Gen Core Endpoints Exposed (Port {port})")
+    logger.info(f"  All 11 Platform Master Suite & 6 Next-Gen Core Endpoints Exposed (Port {port})")
     logger.info(f"===================================================================")
     httpd.serve_forever()
 
