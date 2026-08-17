@@ -89,6 +89,7 @@
       <button class="view-tab-btn" id="view-btn-mcp" onclick="switchCommandCenterView('mcp')">🛠️ MCP Tool Console</button>
       <button class="view-tab-btn" id="view-btn-radar" onclick="switchCommandCenterView('radar')">📡 Ingestion Telemetry Radar</button>
       <button class="view-tab-btn" id="view-btn-sandbox" onclick="switchCommandCenterView('sandbox')">🧪 Container Sandboxes</button>
+      <button class="view-tab-btn" id="view-btn-autonomic" onclick="switchCommandCenterView('autonomic')">🤖 Alpha Autonomic Work Studio</button>
     </div>
 
     <!-- VIEW 1: APP MARKETPLACE CATALOG -->
@@ -349,6 +350,169 @@
             </div>
           </div>
         </div>
+      </div>
+    <!-- VIEW: ALPHA AUTONOMIC WORK STUDIO -->
+    <div id="sec-autonomic-view" style="display: none;" class="glass-panel autonomic-studio-panel">
+      <div class="panel-header" style="flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <h3 class="panel-title" style="font-size: 1.35rem;">🤖 Alpha Autonomic Work Studio</h3>
+            <span class="status-pill cyan">200 Apps Entangled</span>
+            <span class="status-pill success">● Swarm Active</span>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Autonomous task synthesis, real-time dispatch queue for all 200 ecosystem apps, active parallel workers, and sub-millisecond execution telemetry.
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+          <button id="autonomic-toggle-btn" class="btn-card-action btn-card-primary" onclick="toggleAutonomicEngine()">⏸ Pause Autonomic Swarm</button>
+          <button class="btn-card-action" onclick="triggerAutonomicBurst()">⚡ Dispatch Batch (1,000 Tasks)</button>
+          <button class="btn-card-action" onclick="flushAutonomicQueue()">🧹 Flush Queue</button>
+        </div>
+      </div>
+
+      <div class="autonomic-metrics-bar">
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan);">⚡</div>
+          <div>
+            <div class="autonomic-metric-label">Tasks Generated</div>
+            <div class="autonomic-metric-value" id="autonomic-tasks-generated">14,892</div>
+            <div class="autonomic-metric-sub" id="autonomic-tasks-rate">342 tasks/sec</div>
+          </div>
+        </div>
+
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(121, 40, 202, 0.15); color: var(--accent-violet);">⚙️</div>
+          <div>
+            <div class="autonomic-metric-label">Active Parallel Workers</div>
+            <div class="autonomic-metric-value" id="autonomic-workers-count">8 / 8 Workers</div>
+            <div class="autonomic-metric-sub" style="color: var(--accent-green);">100% Core Entanglement</div>
+          </div>
+        </div>
+
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);">🎯</div>
+          <div>
+            <div class="autonomic-metric-label">Execution Latency SLA</div>
+            <div class="autonomic-metric-value" id="autonomic-avg-latency">0.18 ms</div>
+            <div class="autonomic-metric-sub" style="color: var(--accent-green);">▲ 99.99% Autonomic SLA</div>
+          </div>
+        </div>
+
+        <div class="autonomic-metric-card">
+          <div class="autonomic-metric-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-gold);">🛍️</div>
+          <div>
+            <div class="autonomic-metric-label">Ecosystem Apps Pool</div>
+            <div class="autonomic-metric-value">200 / 200 Apps</div>
+            <div class="autonomic-metric-sub" style="color: var(--accent-cyan);">7 Tech Domains Covered</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="autonomic-studio-grid">
+        <!-- PANEL 1: REAL-TIME TASK GENERATION FOR ALL 200 APPS -->
+        <div class="autonomic-panel-box">
+          <div class="panel-header-sub">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.1rem;">⚡</span>
+                <span style="font-weight: 700; color: #fff; font-family: var(--font-heading);">Real-Time Task Queue (200 Apps)</span>
+              </div>
+              <span class="badge-revenuecat" style="background: rgba(0, 242, 254, 0.1); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.3);" id="autonomic-queue-depth">Queue Depth: 42</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <input 
+              type="text" 
+              id="autonomic-task-search" 
+              class="search-input" 
+              style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px;" 
+              placeholder="Filter tasks by App title, ID (1-200), or opcode..." 
+              oninput="renderAutonomicTaskFeed()"
+            >
+            <select id="autonomic-domain-filter" class="select-custom" style="padding: 0.4rem 0.6rem; font-size: 0.8rem; border-radius: 8px; width: 130px;" onchange="renderAutonomicTaskFeed()">
+              <option value="all">All Domains</option>
+              <option value="ai">🤖 AI & Neural</option>
+              <option value="finance">💼 Finance</option>
+              <option value="payments">💳 Payments</option>
+              <option value="web3">🪙 Web3</option>
+              <option value="iot">⌚ IoT Mesh</option>
+              <option value="zk">🔒 Zero-Knowledge</option>
+              <option value="workflow">⚡ Workflow</option>
+            </select>
+          </div>
+
+          <div id="autonomic-task-feed" class="autonomic-task-feed">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- PANEL 2: ACTIVE PARALLEL WORKERS POOL -->
+        <div class="autonomic-panel-box">
+          <div class="panel-header-sub">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.1rem;">⚙️</span>
+                <span style="font-weight: 700; color: #fff; font-family: var(--font-heading);">Active Parallel Workers Pool</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Threads:</span>
+                <select id="autonomic-worker-count-select" class="select-custom" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; border-radius: 6px;" onchange="changeWorkerCount(this.value)">
+                  <option value="4">4 Workers</option>
+                  <option value="8" selected>8 Workers</option>
+                  <option value="12">12 Workers</option>
+                  <option value="16">16 Workers</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="autonomic-workers-grid" class="autonomic-workers-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- PANEL 3: LIVE TASK EXECUTION TELEMETRY & LOG STREAM -->
+        <div class="autonomic-panel-box">
+          <div class="panel-header-sub">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.1rem;">📡</span>
+              <span style="font-weight: 700; color: #fff; font-family: var(--font-heading);">Live Task Execution Telemetry</span>
+            </div>
+          </div>
+
+          <div style="background: rgba(10, 15, 26, 0.8); border: 1px solid var(--border-glass); border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+              <span>Parallel App Domain Execution Density</span>
+              <span style="color: var(--accent-cyan); font-family: var(--font-mono);" id="autonomic-active-apps-count">200 Apps Entangled</span>
+            </div>
+
+            <div class="autonomic-domain-bars" id="autonomic-domain-bars">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <div style="background: #04060c; border: 1px solid var(--border-glass-bright); border-radius: 12px; padding: 0.85rem; flex: 1; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <div class="terminal-dots">
+                  <div class="dot red"></div>
+                  <div class="dot yellow"></div>
+                  <div class="dot green"></div>
+                </div>
+                <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">alpha_autonomic_telemetry.log</span>
+              </div>
+              <span class="status-pill success" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">● LIVE</span>
+            </div>
+
+            <div id="autonomic-terminal-stream" class="code-preview-box" style="height: 220px; font-size: 0.78rem; line-height: 1.5; flex: 1;">
+              <!-- Log stream rendered by JS -->
+            </div>
+          </div>
+
+        </div>
+
       </div>
     </div>
 

@@ -16,6 +16,11 @@ from sovereign_infrastructure.nextgen_systems.gemini_intelligence_engine import 
     RetentionStrategyNode
 )
 
+from sovereign_infrastructure.nextgen_systems.alpha_unlimited_work_engine import (
+    AlphaUnlimitedWorkEngine,
+    AlphaAppWorkGenerator
+)
+
 __all__ = [
     "XFINEngine",
     "AURAEngine",
@@ -27,6 +32,9 @@ __all__ = [
     "GeminiIntelligenceEngine",
     "CFOIntelligenceNode",
     "TaxSynthesisNode",
-    "RetentionStrategyNode"
+    "RetentionStrategyNode",
+    "AlphaUnlimitedWorkEngine",
+    "AlphaAppWorkGenerator"
 ]
+
 
