@@ -1,6 +1,6 @@
 """
 SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER (Port 8090)
-QuickBooks, Xero, NetSuite & Stripe Replacement Server Powered by RevenueCat & 6 Cores
+QuickBooks, Xero, NetSuite & Stripe Replacement Server Powered by RevenueCat, Gemini AI & 6 Cores
 """
 
 import os
@@ -9,7 +9,7 @@ import json
 import logging
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-# Import 6 Next-Gen Fintech Cores & Full SaaS Accounting Suite
+# Import 6 Next-Gen Fintech Cores, Full SaaS Accounting Suite, and Gemini Intelligence Engine
 sys.path.append(os.path.join(os.path.dirname(__file__), "sovereign_infrastructure", "nextgen_systems"))
 
 from xfin_engine import XFINEngine
@@ -26,11 +26,12 @@ from full_saas_accounting_suite import (
     AccountsPayableEngine,
     BankReconciliationEngine
 )
+from gemini_intelligence_engine import GeminiChatOrchestrator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
 
-# Initialize Systems
+# Initialize Cores
 xfin = XFINEngine(1000000.0)
 aura = AURAEngine()
 pulse = PULSEEngine()
@@ -38,13 +39,14 @@ mint = MINTEngine(5000000.0)
 grid = GRIDEngine()
 nexs = NEXSEngine()
 
-# Initialize Full Accounting Engines
+# Initialize Full Accounting Engines & Gemini Orchestrator
 gl = GeneralLedgerEngine()
 bs = BalanceSheetEngine(gl)
 cf = CashFlowEngine()
 payroll = PayrollTaxEngine()
 ap = AccountsPayableEngine()
 bank = BankReconciliationEngine()
+gemini_chat = GeminiChatOrchestrator()
 
 DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "sovereign_dashboard")
 
@@ -109,7 +111,11 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
         body_bytes = self.rfile.read(content_length)
         body = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
 
-        if self.path == "/api/v1/invoices/create":
+        if self.path == "/api/v1/gemini/chat":
+            msg = body.get("message", "Hello Gemini")
+            res = gemini_chat.process_chat_query(msg)
+            self.send_json_response(res)
+        elif self.path == "/api/v1/invoices/create":
             client = body.get("client", "Apex Global")
             amount = float(body.get("amount", 10000.0))
             score = aura.evaluate_credit_score(lifetime_spent_usd=amount, active_months=12)
@@ -170,7 +176,7 @@ def run_server(port: int = 8090):
     httpd = HTTPServer(server_address, SovereignDashboardHandler)
     logger.info(f"===================================================================")
     logger.info(f"  SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER RUNNING          ")
-    logger.info(f"  QuickBooks, Xero, NetSuite & Stripe Replacement (Port {port})     ")
+    logger.info(f"  QuickBooks & Stripe Replacement + Gemini AI (Port {port})          ")
     logger.info(f"===================================================================")
     httpd.serve_forever()
 

@@ -38,7 +38,7 @@ class GeneralLedgerEngine:
             "2200": {"name": "Payroll Tax Payable", "type": "LIABILITY", "debits": 0.0, "credits": 18500.0},
             "2300": {"name": "Deferred Revenue", "type": "LIABILITY", "debits": 0.0, "credits": 36000.0},
             "3010": {"name": "Common Stock & Capital", "type": "EQUITY", "debits": 0.0, "credits": 1000000.0},
-            "3020": {"name": "Retained Earnings", "type": "EQUITY", "debits": 0.0, "credits": 456954.0},
+            "3020": {"name": "Retained Earnings", "type": "EQUITY", "debits": 0.0, "credits": 614954.0},
             "4010": {"name": "Subscription Revenue (RevenueCat)", "type": "REVENUE", "debits": 0.0, "credits": 446760.0},
             "4090": {"name": "Purchase Discounts Earned", "type": "REVENUE", "debits": 0.0, "credits": 0.0},
             "5010": {"name": "App Store & COGS Fees", "type": "EXPENSE", "debits": 67014.0, "credits": 0.0},

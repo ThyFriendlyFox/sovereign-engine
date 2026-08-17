@@ -149,6 +149,39 @@
       </div>
     </div>
   </main>
+  <!-- FLOATING GEMINI 2.5 FLASH AI COPILOT DRAWER -->
+  <div id="gemini-chat-launcher" onclick="toggleGeminiChat()" style="position: fixed; bottom: 24px; right: 24px; z-index: 999; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; padding: 0.8rem 1.4rem; border-radius: 50px; cursor: pointer; font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem; box-shadow: 0 10px 30px rgba(0, 242, 254, 0.4); display: flex; align-items: center; gap: 0.6rem; border: 1px solid rgba(255,255,255,0.2); transition: transform 0.2s ease;">
+    <span>✨ Ask Gemini AI</span>
+    <span class="status-pill success" style="font-size: 0.65rem; padding: 2px 6px;">2.5 Flash</span>
+  </div>
+
+  <div id="gemini-chat-drawer" style="position: fixed; bottom: 85px; right: 24px; width: 400px; height: 550px; z-index: 999; background: rgba(10, 14, 26, 0.95); backdrop-filter: blur(25px); border: 1px solid var(--accent-cyan); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.7); display: none; flex-direction: column; overflow: hidden;">
+    <div style="padding: 1rem 1.25rem; background: rgba(255,255,255,0.04); border-bottom: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan);"></div>
+        <strong style="font-family: var(--font-heading); font-size: 1rem; color: #fff;">Gemini 2.5 Flash Copilot</strong>
+      </div>
+      <button onclick="toggleGeminiChat()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
+    </div>
+
+    <div id="gemini-chat-messages" style="flex: 1; padding: 1.25rem; overflow-y: auto; display: flex; flex-direction: column;">
+      <div style="align-self: flex-start; background: rgba(255,255,255,0.05); color: #e2e8f0; padding: 0.75rem 1rem; border-radius: 14px 14px 14px 2px; margin-bottom: 0.75rem; font-size: 0.85rem; border: 1px solid var(--border-glass);">
+        🤖 <strong>Hello! I am your Gemini AI Intelligence Copilot.</strong><br>Ask me anything about Net Income, CFO Tax offsets, Churn risk, Paywall AST, or Jetpack Compose code generation!
+      </div>
+    </div>
+
+    <div style="padding: 0.5rem 1rem; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border-glass); display: flex; gap: 0.4rem; overflow-x: auto;">
+      <button class="btn-secondary" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; white-space: nowrap;" onclick="quickGeminiPrompt('Show CFO Net Income and Tax Insights')">📊 CFO Audit</button>
+      <button class="btn-secondary" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; white-space: nowrap;" onclick="quickGeminiPrompt('Synthesize Paywall v2 Copy for Germany')">🎨 Paywall AI</button>
+      <button class="btn-secondary" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; white-space: nowrap;" onclick="quickGeminiPrompt('Synthesize Fitness AI Compose UI Code')">⚡ Code Gen</button>
+    </div>
+
+    <form onsubmit="sendGeminiMessage(event)" style="padding: 0.75rem 1rem; border-top: 1px solid var(--border-glass); display: flex; gap: 0.5rem; background: rgba(13, 19, 33, 0.95);">
+      <input type="text" id="gemini-chat-input" placeholder="Ask Gemini AI anywhere..." style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: #fff; padding: 0.6rem 0.9rem; border-radius: 10px; font-size: 0.85rem;" required>
+      <button type="submit" class="btn-primary" style="padding: 0.6rem 1rem;">Send</button>
+    </form>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
