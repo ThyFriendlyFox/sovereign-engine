@@ -48,8 +48,38 @@ class TestGeminiIntelligenceEngine(unittest.TestCase):
         self.assertEqual(res["consensus_status"], "HEALTHY")
 
     def test_06_gemini_orchestrator_chat(self):
-        res = self.orchestrator.process_chat_query("Show me CFO Tax Insights")
+        res = self.orchestrator.process_chat_query("Show me CFO Insights")
         self.assertEqual(res["system"], "CFO_INTELLIGENCE")
+
+    def test_07_gemini_orchestrator_xfin_chat(self):
+        res = self.orchestrator.process_chat_query("Check XFIN FX Arbitrage Yield BRL")
+        self.assertEqual(res["system"], "XFIN_CORE")
+        self.assertIn("XFIN", res["reply"])
+
+    def test_08_gemini_orchestrator_aura_chat(self):
+        res = self.orchestrator.process_chat_query("Evaluate AURA credit underwriting status")
+        self.assertEqual(res["system"], "AURA_CORE")
+        self.assertIn("AURA", res["reply"])
+
+    def test_09_gemini_orchestrator_pulse_chat(self):
+        res = self.orchestrator.process_chat_query("Check PULSE core telemetry")
+        self.assertEqual(res["system"], "PULSE_CORE")
+        self.assertIn("PULSE", res["reply"])
+
+    def test_10_gemini_orchestrator_mint_chat(self):
+        res = self.orchestrator.process_chat_query("Show MINT tokenomics FORMA golden ratio yield")
+        self.assertEqual(res["system"], "MINT_CORE")
+        self.assertIn("MINT", res["reply"])
+
+    def test_11_gemini_orchestrator_grid_chat(self):
+        res = self.orchestrator.process_chat_query("Check GRID Wear OS IoT hardware mesh")
+        self.assertEqual(res["system"], "GRID_CORE")
+        self.assertIn("GRID", res["reply"])
+
+    def test_12_gemini_orchestrator_nexs_chat(self):
+        res = self.orchestrator.process_chat_query("Synthesize app with NEXS Jetpack Compose UI code")
+        self.assertEqual(res["system"], "NEXS_CORE")
+        self.assertIn("NEXS", res["reply"])
 
 if __name__ == "__main__":
     unittest.main()

@@ -21,6 +21,8 @@ from sovereign_infrastructure.nextgen_systems.full_saas_accounting_suite import 
     AccountsPayableEngine,
     BankReconciliationEngine
 )
+from sovereign_infrastructure.nextgen_systems.gemini_intelligence_engine import GeminiIntelligenceEngine
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("NextGenMasterOrchestrator")
@@ -60,7 +62,14 @@ class NextGenMasterOrchestrator:
         self.grid.set_accounting_suite(gl=self.gl, ap=self.ap)
         self.nexs.set_accounting_suite(gl=self.gl, payroll=self.payroll, bank=self.bank)
 
-        logger.info("[Master Orchestrator] All 6 Cores successfully integrated with Full SaaS Accounting Suite.")
+        # 3. Initialize Multi-Node Gemini Intelligence Generation Engine
+        self.gemini = GeminiIntelligenceEngine(
+            gl=self.gl, bs=self.bs, cf=self.cf, payroll=self.payroll, ap=self.ap, bank=self.bank,
+            pulse=self.pulse, aura=self.aura, xfin=self.xfin, mint=self.mint, grid=self.grid, nexs=self.nexs
+        )
+
+        logger.info("[Master Orchestrator] All 6 Cores & Gemini Intelligence Engine successfully integrated.")
+
 
     def process_full_subscriber_lifecycle(
         self,
@@ -157,7 +166,7 @@ class NextGenMasterOrchestrator:
         }
 
     def generate_consolidated_sovereign_statement(self) -> Dict[str, Any]:
-        """Generates unified executive summary report of all 6 cores and accounting state."""
+        """Generates unified executive summary report of all 6 cores, intelligence engine and accounting state."""
         return {
             "cores_status": {
                 "XFIN": {"treasury_usd": self.xfin.get_treasury_balance()},
@@ -167,5 +176,7 @@ class NextGenMasterOrchestrator:
                 "GRID": {"registered_devices_count": len(self.grid.registered_devices)},
                 "NEXS": self.nexs.get_paywall_performance_stats()
             },
+            "gemini_intelligence": self.gemini.generate_multi_node_report(),
             "financial_audit": self.audit_financial_integrity()
         }
+

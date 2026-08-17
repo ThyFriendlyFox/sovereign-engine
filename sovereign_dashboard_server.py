@@ -1,6 +1,6 @@
 """
 SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER (Port 8090)
-QuickBooks, Xero, NetSuite & Stripe Replacement Server Powered by RevenueCat, Gemini AI & 6 Cores
+QuickBooks, Xero, NetSuite, Gusto, Bill.com, Expensify & Stripe Replacement Server
 """
 
 import os
@@ -9,7 +9,7 @@ import json
 import logging
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-# Import 6 Next-Gen Fintech Cores, Full SaaS Accounting Suite, and Gemini Intelligence Engine
+# Import 6 Next-Gen Fintech Cores, SaaS Accounting Suite, Gemini AI & Complete SaaS Ecosystem
 sys.path.append(os.path.join(os.path.dirname(__file__), "sovereign_infrastructure", "nextgen_systems"))
 
 from xfin_engine import XFINEngine
@@ -27,11 +27,22 @@ from full_saas_accounting_suite import (
     BankReconciliationEngine
 )
 from gemini_intelligence_engine import GeminiChatOrchestrator
+from complete_enterprise_saas_ecosystem import (
+    FixedAssetDepreciationEngine,
+    InventoryFIFOEngine,
+    MultiEntityConsolidationEngine,
+    MeteredUsageBillingEngine,
+    SmartDunningEngine,
+    GlobalSalesTaxEngine,
+    PTOAccrualEngine,
+    ExpenseOCRMatchingEngine,
+    PurchaseOrderMatchingEngine
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
 
-# Initialize Cores
+# Initialize Systems
 xfin = XFINEngine(1000000.0)
 aura = AURAEngine()
 pulse = PULSEEngine()
@@ -39,7 +50,7 @@ mint = MINTEngine(5000000.0)
 grid = GRIDEngine()
 nexs = NEXSEngine()
 
-# Initialize Full Accounting Engines & Gemini Orchestrator
+# Initialize Full Accounting Engines, Gemini Orchestrator, & Complete SaaS Engines
 gl = GeneralLedgerEngine()
 bs = BalanceSheetEngine(gl)
 cf = CashFlowEngine()
@@ -47,6 +58,16 @@ payroll = PayrollTaxEngine()
 ap = AccountsPayableEngine()
 bank = BankReconciliationEngine()
 gemini_chat = GeminiChatOrchestrator()
+
+depreciation = FixedAssetDepreciationEngine()
+fifo = InventoryFIFOEngine()
+consolidation = MultiEntityConsolidationEngine()
+metered = MeteredUsageBillingEngine()
+dunning = SmartDunningEngine()
+tax = GlobalSalesTaxEngine()
+pto = PTOAccrualEngine()
+ocr = ExpenseOCRMatchingEngine()
+po_match = PurchaseOrderMatchingEngine()
 
 DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "sovereign_dashboard")
 
@@ -81,6 +102,12 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(cf.generate_cash_flow_statement())
         elif self.path == "/api/v1/ap/aging":
             self.send_json_response(ap.get_ap_aging_schedule())
+        elif self.path == "/api/v1/assets/depreciation":
+            self.send_json_response(depreciation.calculate_straight_line_depreciation(240000.0, 40000.0, 5))
+        elif self.path == "/api/v1/inventory/fifo":
+            self.send_json_response(fifo.calculate_fifo_cogs(50))
+        elif self.path == "/api/v1/multi_entity/consolidate":
+            self.send_json_response(consolidation.consolidate_entities(446760.0, 210000.0, 50000.0))
         elif self.path == "/api/v1/paywall/ast":
             self.send_json_response({
                 "variant_id": "var_A_minimal",
@@ -115,6 +142,27 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             msg = body.get("message", "Hello Gemini")
             res = gemini_chat.process_chat_query(msg)
             self.send_json_response(res)
+        elif self.path == "/api/v1/billing/metered":
+            base = float(body.get("base_subscription", 99.0))
+            calls = int(body.get("api_calls_used", 25000))
+            self.send_json_response(metered.calculate_metered_bill(base, calls))
+        elif self.path == "/api/v1/dunning/retry":
+            sub_id = body.get("subscriber_id", "sub_101")
+            attempt = int(body.get("retry_attempt", 1))
+            self.send_json_response(dunning.execute_dunning_retry(sub_id, attempt))
+        elif self.path == "/api/v1/tax/calculate":
+            amt = float(body.get("amount", 100.0))
+            cc = body.get("country_code", "DE")
+            self.send_json_response(tax.calculate_location_tax(amt, cc))
+        elif self.path == "/api/v1/expense/ocr":
+            merchant = body.get("merchant", "AWS")
+            amt = float(body.get("amount", 250.0))
+            self.send_json_response(ocr.process_receipt_ocr(merchant, amt))
+        elif self.path == "/api/v1/po/match3way":
+            po = float(body.get("po_amount", 5000.0))
+            slip = float(body.get("receiving_slip_amount", 5000.0))
+            inv = float(body.get("vendor_invoice_amount", 5000.0))
+            self.send_json_response(po_match.match_3way_po(po, slip, inv))
         elif self.path == "/api/v1/invoices/create":
             client = body.get("client", "Apex Global")
             amount = float(body.get("amount", 10000.0))
@@ -176,7 +224,7 @@ def run_server(port: int = 8090):
     httpd = HTTPServer(server_address, SovereignDashboardHandler)
     logger.info(f"===================================================================")
     logger.info(f"  SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER RUNNING          ")
-    logger.info(f"  QuickBooks & Stripe Replacement + Gemini AI (Port {port})          ")
+    logger.info(f"  Complete SaaS Ecosystem Matrix Active (Port {port})              ")
     logger.info(f"===================================================================")
     httpd.serve_forever()
 

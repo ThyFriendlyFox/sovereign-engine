@@ -64,5 +64,11 @@ class TestDashboardAPI(unittest.TestCase):
         compose_code = f"@Composable fun {app_name.replace(' ', '')}Screen() {{}}"
         self.assertIn("@Composable", compose_code)
 
+    def test_11_gemini_chat_api_endpoint(self):
+        from sovereign_dashboard_server import gemini_chat
+        res = gemini_chat.process_chat_query("Audit XFIN, AURA, PULSE, MINT, GRID, NEXS cores")
+        self.assertIn("reply", res)
+        self.assertIn("system", res)
+
 if __name__ == "__main__":
     unittest.main()
