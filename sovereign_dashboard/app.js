@@ -2336,12 +2336,617 @@ function runAZWorkflow() {
 
 
 // --------------------------------------------------------------------------
+// 5. 200 ENTERPRISE APP MARKETPLACE ENGINE & STATE MANAGEMENT
+// --------------------------------------------------------------------------
+const CATEGORIES = [
+  { id: 'all', name: '🌐 All Apps', count: 200 },
+  { id: 'ai', name: '🤖 AI & Neural Agents', count: 35 },
+  { id: 'finance', name: '💼 Finance & Accounting', count: 30 },
+  { id: 'payments', name: '💳 Payments & Billing', count: 25 },
+  { id: 'web3', name: '🪙 DeFi & Tokenomics', count: 30 },
+  { id: 'iot', name: '⌚ Wear OS & Hardware', count: 25 },
+  { id: 'zk', name: '🔒 ZK Security & Encryption', count: 25 },
+  { id: 'workflow', name: '⚡ Workflows & Automation', count: 30 }
+];
+
+const PUBLISHERS = [
+  'Sovereign Core', 'RevenueCat Verified', 'AIEOS Labs', 'MINT Protocol', 
+  'Zero-Knowledge Corp', 'Quantum Mesh Inc', 'Wear OS Entangled', 'Stripe Bridge Co'
+];
+
+const DOMAIN_TEMPLATES = {
+  ai: [
+    { title: 'QuantAlpha Neural Predictor', icon: '🤖', desc: 'Real-time deep neural net prediction engine for algorithmic trading and portfolio risk modeling.', tag: 'AI Agent' },
+    { title: 'SentimentPulse Web3 Copilot', icon: '🧠', desc: 'Monitors global crypto & SaaS sentiment telemetry across social feeds, news, and Discord.', tag: 'Sentiment' },
+    { title: 'Autonomous General Auditor', icon: '⚖️', desc: 'AI agent that continuously audits ledger entries, flagging anomalies with zero human latency.', tag: 'Auditing' },
+    { title: 'LLM Prompt Routing Mesh', icon: '⚡', desc: 'Dynamic router for DeepSeek, Gemini, and Llama 3 models optimizing latency and token cost.', tag: 'LLM Router' },
+    { title: 'Agentic Execution Graph', icon: '🕸️', desc: 'Multi-agent orchestration framework for executing complex multi-step enterprise workflows.', tag: 'Agents' },
+    { title: 'DeepSeek Financial Substrate', icon: '🔍', desc: 'Local offline DeepSeek fine-tune running on node TPU/GPU for confidential financial analysis.', tag: 'Local LLM' },
+    { title: 'Whisper Voice Telemetry Node', icon: '🎙️', desc: 'Real-time neural voice transcription and executive summary generator for board meetings.', tag: 'Voice AI' },
+    { title: 'Auto-GNN Fraud Detector', icon: '🛡️', desc: 'Graph Neural Network engine identifying complex transaction laundering cycles in micro-seconds.', tag: 'Fraud AI' }
+  ],
+  finance: [
+    { title: 'Sovereign Ledger Enterprise', icon: '💼', desc: 'Double-entry cryptographic ledger replacing QuickBooks with zero-trust real-time P&L.', tag: 'Accounting' },
+    { title: 'Real-time Tax Compliance Engine', icon: '🏛️', desc: 'Autonomic sales tax & VAT escrow calculation across 50 US states and 27 EU member countries.', tag: 'Tax' },
+    { title: 'Autonomic Depreciation Tracker', icon: '📉', desc: 'MACRS 200% & Straight-line asset depreciation schedule generator for GPU compute clusters.', tag: 'Assets' },
+    { title: 'Multi-Entity Balance Sheet', icon: '🌐', desc: 'Consolidated balance sheet aggregator with automatic intercompany elimination entries.', tag: 'Consolidation' },
+    { title: 'ExpenseAI Neural Scanner', icon: '📷', desc: 'Mobile & desktop receipt OCR scanner with instant general ledger account classification.', tag: 'Expenses' },
+    { title: 'Automated Cashflow Forecast', icon: '📊', desc: '365-day predictive cashflow simulation modeling runway, burn rate, and seasonal revenue.', tag: 'Cashflow' },
+    { title: 'RevenueCat MRR Analytics Core', icon: '📈', desc: 'Deep subscription analytics integrating directly with StoreKit 2 and Google Play Billing.', tag: 'MRR Analytics' },
+    { title: 'Sovereign Equity & Cap Table', icon: '📜', desc: 'Tokenized equity cap table management with automated option vesting and tax withholding.', tag: 'Cap Table' }
+  ],
+  payments: [
+    { title: 'Sovereign Pay Direct Bridge', icon: '💳', desc: 'Zero-fee direct payment gateway replacing Stripe with instant multi-currency settlement.', tag: 'Payments' },
+    { title: 'RevenueCat Substrate Paywall', icon: '⚡', desc: 'Dynamic paywall renderer supporting StoreKit 2, Android Billing, and Web Crypto checkout.', tag: 'Paywall' },
+    { title: 'Lightning Network Instant Pay', icon: '⚡', desc: 'Bitcoin Lightning & Layer-2 instant micropayment settlement node with sub-cent transaction costs.', tag: 'Lightning' },
+    { title: 'Automated Dispute Shield', icon: '🛡️', desc: 'AI chargeback prevention system auto-submitting cryptographic evidence to credit card networks.', tag: 'Disputes' },
+    { title: 'ISO20022 Enterprise Gateway', icon: '🏦', desc: 'Bank-grade SWIFT and ISO20022 XML messaging gateway for high-value enterprise wires.', tag: 'SWIFT' },
+    { title: 'Micro-SaaS Metered Billing', icon: '⏱️', desc: 'High-frequency token & API usage rating engine for charging per compute millisecond.', tag: 'Metered' },
+    { title: 'ACH Direct Substrate Node', icon: '🏦', desc: 'Same-day ACH debit and credit processor for direct bank-to-bank payroll and vendor payouts.', tag: 'ACH' }
+  ],
+  web3: [
+    { title: 'FORMA Liquidity Vault', icon: '🪙', desc: 'Automated liquidity provider vault balancing SOV and FORMA tokens across DEX pools.', tag: 'DeFi' },
+    { title: 'Golden Ratio Staking Core', icon: '✨', desc: 'Staking yield distribution contract paying phi-rate (61.8% APY) rewards with buyback burn.', tag: 'Staking' },
+    { title: 'Real-World Asset Tokenizer', icon: '🏢', desc: 'Fractionalizes commercial real estate and GPU clusters into compliant security tokens.', tag: 'RWA' },
+    { title: 'Cross-Chain Bridge Validator', icon: '🌉', desc: 'Zero-knowledge validator node securing token transfers across Ethereum, Solana, and Cosmos.', tag: 'Bridge' },
+    { title: 'MEV Protection Sentinel', icon: '🛡️', desc: 'Front-running protection relay preventing sandwich attacks on decentralized exchange swaps.', tag: 'MEV Guard' },
+    { title: 'Sovereign DAO Governance', icon: '🏛️', desc: 'On-chain quadratic voting and treasury proposal execution portal with ZK identity verification.', tag: 'Governance' },
+    { title: 'Collateralized Vault Engine', icon: '🏦', desc: 'Mint algorithmic stablecoins backed by multi-asset cryptographic collateral vaults.', tag: 'Stablecoins' }
+  ],
+  iot: [
+    { title: 'Wear OS Telemetry Node', icon: '⌚', desc: 'Live biometrics & health status collector streaming Wear OS watch metrics to Sovereign Core.', tag: 'Wearables' },
+    { title: 'BLE Mesh Sensor Gateway', icon: '📡', desc: 'Low-power Bluetooth mesh hub entangling industrial temperature, vibration, and motion sensors.', tag: 'IoT Mesh' },
+    { title: 'Edge AI Drone Telemetry', icon: '🚁', desc: 'Autonomous drone flight path calculator and real-time video neural processing pipeline.', tag: 'Drones' },
+    { title: 'Hardware Security Module Driver', icon: '🔐', desc: 'Driver for YubiKey and Ledger hardware security modules for multi-signature transaction approval.', tag: 'HSM' },
+    { title: 'Smart Building Energy Mesh', icon: '⚡', desc: 'AI power grid optimizer managing solar arrays, battery reserves, and EV charging stations.', tag: 'Energy' },
+    { title: 'Sovereign Camera Sentinel', icon: '🎥', desc: 'Privacy-first edge computer vision node processing surveillance video locally without cloud leaks.', tag: 'Vision' }
+  ],
+  zk: [
+    { title: 'Sovereign ZK-SNARK Verifier', icon: '🔒', desc: 'Ultra-fast Groth16 and Halo2 proof verifier running zero-knowledge credential checks.', tag: 'ZK Proofs' },
+    { title: 'Post-Quantum Dilithium Signer', icon: '🗝️', desc: 'CRYSTALS-Dilithium quantum-resistant digital signature suite safeguarding node keys.', tag: 'Quantum Sec' },
+    { title: 'Homomorphic Encryption Engine', icon: '🧬', desc: 'Executes mathematical computations on fully encrypted data without ever decrypting in RAM.', tag: 'FHE' },
+    { title: 'Zero-Trust Enclave Isolation', icon: '🛡️', desc: 'Intel SGX and AMD SEV secure enclave container running sensitive key operations.', tag: 'Enclave' },
+    { title: 'Encrypted Database Search', icon: '🔍', desc: 'Search SQL and NoSQL databases using zero-knowledge searchable symmetric encryption.', tag: 'ZK Search' },
+    { title: 'Zero-Knowledge KYC Authenticator', icon: '🆔', desc: 'Prove user age, citizenship, and identity credentials without revealing raw PII documents.', tag: 'ZK KYC' }
+  ],
+  workflow: [
+    { title: 'Sovereign Pipeline Studio', icon: '⚡', desc: 'Drag-and-drop visual workflow builder orchestrating event-driven microservice pipelines.', tag: 'Workflows' },
+    { title: 'Real-time Event Streaming Mesh', icon: '🌊', desc: 'Sub-millisecond event streaming broker handling 1M+ messages per second across nodes.', tag: 'Streaming' },
+    { title: 'Kafka Sovereign Adapter', icon: '🔌', desc: 'Enterprise Apache Kafka connector entangling external pub/sub topics into Sovereign Substrate.', tag: 'Kafka' },
+    { title: 'GraphQL Federation Gateway', icon: '🕸️', desc: 'Unified GraphQL schema stitching layer exposing high-performance gRPC backends.', tag: 'GraphQL' },
+    { title: 'Sovereign Cron Scheduler', icon: '⏰', desc: 'Distributed fault-tolerant task scheduler supporting cron expressions and event triggers.', tag: 'Cron' },
+    { title: 'Webhook Relay & Replay', icon: '🔄', desc: 'Reliable webhook ingestion service with automatic exponential backoff retry and payload inspection.', tag: 'Webhooks' }
+  ]
+};
+
+function generate200Apps() {
+  const apps = [];
+  let idCounter = 1;
+  const domainKeys = ['ai', 'finance', 'payments', 'web3', 'iot', 'zk', 'workflow'];
+  const targetCounts = { ai: 35, finance: 30, payments: 25, web3: 30, iot: 25, zk: 25, workflow: 30 };
+
+  domainKeys.forEach(domain => {
+    const count = targetCounts[domain];
+    const templates = DOMAIN_TEMPLATES[domain];
+
+    for (let i = 0; i < count; i++) {
+      const tmpl = templates[i % templates.length];
+      const num = Math.floor(i / templates.length) + 1;
+      const nameSuffix = num > 1 ? ` Mark ${num}` : '';
+      const rating = (4.5 + Math.random() * 0.5).toFixed(1);
+      const reviews = Math.floor(100 + Math.random() * 2500);
+      const version = `v${1 + Math.floor(i / 5)}.${i % 5}.${Math.floor(Math.random() * 9)}`;
+      const publisher = PUBLISHERS[i % PUBLISHERS.length];
+      
+      let tierRequired = 'free';
+      let priceTag = 'Free';
+      if (i % 3 === 1) {
+        tierRequired = 'pro';
+        priceTag = '$29/mo Pro';
+      } else if (i % 3 === 2) {
+        tierRequired = 'quantum';
+        priceTag = '$199/mo Quantum';
+      }
+
+      const installed = idCounter <= 38;
+      const featured = i < 3;
+      const catInfo = CATEGORIES.find(c => c.id === domain);
+
+      apps.push({
+        id: idCounter,
+        title: `${tmpl.title}${nameSuffix}`,
+        category: domain,
+        categoryLabel: catInfo ? catInfo.name.replace(/^[^\s]+\s/, '') : domain,
+        icon: tmpl.icon,
+        version: version,
+        publisher: publisher,
+        verified: true,
+        rating: parseFloat(rating),
+        reviews: reviews,
+        desc: tmpl.desc,
+        priceTag: priceTag,
+        tierRequired: tierRequired,
+        installed: installed,
+        featured: featured,
+        specs: {
+          ram: `${256 * ((i % 4) + 1)} MB Allocation`,
+          cpu: `${(i % 3) + 1} Core Entangled`,
+          key: `sov_${tierRequired === 'free' ? 'basic' : tierRequired === 'pro' ? 'pro_tier' : 'quantum_zk_security'}`,
+          zk: domain === 'zk' || i % 2 === 0 ? 'Groth16 / Halo2 Verified' : 'Standard Cryptographic Signature'
+        },
+        tags: [tmpl.tag, domain, publisher.toLowerCase(), tierRequired]
+      });
+
+      idCounter++;
+    }
+  });
+
+  return apps;
+}
+
+let ALL_APPS = generate200Apps();
+let currentCategory = 'all';
+let currentSearch = '';
+let currentTier = 'all';
+let currentStatus = 'all';
+let currentSort = 'rating';
+let currentPage = 1;
+let perPage = 24;
+
+let revenueCatState = {
+  tier: 'quantum',
+  unlockedKeys: ['sov_app_marketplace', 'sov_pro_tier', 'sov_quantum_zk_security', 'sov_gemini_ai_copilot']
+};
+
+let selectedAppId = null;
+
+// UNIFIED COMMAND CENTER VIEW SWITCHER
+function switchCommandCenterView(viewName) {
+  const views = ['telemetry', 'apps', 'az', 'mcp', 'sandbox'];
+  views.forEach(v => {
+    const sec = document.getElementById(`sec-${v}-view`);
+    const btn = document.getElementById(`view-btn-${v}`);
+    if (sec) sec.style.display = (v === viewName) ? 'block' : 'none';
+    if (btn) {
+      if (v === viewName) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
+
+  if (viewName === 'apps' && typeof renderAppGrid === 'function') renderAppGrid();
+  if (viewName === 'mcp' && typeof renderMCPConsole === 'function') renderMCPConsole();
+  if (viewName === 'telemetry' && typeof initTelemetryRadar === 'function') initTelemetryRadar();
+  if (viewName === 'az' && typeof renderAZWorkflowsCatalog === 'function') renderAZWorkflowsCatalog();
+  if (viewName === 'sandbox' && typeof updateSandboxGauges === 'function') updateSandboxGauges();
+}
+
+function switchMarketplaceView(viewName) {
+  switchCommandCenterView(viewName);
+}
+
+// CATEGORY TABS & FILTERING
+function renderCategoryTabs() {
+  const container = document.getElementById('category-tabs-container');
+  if (!container) return;
+
+  container.innerHTML = CATEGORIES.map(cat => {
+    const isActive = cat.id === currentCategory ? 'active' : '';
+    return `
+      <button class="cat-tab-btn ${isActive}" onclick="selectCategory('${cat.id}')">
+        ${cat.name}
+        <span class="cat-count">${cat.count}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function selectCategory(catId) {
+  currentCategory = catId;
+  currentPage = 1;
+  renderCategoryTabs();
+  applyFilters();
+
+  const catObj = CATEGORIES.find(c => c.id === catId);
+  const labelEl = document.getElementById('active-category-label');
+  if (labelEl) labelEl.innerText = catObj ? catObj.name : 'All Apps';
+}
+
+function handleSearchInput(val) {
+  currentSearch = val.toLowerCase().trim();
+  currentPage = 1;
+  const clearBtn = document.getElementById('search-clear-btn');
+  if (clearBtn) clearBtn.style.display = currentSearch.length > 0 ? 'flex' : 'none';
+  applyFilters();
+}
+
+function clearSearchInput() {
+  const input = document.getElementById('marketplace-search');
+  if (input) input.value = '';
+  currentSearch = '';
+  const clearBtn = document.getElementById('search-clear-btn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  currentPage = 1;
+  applyFilters();
+}
+
+function applyFilters() {
+  const tierEl = document.getElementById('filter-tier');
+  const statusEl = document.getElementById('filter-status');
+  const sortEl = document.getElementById('filter-sort');
+
+  if (tierEl) currentTier = tierEl.value;
+  if (statusEl) currentStatus = statusEl.value;
+  if (sortEl) currentSort = sortEl.value;
+
+  let filtered = ALL_APPS.filter(app => {
+    if (currentCategory !== 'all' && app.category !== currentCategory) return false;
+    if (currentTier !== 'all' && app.tierRequired !== currentTier) return false;
+    if (currentStatus === 'installed' && !app.installed) return false;
+    if (currentStatus === 'uninstalled' && app.installed) return false;
+    if (currentStatus === 'featured' && !app.featured) return false;
+
+    if (currentSearch.length > 0) {
+      const matchTitle = app.title.toLowerCase().includes(currentSearch);
+      const matchDesc = app.desc.toLowerCase().includes(currentSearch);
+      const matchPublisher = app.publisher.toLowerCase().includes(currentSearch);
+      const matchCat = app.categoryLabel.toLowerCase().includes(currentSearch);
+      const matchTags = app.tags.some(t => t.toLowerCase().includes(currentSearch));
+      return matchTitle || matchDesc || matchPublisher || matchCat || matchTags;
+    }
+    return true;
+  });
+
+  if (currentSort === 'rating') filtered.sort((a, b) => b.rating - a.rating);
+  else if (currentSort === 'reviews') filtered.sort((a, b) => b.reviews - a.reviews);
+  else if (currentSort === 'name') filtered.sort((a, b) => a.title.localeCompare(b.title));
+  else if (currentSort === 'newest') filtered.sort((a, b) => b.id - a.id);
+
+  renderFilteredGrid(filtered);
+}
+
+function renderFilteredGrid(filteredApps) {
+  const grid = document.getElementById('app-grid');
+  const resultsText = document.getElementById('results-count-text');
+  if (resultsText) resultsText.innerText = `Showing ${filteredApps.length} of 200 Apps`;
+
+  if (!grid) return;
+
+  if (filteredApps.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; padding: 4rem 2rem; text-align: center; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+        <h3 style="font-family: var(--font-heading); color: #fff; font-size: 1.25rem;">No matching apps found</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Try adjusting your search terms or clearing tier filters.</p>
+        <button class="btn-primary" style="margin-top: 1.25rem;" onclick="resetMarketplaceFilters()">🔄 Clear All Filters</button>
+      </div>
+    `;
+    renderPagination(0, 0);
+    return;
+  }
+
+  const totalPages = Math.ceil(filteredApps.length / perPage);
+  if (currentPage > totalPages) currentPage = 1;
+
+  const startIdx = (currentPage - 1) * perPage;
+  const paginatedApps = filteredApps.slice(startIdx, startIdx + perPage);
+
+  grid.innerHTML = paginatedApps.map(app => renderAppCard(app)).join('');
+  renderPagination(totalPages, filteredApps.length);
+}
+
+function renderAppGrid() {
+  applyFilters();
+}
+
+function renderAppCard(app) {
+  const badgeClass = `badge-${app.category}`;
+  const isLocked = app.tierRequired === 'quantum' && revenueCatState.tier !== 'quantum';
+
+  let actionBtnHtml = '';
+  if (app.installed) {
+    actionBtnHtml = `<button class="btn-card-action btn-card-installed" onclick="openAppModal(${app.id})">✓ Installed</button>`;
+  } else if (isLocked) {
+    actionBtnHtml = `<button class="btn-card-action btn-card-locked" onclick="openRevenueCatDrawer()">🔒 Unlock Tier</button>`;
+  } else {
+    actionBtnHtml = `<button class="btn-card-action btn-card-primary" onclick="quickInstallApp(${app.id})">⚡ Install</button>`;
+  }
+
+  return `
+    <div class="app-card" id="app-card-${app.id}">
+      <div>
+        <div class="app-card-top">
+          <div class="app-icon">${app.icon}</div>
+          <div class="app-header-info">
+            <div class="app-title-row">
+              <span class="app-title" title="${app.title}">${app.title}</span>
+              <span class="app-version">${app.version}</span>
+            </div>
+            <div class="app-publisher">
+              <span>${app.publisher}</span>
+              <span class="verified-icon" title="RevenueCat Verified Publisher">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-meta-row">
+          <span class="app-badge-category ${badgeClass}">${app.categoryLabel}</span>
+          <div class="app-rating">
+            ★ <span>${app.rating}</span>
+            <span class="app-rating-count">(${app.reviews})</span>
+          </div>
+        </div>
+
+        <div class="app-desc">${app.desc}</div>
+      </div>
+
+      <div class="app-card-footer">
+        <div class="app-price-tag">${app.priceTag}</div>
+        <div class="app-actions">
+          <button class="btn-card-action" onclick="openSandboxDrawer(${app.id})" title="Launch Real-Time Sandbox Debugger">🧪 Sandbox</button>
+          <button class="btn-card-action" onclick="openAppModal(${app.id})" title="View Specifications">Details</button>
+          ${actionBtnHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPagination(totalPages, totalItems) {
+  const container = document.getElementById('pagination-buttons');
+  const info = document.getElementById('pagination-info');
+  if (!container || !info) return;
+
+  info.innerText = `Page ${currentPage} of ${totalPages || 1} (${totalItems || 0} apps matching)`;
+
+  if (totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  let buttonsHtml = '';
+  buttonsHtml += `<button class="page-btn" ${currentPage === 1 ? 'disabled style="opacity:0.4;cursor:default;"' : ''} onclick="goToPage(${currentPage - 1})">◄</button>`;
+
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) {
+      const activeClass = p === currentPage ? 'active' : '';
+      buttonsHtml += `<button class="page-btn ${activeClass}" onclick="goToPage(${p})">${p}</button>`;
+    } else if (p === currentPage - 3 || p === currentPage + 3) {
+      buttonsHtml += `<span style="color:var(--text-dim); align-self:center;">...</span>`;
+    }
+  }
+
+  buttonsHtml += `<button class="page-btn" ${currentPage === totalPages ? 'disabled style="opacity:0.4;cursor:default;"' : ''} onclick="goToPage(${currentPage + 1})">►</button>`;
+  container.innerHTML = buttonsHtml;
+}
+
+function goToPage(page) {
+  currentPage = page;
+  applyFilters();
+  window.scrollTo({ top: 300, behavior: 'smooth' });
+}
+
+function changePerPage(val) {
+  perPage = parseInt(val, 10);
+  currentPage = 1;
+  applyFilters();
+}
+
+function resetMarketplaceFilters() {
+  currentCategory = 'all';
+  clearSearchInput();
+  const tierEl = document.getElementById('filter-tier');
+  const statusEl = document.getElementById('filter-status');
+  const sortEl = document.getElementById('filter-sort');
+  if (tierEl) tierEl.value = 'all';
+  if (statusEl) statusEl.value = 'all';
+  if (sortEl) sortEl.value = 'rating';
+  renderCategoryTabs();
+  applyFilters();
+  showToast('🔄 Marketplace filters reset to default');
+}
+
+function openAppModal(appId) {
+  selectedAppId = appId;
+  const app = ALL_APPS.find(a => a.id === appId);
+  if (!app) return;
+
+  const iconEl = document.getElementById('modal-app-icon');
+  const titleEl = document.getElementById('modal-app-title');
+  const verEl = document.getElementById('modal-app-version');
+  const pubEl = document.getElementById('modal-app-publisher');
+  const descEl = document.getElementById('modal-app-desc');
+  const ratingEl = document.getElementById('modal-app-rating');
+  const priceEl = document.getElementById('modal-price-display');
+
+  if (iconEl) iconEl.innerText = app.icon;
+  if (titleEl) titleEl.innerText = app.title;
+  if (verEl) verEl.innerText = app.version;
+  if (pubEl) pubEl.innerText = app.publisher;
+  if (descEl) descEl.innerText = app.desc;
+  if (ratingEl) ratingEl.innerText = `★ ${app.rating} (${app.reviews} reviews)`;
+  if (priceEl) priceEl.innerText = app.priceTag;
+
+  const ramEl = document.getElementById('modal-spec-ram');
+  const cpuEl = document.getElementById('modal-spec-cpu');
+  const keyEl = document.getElementById('modal-spec-key');
+  const zkEl = document.getElementById('modal-spec-zk');
+
+  if (ramEl) ramEl.innerText = app.specs.ram;
+  if (cpuEl) cpuEl.innerText = app.specs.cpu;
+  if (keyEl) keyEl.innerText = app.specs.key;
+  if (zkEl) zkEl.innerText = app.specs.zk;
+
+  const catBadge = document.getElementById('modal-app-category');
+  if (catBadge) {
+    catBadge.innerText = app.categoryLabel;
+    catBadge.className = `app-badge-category badge-${app.category}`;
+  }
+
+  const primaryBtn = document.getElementById('modal-primary-btn');
+  if (primaryBtn) {
+    if (app.installed) {
+      primaryBtn.innerText = '🗑️ Uninstall Plugin';
+      primaryBtn.className = 'btn-card-action btn-card-locked';
+    } else {
+      primaryBtn.innerText = '⚡ Install & Deploy Plugin';
+      primaryBtn.className = 'btn-card-action btn-card-primary';
+    }
+  }
+
+  const terminal = document.getElementById('modal-install-terminal');
+  if (terminal) terminal.style.display = 'none';
+
+  const modal = document.getElementById('app-modal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeAppModal() {
+  const modal = document.getElementById('app-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleModalOverlayClick(e) {
+  if (e.target.id === 'app-modal') closeAppModal();
+}
+
+function quickInstallApp(appId) {
+  const app = ALL_APPS.find(a => a.id === appId);
+  if (!app) return;
+
+  app.installed = true;
+  updateInstalledMetrics();
+  applyFilters();
+  showToast(`⚡ Installed ${app.title} to Node Mesh!`);
+}
+
+function toggleModalAppInstallation() {
+  if (!selectedAppId) return;
+  const app = ALL_APPS.find(a => a.id === selectedAppId);
+  if (!app) return;
+
+  const terminal = document.getElementById('modal-install-terminal');
+  const terminalContent = document.getElementById('terminal-log-content');
+  if (terminal) terminal.style.display = 'block';
+
+  if (!app.installed) {
+    if (terminalContent) {
+      terminalContent.innerHTML = `
+        <div>[SYNC] Contacting RevenueCat Entitlement Engine (${app.specs.key})... OK</div>
+        <div>[ZK] Verifying Groth16 cryptographic proof signature... OK</div>
+        <div>[CORE] Allocating ${app.specs.ram} on Substrate Node... OK</div>
+        <div style="color: var(--accent-green);">[SUCCESS] ${app.title} ${app.version} successfully installed!</div>
+      `;
+    }
+    app.installed = true;
+    showToast(`⚡ ${app.title} Installed Successfully`);
+  } else {
+    if (terminalContent) {
+      terminalContent.innerHTML = `
+        <div>[WARN] Deallocating node memory resources...</div>
+        <div>[INFO] Terminating P2P mesh telemetry bridge...</div>
+        <div style="color: var(--accent-rose);">[SUCCESS] ${app.title} uninstalled from node.</div>
+      `;
+    }
+    app.installed = false;
+    showToast(`🗑️ ${app.title} Uninstalled`);
+  }
+
+  updateInstalledMetrics();
+  applyFilters();
+
+  setTimeout(() => {
+    closeAppModal();
+  }, 1200);
+}
+
+function updateInstalledMetrics() {
+  const installedCount = ALL_APPS.filter(a => a.installed).length;
+  const metricEl = document.getElementById('metric-installed-apps');
+  if (metricEl) metricEl.innerText = `${installedCount} Installed`;
+}
+
+function openRevenueCatDrawer() {
+  const drawer = document.getElementById('revenuecat-drawer');
+  if (drawer) drawer.classList.add('active');
+}
+
+function closeRevenueCatDrawer() {
+  const drawer = document.getElementById('revenuecat-drawer');
+  if (drawer) drawer.classList.remove('active');
+}
+
+function simulateRevenueCatPurchase(tierKey) {
+  const tierNameEl = document.getElementById('rc-active-tier-name');
+  const tierMetricEl = document.getElementById('metric-entitlement-tier');
+  const flagQuantumEl = document.getElementById('rc-flag-quantum');
+
+  if (tierKey === 'quantum') {
+    revenueCatState.tier = 'quantum';
+    if (tierNameEl) tierNameEl.innerText = 'Enterprise Quantum Tier';
+    if (tierMetricEl) tierMetricEl.innerText = 'Enterprise Quantum';
+    if (flagQuantumEl) {
+      flagQuantumEl.innerText = 'ACTIVE (Unlocked)';
+      flagQuantumEl.style.color = 'var(--accent-green)';
+    }
+    showToast('🎉 RevenueCat Entitlement Granted: Enterprise Quantum Tier Unlocked!');
+  } else if (tierKey === 'pro') {
+    revenueCatState.tier = 'pro';
+    if (tierNameEl) tierNameEl.innerText = 'Pro Substrate Tier';
+    if (tierMetricEl) tierMetricEl.innerText = 'Pro Substrate';
+    showToast('⚡ RevenueCat Tier Updated: Pro Substrate Active');
+  } else {
+    revenueCatState.tier = 'free';
+    if (tierNameEl) tierNameEl.innerText = 'Starter Sovereign Tier';
+    if (tierMetricEl) tierMetricEl.innerText = 'Starter Sovereign';
+    showToast('ℹ️ Switched to Starter Sovereign Tier');
+  }
+
+  applyFilters();
+  closeRevenueCatDrawer();
+}
+
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault();
+      const searchInput = document.getElementById('marketplace-search');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    } else if (e.key === 'Escape') {
+      const appModal = document.getElementById('app-modal');
+      const rcDrawer = document.getElementById('revenuecat-drawer');
+      const sandboxDrawer = document.getElementById('app-sandbox-drawer');
+      const copilotDrawer = document.getElementById('gemini-copilot-drawer');
+
+      if (appModal && appModal.classList.contains('active')) closeAppModal();
+      else if (rcDrawer && rcDrawer.classList.contains('active')) closeRevenueCatDrawer();
+      else if (sandboxDrawer && sandboxDrawer.classList.contains('active')) closeSandboxDrawer();
+      else if (copilotDrawer && copilotDrawer.classList.contains('active')) closeGeminiCopilot();
+      else if (document.activeElement && document.activeElement.id === 'marketplace-search') clearSearchInput();
+    }
+  });
+}
+
+
+// --------------------------------------------------------------------------
 // GLOBAL INITIALIZER FOR INTERACTIVE EXTENSIONS
 // --------------------------------------------------------------------------
 function initSovereignInteractiveExtensions() {
+  renderCategoryTabs();
+  renderAppGrid();
   renderMCPConsole();
   initTelemetryRadar();
   renderAZWorkflowsCatalog();
+  setupKeyboardShortcuts();
+
+  // Check URL parameters for view switching
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewParam = urlParams.get('view');
+  if (viewParam) {
+    switchCommandCenterView(viewParam);
+  }
 }
 
 if (document.readyState === 'loading') {
@@ -2349,6 +2954,7 @@ if (document.readyState === 'loading') {
 } else {
   initSovereignInteractiveExtensions();
 }
+
 
 
 
