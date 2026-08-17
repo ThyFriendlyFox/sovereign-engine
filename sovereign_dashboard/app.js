@@ -332,3 +332,121 @@ function showToast(message) {
     toast.style.transform = 'translateY(20px)';
   }, 3000);
 }
+
+// QUICKBOOKS INTERACTIVE TAB SWITCHING
+function switchQbTab(tabId) {
+  const tabs = document.querySelectorAll('.qb-tab-btn');
+  const contents = document.querySelectorAll('.qb-tab-content');
+
+  tabs.forEach(tab => {
+    if (tab.dataset.tab === tabId) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  contents.forEach(content => {
+    if (content.id === `tab-${tabId}`) {
+      content.classList.add('active');
+    } else {
+      content.classList.remove('active');
+    }
+  });
+}
+
+// CASH FLOW FORECAST SIMULATOR
+function updateCashFlowForecast() {
+  const revGrowthSlider = document.getElementById('cf-rev-growth');
+  const infraScaleSlider = document.getElementById('cf-infra-scale');
+  
+  if (!revGrowthSlider || !infraScaleSlider) return;
+
+  const revGrowth = parseFloat(revGrowthSlider.value);
+  const infraScale = parseFloat(infraScaleSlider.value);
+
+  const revGrowthValEl = document.getElementById('cf-rev-growth-val');
+  const infraScaleValEl = document.getElementById('cf-infra-scale-val');
+
+  if (revGrowthValEl) revGrowthValEl.textContent = `+${revGrowth}%`;
+  if (infraScaleValEl) infraScaleValEl.textContent = `+${infraScale}%`;
+
+  const baseOpCash = 412500;
+  const projectedOpCash = baseOpCash * (1 + revGrowth / 100) - (48500 * (infraScale / 100));
+  const currentCash = 2090000;
+  const projectedRunway = (currentCash / Math.max(1, (120000 - projectedOpCash / 12))).toFixed(1);
+
+  const projCashEl = document.getElementById('cf-projected-opcash');
+  const runwayEl = document.getElementById('cf-projected-runway');
+
+  if (projCashEl) projCashEl.textContent = `$${projectedOpCash.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+  if (runwayEl) runwayEl.textContent = `${projectedRunway > 0 ? projectedRunway : 'Infinite (Cash Positive)'} Months`;
+}
+
+// PAYROLL BATCH RUN
+function runPayrollBatch() {
+  showToast("⚡ Processing Autonomic Payroll Batch across 14 Contributors...");
+  setTimeout(() => {
+    const pendingPill = document.getElementById('payroll-pending-pill');
+    if (pendingPill) {
+      pendingPill.className = 'status-pill success';
+      pendingPill.textContent = 'PROCESSED';
+    }
+    showToast("✓ Payroll Batch Dispatched via USDC Circle & ACH Direct Deposit!");
+  }, 1200);
+}
+
+// TAX FORM GENERATION
+function generateTaxForms() {
+  showToast("📑 Generating Form 1099-NEC & W-2 Batch Packages...");
+  setTimeout(() => {
+    const blob = new Blob(["SOVEREIGN ENGINE AUTONOMIC TAX BATCH 2026\n==========================================\nAll 14 Contributor 1099-NEC/W2 Filing XML generated successfully."], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Sovereign_Tax_Forms_2026.txt";
+    a.click();
+    showToast("✓ Tax Batch Forms Downloaded!");
+  }, 1000);
+}
+
+// VENDOR AP SWEEP
+function runVendorSweep() {
+  showToast("⚡ Running Autonomic Vendor AP Sweep (AURA Risk Engine)...");
+  setTimeout(() => {
+    const dueSoonPill = document.getElementById('vendor-due-soon-pill');
+    if (dueSoonPill) {
+      dueSoonPill.className = 'status-pill success';
+      dueSoonPill.textContent = 'PAID (AUTO)';
+    }
+    showToast("✓ All approved AP bills settled via 0-fee USDC rails!");
+  }, 1200);
+}
+
+// BANK RECONCILIATION MATCHING
+function reconcileItem(btn) {
+  const row = btn.closest('tr');
+  if (row) {
+    row.style.opacity = '0.5';
+    btn.className = 'btn-secondary';
+    btn.textContent = 'Matched ✓';
+    btn.disabled = true;
+  }
+  showToast("✓ Bank Line Item Reconciled with General Ledger!");
+}
+
+function reconcileAllTransactions() {
+  showToast("⚡ AI Engine auto-reconciling all pending bank feed transactions...");
+  setTimeout(() => {
+    const btns = document.querySelectorAll('#tab-reconciliation .btn-primary');
+    btns.forEach(btn => {
+      if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('reconcileItem')) {
+        reconcileItem(btn);
+      }
+    });
+    const unreconciledBadge = document.getElementById('unreconciled-count');
+    if (unreconciledBadge) unreconciledBadge.textContent = '0 Pending';
+    showToast("✓ 100% Bank Reconciliation Achieved! Zero Ledger Discrepancies.");
+  }, 1000);
+}
+

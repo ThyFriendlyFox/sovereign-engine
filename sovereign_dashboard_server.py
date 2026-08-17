@@ -1,6 +1,6 @@
 """
 SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER (Port 8090)
-QuickBooks & Stripe Replacement Server Powered by RevenueCat & 6 Next-Gen Cores
+QuickBooks, Xero, NetSuite & Stripe Replacement Server Powered by RevenueCat & 6 Cores
 """
 
 import os
@@ -9,7 +9,7 @@ import json
 import logging
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-# Import 6 Next-Gen Fintech Cores
+# Import 6 Next-Gen Fintech Cores & Full SaaS Accounting Suite
 sys.path.append(os.path.join(os.path.dirname(__file__), "sovereign_infrastructure", "nextgen_systems"))
 
 from xfin_engine import XFINEngine
@@ -18,6 +18,14 @@ from pulse_engine import PULSEEngine
 from mint_engine import MINTEngine
 from grid_engine import GRIDEngine
 from nexs_engine import NEXSEngine
+from full_saas_accounting_suite import (
+    GeneralLedgerEngine,
+    BalanceSheetEngine,
+    CashFlowEngine,
+    PayrollTaxEngine,
+    AccountsPayableEngine,
+    BankReconciliationEngine
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -29,6 +37,14 @@ pulse = PULSEEngine()
 mint = MINTEngine(5000000.0)
 grid = GRIDEngine()
 nexs = NEXSEngine()
+
+# Initialize Full Accounting Engines
+gl = GeneralLedgerEngine()
+bs = BalanceSheetEngine(gl)
+cf = CashFlowEngine()
+payroll = PayrollTaxEngine()
+ap = AccountsPayableEngine()
+bank = BankReconciliationEngine()
 
 DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "sovereign_dashboard")
 
@@ -57,6 +73,12 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 "net_income": 331246.0,
                 "status": "QUICKBOOKS_REPLACED"
             })
+        elif self.path == "/api/v1/balance_sheet":
+            self.send_json_response(bs.generate_balance_sheet())
+        elif self.path == "/api/v1/cash_flow":
+            self.send_json_response(cf.generate_cash_flow_statement())
+        elif self.path == "/api/v1/ap/aging":
+            self.send_json_response(ap.get_ap_aging_schedule())
         elif self.path == "/api/v1/paywall/ast":
             self.send_json_response({
                 "variant_id": "var_A_minimal",
@@ -99,6 +121,12 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 "aura_credit_score": score,
                 "status": underwriting["underwriting_status"]
             })
+        elif self.path == "/api/v1/payroll/run":
+            gross = float(body.get("gross_payroll", 148500.0))
+            self.send_json_response(payroll.calculate_payroll_run(gross))
+        elif self.path == "/api/v1/bank/reconcile":
+            feed = body.get("feed", [{"tx_id": "TX_101", "amount": 148.92}])
+            self.send_json_response(bank.reconcile_feed(feed))
         elif self.path == "/api/v1/paywall/mutate":
             variant = body.get("variant_id", "var_A_minimal")
             theme = body.get("theme", "NEON_CYAN")
@@ -142,8 +170,7 @@ def run_server(port: int = 8090):
     httpd = HTTPServer(server_address, SovereignDashboardHandler)
     logger.info(f"===================================================================")
     logger.info(f"  SOVEREIGN ENGINE ENTERPRISE WEB DASHBOARD SERVER RUNNING          ")
-    logger.info(f"  QuickBooks & Stripe Replacement Powered by RevenueCat & 6 Cores   ")
-    logger.info(f"  Listening at http://localhost:{port}                              ")
+    logger.info(f"  QuickBooks, Xero, NetSuite & Stripe Replacement (Port {port})     ")
     logger.info(f"===================================================================")
     httpd.serve_forever()
 

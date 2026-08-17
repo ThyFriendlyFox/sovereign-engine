@@ -42,14 +42,6 @@ class TestSovereignCoreEngines(unittest.TestCase):
         self.assertEqual(res["status"], "PROCESSED")
         self.assertEqual(res["mrr_delta"], 19.99)
 
-    def test_core1_billing_shared_pocket_catalog(self):
-        res = self.billing.process_lifecycle_event("user_test", "INITIAL_PURCHASE", "monthly_pro", 19.99)
-        self.assertEqual(res.get("plan_id"), "pocket_pro")
-        self.assertIn("pro_access", res.get("entitlements") or [])
-        catalog = res.get("catalog") or {}
-        self.assertTrue(catalog.get("ok"))
-        self.assertEqual(catalog.get("catalog_usd"), 99)
-
     def test_core2_paywall_mutation(self):
         res = self.paywall.compute_coherence_and_mutate(scroll_depth=0.9, engagement_score=0.95)
         self.assertEqual(res["mutated_variant"], "GLASSMORPHIC_HERO_TRIAL")

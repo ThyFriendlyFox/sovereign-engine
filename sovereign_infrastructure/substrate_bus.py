@@ -40,23 +40,11 @@ class SovereignSubstrateBus:
     async def execute_decoupled_event_pipeline(self, user_id: str = "usr_dev_01", country: str = "DE") -> Dict[str, Any]:
         logger.info(f"[Substrate Bus] Pipeline Execution for User: {user_id} ({country})")
 
-        # 1. PPP Core calculates localized pricing from the shared POCKET plan table
-        plan_id = "pocket_pro"
-        base_usd = 19.99
-        try:
-            from itsnotai_internal.billing_sdk import lookup_plan
+        # 1. PPP Core calculates localized pricing
+        local_price = self.ppp.compute_local_price(19.99, country)
 
-            plan = lookup_plan(plan_id)
-            if plan and plan.get("usd"):
-                base_usd = float(plan["usd"])
-        except Exception:
-            pass
-        local_price = self.ppp.compute_local_price(base_usd, country)
-
-        # 2. Billing Core processes purchase event (monthly_pro aliases to pocket_pro)
-        billing_event = self.billing.process_lifecycle_event(
-            user_id, "INITIAL_PURCHASE", plan_id, local_price["local_price"]
-        )
+        # 2. Billing Core processes purchase event
+        billing_event = self.billing.process_lifecycle_event(user_id, "INITIAL_PURCHASE", "monthly_pro", local_price["local_price"])
 
         # 3. Paywall Core mutates Paywall v2 AST
         paywall_event = self.paywall.compute_coherence_and_mutate(scroll_depth=0.88, engagement_score=0.92)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuickBooks Replacement — Sovereign Engine OS</title>
+  <title>QuickBooks Replacement & General Ledger — Sovereign Engine OS</title>
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
       <div class="brand-icon">S</div>
       <div>
         <div class="brand-title">Sovereign Engine OS</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted);">QuickBooks Replacement & General Ledger</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">QuickBooks Replacement & Autonomic General Ledger</div>
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
@@ -25,7 +25,7 @@
     </div>
   </nav>
 
-  <!-- NAVIGATION TABS -->
+  <!-- TOP LEVEL DASHBOARD TABS -->
   <div class="nav-tabs-container">
     <div class="nav-tabs">
       <a href="overview.html" class="tab-btn">📊 C-Suite Overview</a>
@@ -41,125 +41,924 @@
   <div class="page-header-title">
     <div>
       <h1>💼 QuickBooks Replacement & Autonomic Ledger</h1>
-      <div class="page-header-sub">Real-time P&L Statement calculation with instant AURA B2B invoice underwriting</div>
+      <div class="page-header-sub">Zero-fee enterprise general ledger, real-time financial statements & risk-underwritten invoice engine</div>
     </div>
-    <button class="btn-primary" onclick="exportPLStatement()">📥 Export P&L Statement (PDF/CSV)</button>
+    <button class="btn-primary" onclick="exportPLStatement()">📥 Export Financial Ledger (PDF/CSV)</button>
   </div>
 
-  <!-- METRICS BAR -->
-  <section class="metrics-bar">
-    <div class="metric-card">
-      <div class="metric-label">Gross Subscription Revenue</div>
-      <div class="metric-value" style="color: var(--accent-green);">$446,760.00</div>
-      <div class="metric-change positive">▲ +22.4% vs last Qtr</div>
+  <!-- QUICKBOOKS MODULE SUBTABS BAR -->
+  <div class="qb-subtabs-container">
+    <div class="qb-subtabs">
+      <button class="qb-tab-btn active" data-tab="pnl" onclick="switchQbTab('pnl')">📊 Profit & Loss (P&L)</button>
+      <button class="qb-tab-btn" data-tab="balance-sheet" onclick="switchQbTab('balance-sheet')">⚖️ Balance Sheet</button>
+      <button class="qb-tab-btn" data-tab="cash-flow" onclick="switchQbTab('cash-flow')">💵 Cash Flow Statement</button>
+      <button class="qb-tab-btn" data-tab="invoices" onclick="switchQbTab('invoices')">🧾 B2B Invoices</button>
+      <button class="qb-tab-btn" data-tab="payroll" onclick="switchQbTab('payroll')">👥 Payroll & Tax</button>
+      <button class="qb-tab-btn" data-tab="vendor-bills" onclick="switchQbTab('vendor-bills')">📑 Vendor Bills</button>
+      <button class="qb-tab-btn" data-tab="reconciliation" onclick="switchQbTab('reconciliation')">🏦 Bank Reconciliation</button>
     </div>
-    <div class="metric-card">
-      <div class="metric-label">App Store Platform Fees (COGS)</div>
-      <div class="metric-value" style="color: var(--accent-rose);">-$67,014.00</div>
-      <div class="metric-change positive">▼ Reduced via Direct Web Billing</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Autonomic Gross Profit</div>
-      <div class="metric-value">$379,746.00</div>
-      <div class="metric-change positive">▲ 85.0% Gross Margin</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Net Pre-Tax Income</div>
-      <div class="metric-value" style="color: var(--accent-cyan);">$331,246.00</div>
-      <div class="metric-change positive">▲ 74.2% Net Margin</div>
-    </div>
-  </section>
+  </div>
 
   <!-- MAIN CONTAINER -->
-  <main class="main-container" style="margin-top: 1rem;">
-    <div class="grid-2">
-      <!-- P&L STATEMENT PANEL -->
-      <div class="glass-panel">
-        <div class="panel-header">
-          <h3 class="panel-title">📊 Autonomic Profit & Loss Statement (Q3 2026)</h3>
-          <span class="status-pill success">QuickBooks Zero-Fee Replaced</span>
-        </div>
-        <div class="table-responsive">
-          <table class="sovereign-table">
-            <thead>
-              <tr>
-                <th>Financial Line Item</th>
-                <th>Quarterly Amount</th>
-                <th>YoY Growth</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Gross Subscription Revenue</strong></td>
-                <td style="color: var(--accent-green); font-weight: 700; font-family: var(--font-mono);">$446,760.00</td>
-                <td><span class="status-pill success">+22.4%</span></td>
-              </tr>
-              <tr>
-                <td>Cost of Goods Sold (App Store / Google 15% Fee)</td>
-                <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$67,014.00</td>
-                <td><span class="status-pill rose">-15.0%</span></td>
-              </tr>
-              <tr style="background: rgba(255, 255, 255, 0.02);">
-                <td><strong>Gross Profit</strong></td>
-                <td style="font-weight: 700; font-family: var(--font-mono);">$379,746.00</td>
-                <td><span class="status-pill success">+24.1%</span></td>
-              </tr>
-              <tr>
-                <td>Operating Expenses (AI Compute & Infra)</td>
-                <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$48,500.00</td>
-                <td><span class="status-pill gold">-4.2%</span></td>
-              </tr>
-              <tr style="background: rgba(0, 242, 254, 0.08); border-top: 2px solid var(--accent-cyan);">
-                <td><strong>Net Income (Pre-Tax)</strong></td>
-                <td style="color: var(--accent-cyan); font-weight: 800; font-size: 1.15rem; font-family: var(--font-mono);">$331,246.00</td>
-                <td><span class="status-pill cyan">+28.9%</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <main class="main-container">
 
-      <!-- B2B INVOICE GENERATOR PANEL -->
-      <div class="glass-panel">
-        <div class="panel-header">
-          <h3 class="panel-title">🧾 B2B Risk-Underwritten Invoice Generator</h3>
-          <span class="status-pill cyan">AURA Core Engine</span>
+    <!-- ========================================== -->
+    <!-- TAB 1: PROFIT & LOSS STATEMENT (P&L)       -->
+    <!-- ========================================== -->
+    <div id="tab-pnl" class="qb-tab-content active">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Gross Subscription Revenue</div>
+          <div class="metric-value" style="color: var(--accent-green);">$446,760.00</div>
+          <div class="metric-change positive">▲ +22.4% vs last Qtr</div>
         </div>
-        <form onsubmit="generateInvoice(event)">
-          <div class="form-group">
-            <label class="form-label">Client / Organization Name</label>
-            <input type="text" id="inv-client" class="form-input" value="Apex Global Technologies LLC" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Invoice Amount ($ USD)</label>
-            <input type="number" id="inv-amount" class="form-input" value="12500.00" step="100" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Payment Terms & Risk Model</label>
-            <select id="inv-terms" class="form-select">
-              <option value="NET_30">Net 30 Days (AURA Score Underwritten)</option>
-              <option value="DUE_NOW">Due Immediately (RevenueCat Web Paywall)</option>
-              <option value="NET_60">Net 60 Days (Enterprise Collateral Locked)</option>
-            </select>
-          </div>
-          <button type="submit" class="btn-primary" style="width: 100%;">⚡ Generate Underwritten Invoice</button>
-        </form>
+        <div class="metric-card">
+          <div class="metric-label">App Store Fees (COGS)</div>
+          <div class="metric-value" style="color: var(--accent-rose);">-$67,014.00</div>
+          <div class="metric-change positive">▼ Reduced via Web Direct</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Autonomic Gross Profit</div>
+          <div class="metric-value">$379,746.00</div>
+          <div class="metric-change positive">▲ 85.0% Gross Margin</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Net Pre-Tax Income</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">$331,246.00</div>
+          <div class="metric-change positive">▲ 74.2% Net Margin</div>
+        </div>
+      </section>
 
-        <div id="invoice-result-container" style="margin-top: 1.25rem; display: none;">
-          <div class="terminal-wrapper">
-            <div class="terminal-header">
-              <div class="terminal-dots">
-                <div class="dot red"></div>
-                <div class="dot yellow"></div>
-                <div class="dot green"></div>
-              </div>
-              <span class="terminal-title">aura_underwriting_engine.log</span>
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📊 Autonomic Profit & Loss Statement (Q3 2026)</h3>
+            <span class="status-pill success">QuickBooks Zero-Fee Replaced</span>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Financial Line Item</th>
+                  <th>Quarterly Amount</th>
+                  <th>YoY Growth</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Direct B2B Enterprise Subscriptions</strong></td>
+                  <td style="color: var(--accent-green); font-weight: 700; font-family: var(--font-mono);">$280,000.00</td>
+                  <td><span class="status-pill success">+31.2%</span></td>
+                </tr>
+                <tr>
+                  <td>Mobile In-App Revenue (RevenueCat)</td>
+                  <td style="color: var(--accent-green); font-weight: 700; font-family: var(--font-mono);">$126,760.00</td>
+                  <td><span class="status-pill success">+14.8%</span></td>
+                </tr>
+                <tr>
+                  <td>AI API Token Licensing & SDK Sales</td>
+                  <td style="color: var(--accent-green); font-weight: 700; font-family: var(--font-mono);">$40,000.00</td>
+                  <td><span class="status-pill cyan">+18.0%</span></td>
+                </tr>
+                <tr style="background: rgba(16, 185, 129, 0.05);">
+                  <td><strong>Gross Subscription Revenue</strong></td>
+                  <td style="color: var(--accent-green); font-weight: 800; font-family: var(--font-mono);">$446,760.00</td>
+                  <td><span class="status-pill success">+22.4%</span></td>
+                </tr>
+                <tr>
+                  <td>App Store & Google 15% Platform Fees (COGS)</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$67,014.00</td>
+                  <td><span class="status-pill rose">-15.0%</span></td>
+                </tr>
+                <tr style="background: rgba(255, 255, 255, 0.02);">
+                  <td><strong>Gross Profit</strong></td>
+                  <td style="font-weight: 700; font-family: var(--font-mono);">$379,746.00</td>
+                  <td><span class="status-pill success">+24.1%</span></td>
+                </tr>
+                <tr>
+                  <td>Operating Expenses (R&D AI Compute Nodes)</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$28,500.00</td>
+                  <td><span class="status-pill gold">-4.2%</span></td>
+                </tr>
+                <tr>
+                  <td>Engineering & Core Team Payroll</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$15,000.00</td>
+                  <td><span class="status-pill gold">Fixed</span></td>
+                </tr>
+                <tr>
+                  <td>Legal, IP & Compliance Reserves</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$5,000.00</td>
+                  <td><span class="status-pill cyan">Controlled</span></td>
+                </tr>
+                <tr style="background: rgba(0, 242, 254, 0.08); border-top: 2px solid var(--accent-cyan);">
+                  <td><strong>Net Operating Income (Pre-Tax)</strong></td>
+                  <td style="color: var(--accent-cyan); font-weight: 800; font-size: 1.15rem; font-family: var(--font-mono);">$331,246.00</td>
+                  <td><span class="status-pill cyan">+28.9%</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📈 Profitability & Margin Analytics</h3>
+            <span class="status-pill cyan">AURA Metrics</span>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.25rem;">
+              <span>Gross Profit Margin</span>
+              <strong style="color: var(--accent-green);">85.0%</strong>
             </div>
-            <div id="invoice-result" class="code-preview-box"></div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 85%; background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.25rem;">
+              <span>Operating Profit Margin</span>
+              <strong style="color: var(--accent-cyan);">78.4%</strong>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 78.4%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.25rem;">
+              <span>Net Income Margin</span>
+              <strong style="color: #fff;">74.2%</strong>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 74.2%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-magenta));"></div>
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.25rem; margin-top: 1.5rem;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; margin-bottom: 0.5rem; color: #fff;">🤖 Autonomic Ledger AI Audit</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+              AURA Core continuously reconciles all subscription events from RevenueCat SDK 8.2.0 against the general ledger. Operating expenses are automatically classified via neural inference with zero accounting overhead.
+            </p>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: BALANCE SHEET                       -->
+    <!-- ========================================== -->
+    <div id="tab-balance-sheet" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Total Sovereign Assets</div>
+          <div class="metric-value" style="color: var(--accent-green);">$4,820,000.00</div>
+          <div class="metric-change positive">▲ Direct Treasury Reserve</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Liabilities</div>
+          <div class="metric-value" style="color: var(--accent-rose);">$640,000.00</div>
+          <div class="metric-change positive">▼ Low Debt / Current AP</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Stockholders' Equity</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">$4,180,000.00</div>
+          <div class="metric-change positive">▲ Retained Surplus</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Solvency Ratio</div>
+          <div class="metric-value">7.53x</div>
+          <div class="metric-change positive">▲ AAA Underwritten Grade</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🏛️ Assets Ledger Breakdown</h3>
+            <span class="status-pill success">Verified Active</span>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Asset Classification</th>
+                  <th>Book Value</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Mercury Bank Cash Reserves</strong></td>
+                  <td style="color: #fff; font-family: var(--font-mono); font-weight: 700;">$1,240,000.00</td>
+                  <td><span class="status-pill success">Fiat Cash</span></td>
+                </tr>
+                <tr>
+                  <td>Circle USDC On-Chain Treasury</td>
+                  <td style="color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 700;">$850,000.00</td>
+                  <td><span class="status-pill cyan">Stablecoin</span></td>
+                </tr>
+                <tr>
+                  <td>Accounts Receivable (B2B Underwritten)</td>
+                  <td style="color: #fff; font-family: var(--font-mono);">$420,000.00</td>
+                  <td><span class="status-pill gold">Current AR</span></td>
+                </tr>
+                <tr>
+                  <td>FORMA Treasury Staking Pool</td>
+                  <td style="color: var(--accent-green); font-family: var(--font-mono);">$610,000.00</td>
+                  <td><span class="status-pill success">Yield Reserve</span></td>
+                </tr>
+                <tr style="background: rgba(255, 255, 255, 0.02);">
+                  <td><strong>Total Current Assets</strong></td>
+                  <td style="color: var(--accent-green); font-weight: 800; font-family: var(--font-mono);">$3,120,000.00</td>
+                  <td><span class="status-pill success">Liquid</span></td>
+                </tr>
+                <tr>
+                  <td>AI Infrastructure Compute Cluster (NVIDIA H100s)</td>
+                  <td style="color: #fff; font-family: var(--font-mono);">$1,200,000.00</td>
+                  <td><span class="status-pill cyan">Equipment</span></td>
+                </tr>
+                <tr>
+                  <td>Neural Synthesizer IP & Patents</td>
+                  <td style="color: #fff; font-family: var(--font-mono);">$500,000.00</td>
+                  <td><span class="status-pill cyan">Intangibles</span></td>
+                </tr>
+                <tr style="background: rgba(0, 242, 254, 0.08); border-top: 2px solid var(--accent-cyan);">
+                  <td><strong>TOTAL SOVEREIGN ASSETS</strong></td>
+                  <td style="color: var(--accent-cyan); font-weight: 800; font-size: 1.15rem; font-family: var(--font-mono);">$4,820,000.00</td>
+                  <td><span class="status-pill cyan">Audited</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">⚖️ Liabilities & Stockholders' Equity</h3>
+            <span class="status-pill cyan">Autonomic Balance</span>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Liability & Equity Item</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Accounts Payable (Vendor Bills)</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">$42,800.00</td>
+                  <td><span class="status-pill gold">Current AP</span></td>
+                </tr>
+                <tr>
+                  <td>Accrued AI Infrastructure Nodes</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">$12,500.00</td>
+                  <td><span class="status-pill gold">Pending</span></td>
+                </tr>
+                <tr>
+                  <td>Corporate Tax Provision Reserve</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">$98,500.00</td>
+                  <td><span class="status-pill success">Escrowed</span></td>
+                </tr>
+                <tr>
+                  <td>Deferred B2B Subscription Revenue</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">$486,200.00</td>
+                  <td><span class="status-pill cyan">Unearned</span></td>
+                </tr>
+                <tr style="background: rgba(244, 63, 94, 0.05);">
+                  <td><strong>Total Liabilities</strong></td>
+                  <td style="color: var(--accent-rose); font-weight: 800; font-family: var(--font-mono);">$640,000.00</td>
+                  <td><span class="status-pill rose">Liabilities</span></td>
+                </tr>
+                <tr>
+                  <td>Contributed Common Equity</td>
+                  <td style="color: #fff; font-family: var(--font-mono);">$2,000,000.00</td>
+                  <td><span class="status-pill success">Capital</span></td>
+                </tr>
+                <tr>
+                  <td>Retained Earnings & Reserves</td>
+                  <td style="color: var(--accent-cyan); font-family: var(--font-mono);">$2,180,000.00</td>
+                  <td><span class="status-pill cyan">Surplus</span></td>
+                </tr>
+                <tr style="background: rgba(0, 242, 254, 0.08); border-top: 2px solid var(--accent-cyan);">
+                  <td><strong>TOTAL LIABILITIES & EQUITY</strong></td>
+                  <td style="color: var(--accent-cyan); font-weight: 800; font-size: 1.15rem; font-family: var(--font-mono);">$4,820,000.00</td>
+                  <td><span class="status-pill success">BALANCED ✓</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: CASH FLOW STATEMENT                 -->
+    <!-- ========================================== -->
+    <div id="tab-cash-flow" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Operating Cash Flow</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">+$412,500.00</div>
+          <div class="metric-change positive">▲ Net Operating Surplus</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Investing Cash Flow (Capex)</div>
+          <div class="metric-value" style="color: var(--accent-rose); font-family: var(--font-mono);">-$115,000.00</div>
+          <div class="metric-change positive">▼ GPU Hardware Expansion</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Financing Cash Flow</div>
+          <div class="metric-value" style="color: var(--accent-cyan); font-family: var(--font-mono);">+$30,000.00</div>
+          <div class="metric-change positive">▲ Treasury Staking Rewards</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Net Liquidity Position</div>
+          <div class="metric-value" style="color: #fff; font-family: var(--font-mono);">$2,090,000.00</div>
+          <div class="metric-change positive">▲ 100% Cash Covered</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">💵 Statement of Cash Flows (Direct Method)</h3>
+            <span class="status-pill success">Real-Time Feed</span>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Cash Flow Activity</th>
+                  <th>Amount</th>
+                  <th>Category</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Cash Received from B2B & Subscriptions</td>
+                  <td style="color: var(--accent-green); font-family: var(--font-mono); font-weight: 700;">+$435,000.00</td>
+                  <td><span class="status-pill success">Inflow</span></td>
+                </tr>
+                <tr>
+                  <td>Cash Paid for Cloud Infrastructure & AI Compute</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$52,500.00</td>
+                  <td><span class="status-pill rose">Outflow</span></td>
+                </tr>
+                <tr>
+                  <td>Cash Paid for Contributor Payroll</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$68,500.00</td>
+                  <td><span class="status-pill rose">Outflow</span></td>
+                </tr>
+                <tr>
+                  <td>Interest & Yield Received from On-Chain Treasury</td>
+                  <td style="color: var(--accent-green); font-family: var(--font-mono);">+$98,500.00</td>
+                  <td><span class="status-pill success">Inflow</span></td>
+                </tr>
+                <tr style="background: rgba(16, 185, 129, 0.05);">
+                  <td><strong>Net Cash from Operating Activities</strong></td>
+                  <td style="color: var(--accent-green); font-weight: 800; font-family: var(--font-mono);">+$412,500.00</td>
+                  <td><span class="status-pill success">Operating</span></td>
+                </tr>
+                <tr>
+                  <td>Purchase of NVIDIA H100 GPU Cluster Nodes</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$85,000.00</td>
+                  <td><span class="status-pill rose">Capex</span></td>
+                </tr>
+                <tr>
+                  <td>Liquidity Pool Placement</td>
+                  <td style="color: var(--accent-rose); font-family: var(--font-mono);">-$30,000.00</td>
+                  <td><span class="status-pill rose">Investment</span></td>
+                </tr>
+                <tr style="background: rgba(244, 63, 94, 0.05);">
+                  <td><strong>Net Cash Used in Investing Activities</strong></td>
+                  <td style="color: var(--accent-rose); font-weight: 700; font-family: var(--font-mono);">-$115,000.00</td>
+                  <td><span class="status-pill rose">Investing</span></td>
+                </tr>
+                <tr style="background: rgba(0, 242, 254, 0.08); border-top: 2px solid var(--accent-cyan);">
+                  <td><strong>NET INCREASE IN CASH POSITION</strong></td>
+                  <td style="color: var(--accent-cyan); font-weight: 800; font-size: 1.15rem; font-family: var(--font-mono);">+$327,500.00</td>
+                  <td><span class="status-pill cyan">Positive</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🔮 Interactive Cash Runway & Forecast Simulator</h3>
+            <span class="status-pill cyan">AI Predictive Core</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="display: flex; justify-content: space-between;">
+              <span>Projected B2B Revenue Growth Rate</span>
+              <strong id="cf-rev-growth-val" style="color: var(--accent-green);">+20%</strong>
+            </label>
+            <input type="range" id="cf-rev-growth" class="form-range" min="0" max="100" value="20" oninput="updateCashFlowForecast()">
+          </div>
+
+          <div class="form-group" style="margin-top: 1.5rem;">
+            <label class="form-label" style="display: flex; justify-content: space-between;">
+              <span>AI Infrastructure Compute Expansion</span>
+              <strong id="cf-infra-scale-val" style="color: var(--accent-rose);">+10%</strong>
+            </label>
+            <input type="range" id="cf-infra-scale" class="form-range" min="0" max="100" value="10" oninput="updateCashFlowForecast()">
+          </div>
+
+          <div style="background: rgba(0, 242, 254, 0.05); border: 1px solid var(--border-glow); border-radius: 16px; padding: 1.25rem; margin-top: 1.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span style="font-size: 0.88rem; color: var(--text-muted);">Projected Monthly Operating Cash Flow:</span>
+              <strong id="cf-projected-opcash" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent-green);">$490,150.00</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.88rem; color: var(--text-muted);">Calculated Sovereign Cash Runway:</span>
+              <strong id="cf-projected-runway" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent-cyan);">Infinite (Cash Positive)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: B2B INVOICES                        -->
+    <!-- ========================================== -->
+    <div id="tab-invoices" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Total Invoiced (Q3 2026)</div>
+          <div class="metric-value" style="color: #fff; font-family: var(--font-mono);">$280,000.00</div>
+          <div class="metric-change positive">▲ 100% Underwritten</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Collected & Settled</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">$215,000.00</div>
+          <div class="metric-change positive">▲ 76.8% Collection Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Pending Underwritten AR</div>
+          <div class="metric-value" style="color: var(--accent-cyan); font-family: var(--font-mono);">$65,000.00</div>
+          <div class="metric-change positive">0 Overdue Invoices</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Average AURA Credit Score</div>
+          <div class="metric-value" style="color: var(--accent-gold);">812 / 850</div>
+          <div class="metric-change positive">▲ Prime Enterprise Tier</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- B2B INVOICE LEDGER TABLE -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📑 Active B2B Underwritten Ledger</h3>
+            <span class="status-pill success">Real-Time Settlement</span>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Invoice ID</th>
+                  <th>Client</th>
+                  <th>Amount</th>
+                  <th>Terms</th>
+                  <th>AURA Risk</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">INV-90281</strong></td>
+                  <td>Apex Global Tech</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$12,500.00</td>
+                  <td>Net 30</td>
+                  <td><span class="status-pill cyan">820</span></td>
+                  <td><span class="status-pill success">PAID</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">INV-90282</strong></td>
+                  <td>Quantum AI Systems</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$45,000.00</td>
+                  <td>Net 30</td>
+                  <td><span class="status-pill cyan">795</span></td>
+                  <td><span class="status-pill cyan">APPROVED</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">INV-90283</strong></td>
+                  <td>Cyberdyne Dynamics</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$28,000.00</td>
+                  <td>Net 60</td>
+                  <td><span class="status-pill cyan">840</span></td>
+                  <td><span class="status-pill cyan">APPROVED</span></td>
+                </tr>
+                <tr>
+                  <td><strong style="font-family: var(--font-mono);">INV-90284</strong></td>
+                  <td>Nexus Web3 Labs</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$8,500.00</td>
+                  <td>Due Now</td>
+                  <td><span class="status-pill gold">760</span></td>
+                  <td><span class="status-pill gold">PENDING</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- B2B INVOICE GENERATOR PANEL -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🧾 Risk-Underwritten Invoice Generator</h3>
+            <span class="status-pill cyan">AURA Core Engine</span>
+          </div>
+          <form onsubmit="generateInvoice(event)">
+            <div class="form-group">
+              <label class="form-label">Client / Organization Name</label>
+              <input type="text" id="inv-client" class="form-input" value="Apex Global Technologies LLC" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Invoice Amount ($ USD)</label>
+              <input type="number" id="inv-amount" class="form-input" value="12500.00" step="100" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Terms & Risk Model</label>
+              <select id="inv-terms" class="form-select">
+                <option value="NET_30">Net 30 Days (AURA Score Underwritten)</option>
+                <option value="DUE_NOW">Due Immediately (RevenueCat Web Paywall)</option>
+                <option value="NET_60">Net 60 Days (Enterprise Collateral Locked)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">⚡ Generate Underwritten Invoice</button>
+          </form>
+
+          <div id="invoice-result-container" style="margin-top: 1.25rem; display: none;">
+            <div class="terminal-wrapper">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <div class="dot red"></div>
+                  <div class="dot yellow"></div>
+                  <div class="dot green"></div>
+                </div>
+                <span class="terminal-title">aura_underwriting_engine.log</span>
+              </div>
+              <div id="invoice-result" class="code-preview-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: PAYROLL & TAX                       -->
+    <!-- ========================================== -->
+    <div id="tab-payroll" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Monthly Payroll Run-Rate</div>
+          <div class="metric-value" style="color: #fff; font-family: var(--font-mono);">$128,400.00</div>
+          <div class="metric-change positive">▲ 14 Core Contributors</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Autonomic Tax Reserve</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">$98,500.00</div>
+          <div class="metric-change positive">▲ 100% Escrowed</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Settlement Rails</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">USDC + ACH</div>
+          <div class="metric-change positive">0% Processing Overhead</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">IRS Compliance Status</div>
+          <div class="metric-value" style="color: var(--accent-gold);">W-2 / 1099 Ready</div>
+          <div class="metric-change positive">▲ Automated Filings</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">👥 Contributor Payroll Ledger</h3>
+            <button class="btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.9rem;" onclick="runPayrollBatch()">⚡ Run Payroll Batch</button>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Contributor</th>
+                  <th>Role</th>
+                  <th>Monthly Comp</th>
+                  <th>Payment Rail</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Alex Mercer</strong></td>
+                  <td>Chief AI Architect</td>
+                  <td style="font-family: var(--font-mono);">$18,500.00</td>
+                  <td><span class="status-pill cyan">USDC Circle</span></td>
+                  <td><span class="status-pill success">PROCESSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Elena Rostova</strong></td>
+                  <td>Core Engine Lead</td>
+                  <td style="font-family: var(--font-mono);">$16,000.00</td>
+                  <td><span class="status-pill success">Direct ACH</span></td>
+                  <td><span class="status-pill success">PROCESSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Marcus Thorne</strong></td>
+                  <td>Tokenomics Engineer</td>
+                  <td style="font-family: var(--font-mono);">$14,500.00</td>
+                  <td><span class="status-pill cyan">USDC Circle</span></td>
+                  <td><span class="status-pill success">PROCESSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Sarah Chen</strong></td>
+                  <td>Neural Synthesizer Dev</td>
+                  <td style="font-family: var(--font-mono);">$13,000.00</td>
+                  <td><span class="status-pill success">Direct ACH</span></td>
+                  <td><span class="status-pill success">PROCESSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>David Vance</strong></td>
+                  <td>DevOps & Compute Spec</td>
+                  <td style="font-family: var(--font-mono);">$12,500.00</td>
+                  <td><span class="status-pill cyan">USDC Circle</span></td>
+                  <td><span id="payroll-pending-pill" class="status-pill gold">PENDING</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🏛️ Corporate Tax Vault & IRS Compliance</h3>
+            <span class="status-pill success">Autonomic Escrow</span>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Tax Reserve Escrow Balance</div>
+                <div style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--accent-green);">$98,500.00</div>
+              </div>
+              <span class="status-pill success">OVER-RESERVED</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.5rem;">
+              Estimated Q3 Tax Liability: <strong>$82,811.50</strong> (Excess Buffer: +$15,688.50)
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <button class="btn-secondary" style="width: 100%; justify-content: space-between;" onclick="generateTaxForms()">
+              <span>📑 Generate Form 1099-NEC & W-2 Batch</span>
+              <span>XML / PDF ➔</span>
+            </button>
+            <button class="btn-secondary" style="width: 100%; justify-content: space-between;" onclick="showToast('🏛️ IRS Electronic Federal Tax Payment System (EFTPS) Ready!')">
+              <span>🏛️ Submit Quarterly Federal Tax Payment</span>
+              <span>EFTPS Direct ➔</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: VENDOR BILLS                        -->
+    <!-- ========================================== -->
+    <div id="tab-vendor-bills" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Outstanding AP Balance</div>
+          <div class="metric-value" style="color: var(--accent-rose); font-family: var(--font-mono);">$42,800.00</div>
+          <div class="metric-change positive">4 Active Vendors</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Bills Due < 7 Days</div>
+          <div class="metric-value" style="color: var(--accent-gold);">3 Pending</div>
+          <div class="metric-change positive">Auto-Pay Rule Active</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Auto-Paid This Month</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">$84,200.00</div>
+          <div class="metric-change positive">▲ Zero Settlement Fees</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Vendor Health Index</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">99.2%</div>
+          <div class="metric-change positive">▲ Optimal Credit Score</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📑 Vendor Accounts Payable Ledger</h3>
+            <button class="btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.9rem;" onclick="runVendorSweep()">⚡ Run AP Sweep</button>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Vendor</th>
+                  <th>Invoice #</th>
+                  <th>Amount</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>NVIDIA Cloud GPU Nodes</strong></td>
+                  <td style="font-family: var(--font-mono);">NV-884</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$24,500.00</td>
+                  <td>Aug 22, 2026</td>
+                  <td><span id="vendor-due-soon-pill" class="status-pill gold">DUE SOON</span></td>
+                </tr>
+                <tr>
+                  <td><strong>OpenAI Enterprise API</strong></td>
+                  <td style="font-family: var(--font-mono);">OAI-912</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$12,000.00</td>
+                  <td>Aug 28, 2026</td>
+                  <td><span class="status-pill cyan">SCHEDULED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Latham & Watkins IP Law</strong></td>
+                  <td style="font-family: var(--font-mono);">LW-409</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$6,300.00</td>
+                  <td>Sep 05, 2026</td>
+                  <td><span class="status-pill cyan">APPROVED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Equinix Data Centers</strong></td>
+                  <td style="font-family: var(--font-mono);">EQ-103</td>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">$4,200.00</td>
+                  <td>Aug 10, 2026</td>
+                  <td><span class="status-pill success">PAID</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🤖 Autonomic AP Policy Rules</h3>
+            <span class="status-pill cyan">AURA Rules</span>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem;">
+            <div style="font-weight: 700; color: #fff; margin-bottom: 0.35rem; font-size: 0.95rem;">⚡ Auto-Pay Threshold Rule</div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+              Invoices under <strong>$50,000.00 USD</strong> from verified vendors (NVIDIA, OpenAI, Equinix) are automatically scheduled and paid 2 days prior to due date via USDC Circle rails to optimize float.
+            </p>
+          </div>
+
+          <div style="background: rgba(0, 242, 254, 0.05); border: 1px solid var(--border-glow); border-radius: 14px; padding: 1.25rem;">
+            <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.35rem; font-size: 0.95rem;">🛡️ Fraud & Duplicate Guard</div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+              Zero duplicate bill submissions detected across 2026 fiscal year. All vendor invoices cross-referenced with PO hashes in real-time.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 7: BANK RECONCILIATION                 -->
+    <!-- ========================================== -->
+    <div id="tab-reconciliation" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Connected Accounts</div>
+          <div class="metric-value" style="color: #fff;">4 Enterprise</div>
+          <div class="metric-change positive">▲ Real-Time Webhooks</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Reconciled Cash</div>
+          <div class="metric-value" style="color: var(--accent-green); font-family: var(--font-mono);">$2,142,500.00</div>
+          <div class="metric-change positive">▲ 100% Cash Matched</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Unreconciled Items</div>
+          <div class="metric-value" style="color: var(--accent-gold);"><span id="unreconciled-count">2 Pending</span></div>
+          <div class="metric-change positive">▼ High Confidence AI</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Matching Accuracy Rate</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">99.8%</div>
+          <div class="metric-change positive">▲ Autonomic Engine</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- CONNECTED ACCOUNTS -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🏦 Connected Bank & Vault Feeds</h3>
+            <span class="status-pill success">Live Sync</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Mercury Enterprise Operating Account</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Sync: 2 mins ago (Plaid Direct API)</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-green);">$1,240,000.00</div>
+                <span class="status-pill success" style="font-size: 0.68rem; padding: 0.15rem 0.5rem;">RECONCILED ✓</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Circle USDC Treasury Vault</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Sync: Real-Time On-Chain Webhook</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan);">$850,000.00</div>
+                <span class="status-pill cyan" style="font-size: 0.68rem; padding: 0.15rem 0.5rem;">RECONCILED ✓</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Stripe & RevenueCat Settlement Clearing</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Sync: 5 mins ago</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: #fff;">$42,500.00</div>
+                <span class="status-pill success" style="font-size: 0.68rem; padding: 0.15rem 0.5rem;">RECONCILED ✓</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff;">Chase Corporate Credit Card</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Sync: 1 hour ago</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-rose);">-$10,000.00</div>
+                <span class="status-pill gold" style="font-size: 0.68rem; padding: 0.15rem 0.5rem;">2 PENDING</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECONCILIATION MATCHING ENGINE -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🤖 AI Transaction Matching Engine</h3>
+            <button class="btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.9rem;" onclick="reconcileAllTransactions()">⚡ Auto-Reconcile All</button>
+          </div>
+          <div class="table-responsive">
+            <table class="sovereign-table">
+              <thead>
+                <tr>
+                  <th>Bank Feed Tx</th>
+                  <th>GL Counterpart</th>
+                  <th>Confidence</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong style="color: var(--accent-green);">+$12,500.00</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Mercury: Apex Global</div>
+                  </td>
+                  <td>
+                    <strong>INV-90281</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Apex B2B Payment</div>
+                  </td>
+                  <td><span class="status-pill success">99.9%</span></td>
+                  <td><button class="btn-primary" style="font-size: 0.75rem; padding: 0.3rem 0.7rem;" onclick="reconcileItem(this)">Match ✓</button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong style="color: var(--accent-rose);">-$1,450.00</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Chase: AWS Compute</div>
+                  </td>
+                  <td>
+                    <strong>EXP-332</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">AWS Infra Bill</div>
+                  </td>
+                  <td><span class="status-pill cyan">98.4%</span></td>
+                  <td><button class="btn-primary" style="font-size: 0.75rem; padding: 0.3rem 0.7rem;" onclick="reconcileItem(this)">Match ✓</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
   <script src="app.js"></script>
 </body>
