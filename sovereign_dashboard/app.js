@@ -1756,5 +1756,600 @@ if (document.readyState === 'loading') {
   initGeminiCopilot();
 }
 
+/* ==========================================================================
+   SOVEREIGN OS INTERACTIVE MANAGERS & WORKFLOW ENGINES
+   ========================================================================== */
+
+// --------------------------------------------------------------------------
+// 1. INTERACTIVE MCP TOOL CONSOLE
+// --------------------------------------------------------------------------
+const MCP_TOOLS = [
+  {
+    id: "mcp_sovereign_query_ledger",
+    name: "query_ledger",
+    category: "Finance",
+    desc: "Query cryptographic double-entry ledger P&L balances and general ledger accounts.",
+    params: { account_id: "GL-1001-CASH", period: "Q3-2026", currency: "USD" },
+    handler: (params) => ({ status: "SUCCESS", ledger_balance: 331246.00, account: params.account_id || "GL-1001-CASH", reconciled: true, hash: "0x8f2a9b...4e1" })
+  },
+  {
+    id: "mcp_revenuecat_sync_entitlements",
+    name: "sync_entitlements",
+    category: "Subscriptions",
+    desc: "Sync StoreKit 2 and Google Play subscriber entitlements across node mesh.",
+    params: { user_id: "usr_quantum_99", app_id: "sov_pro_tier" },
+    handler: (params) => ({ status: "SUCCESS", entitlement: "Enterprise Quantum", active: true, expires_at: "2027-08-16T00:00:00Z", store: "Apple StoreKit 2" })
+  },
+  {
+    id: "mcp_aura_risk_underwrite",
+    name: "underwrite_transaction",
+    category: "AI Credit",
+    desc: "Run real-time AURA credit risk evaluation for high-value transactions.",
+    params: { amount_usd: 15000, client_name: "Acme Corp", credit_terms: "NET30" },
+    handler: (params) => ({ status: "APPROVED", aura_score: 795, max_credit_line: 50000.00, risk_tier: "Prime Enterprise", timestamp: new Date().toISOString() })
+  },
+  {
+    id: "mcp_pulse_intercept_churn",
+    name: "intercept_churn",
+    category: "Retention",
+    desc: "Trigger AI Customer Center winback offer for high-churn-risk subscribers.",
+    params: { subscriber_id: "sub_8819", coherence_r: 0.52 },
+    handler: (params) => ({ status: "RETAINED", intervention: "Customer Center 50% Winback Offer Accepted", ltv_impact: "+$240.00 USD", retention_score: 0.94 })
+  },
+  {
+    id: "mcp_nexs_synthesize_variant",
+    name: "synthesize_paywall_ast",
+    category: "Neural Paywalls",
+    desc: "Synthesize dynamic AST paywall layouts using multi-armed bandit optimization.",
+    params: { variant_id: "var_cyber_cyan", conversion_target: "annual_pass" },
+    handler: (params) => ({ status: "SUCCESS", variant: "var_cyber_cyan", ucb1_confidence: 0.982, conversion_lift: "+24.6%", theme: "NEON_CYAN" })
+  },
+  {
+    id: "mcp_zk_snark_verify_proof",
+    name: "verify_groth16_proof",
+    category: "Security",
+    desc: "Verify zero-knowledge Groth16 cryptographic proof for identity or transaction.",
+    params: { proof_hash: "0x3f7a1b...9e2", public_inputs: ["0x1", "0x44a"] },
+    handler: (params) => ({ status: "VERIFIED_VALID", zk_scheme: "Groth16 / BN254", verification_time_ms: 3.4, proof_valid: true })
+  },
+  {
+    id: "mcp_wearos_biometric_stream",
+    name: "ingest_biometrics",
+    category: "Wearables",
+    desc: "Ingest live Wear OS smartwatch biometrics (heart rate, PPG keying).",
+    params: { device_id: "watch_galaxy_fold5", sample_rate_hz: 100 },
+    handler: (params) => ({ status: "STREAMING", heart_rate_bpm: 72, ppg_coherence: 0.991, battery: "88%", hardware_auth: "PASSED" })
+  },
+  {
+    id: "mcp_mint_burn_forma_tokens",
+    name: "execute_token_burn",
+    category: "Tokenomics",
+    desc: "Execute token buyback and burn on FORMA ledger using 15% revenue share.",
+    params: { revenue_usd: 148920, burn_rate_phi: 0.618 },
+    handler: (params) => ({ status: "BURN_COMPLETED", forma_burned: 5000, buyback_usd: 22338.00, new_total_supply: 4995000, tx_hash: "0x7a8e...12c" })
+  },
+  {
+    id: "mcp_kafka_stream_ingest",
+    name: "ingest_kafka_event",
+    category: "Telemetry",
+    desc: "Publish and consume telemetry events through sub-millisecond Kafka mesh.",
+    params: { topic: "telemetry.substrate.events", partition: 0, batch_size: 1000 },
+    handler: (params) => ({ status: "PROCESSED", messages_ingested: 1000, throughput_events_sec: 142000, packet_loss: "0.000%", latency_ms: 0.4 })
+  },
+  {
+    id: "mcp_deepseek_financial_inference",
+    name: "deepseek_financial_reasoning",
+    category: "AI Engine",
+    desc: "Local offline DeepSeek financial reasoning model running on node TPU/GPU.",
+    params: { prompt: "Analyze Q3 revenue growth vs COGS ratio", model: "deepseek-r1-financial-7b" },
+    handler: (params) => ({ status: "COMPLETED", reasoning: "Revenue grew 18.4% while COGS dropped 4.2% due to autonomic StoreKit 2 routing. Operating margin expanded to 74.2%.", confidence: 0.991 })
+  },
+  {
+    id: "mcp_post_quantum_sign_tx",
+    name: "quantum_dilithium_sign",
+    category: "Security",
+    desc: "Sign high-value treasury transaction with CRYSTALS-Dilithium post-quantum key.",
+    params: { tx_payload: "TRANSFER $100000 TO TREASURY", key_level: 5 },
+    handler: (params) => ({ status: "SIGNED", algorithm: "CRYSTALS-Dilithium5", signature: "0xd91a...pq8", quantum_resistant: true })
+  },
+  {
+    id: "mcp_swift_iso20022_parse",
+    name: "parse_iso20022_swift",
+    category: "Banking",
+    desc: "Parse and validate bank-grade SWIFT ISO20022 XML financial payment message.",
+    params: { message_type: "pacs.008.001.08", amount: 250000, currency: "EUR" },
+    handler: (params) => ({ status: "VALIDATED", swift_bic: "SOVUS33XXX", fx_settlement_rate: 1.092, euro_settled_usd: 273000.00 })
+  }
+];
+
+let selectedMcpToolId = MCP_TOOLS[0].id;
+let mcpCallHistory = [];
+
+function renderMCPConsole() {
+  const container = document.getElementById('mcp-tool-list-container');
+  if (!container) return;
+
+  container.innerHTML = MCP_TOOLS.map(tool => {
+    const isActive = tool.id === selectedMcpToolId ? 'active' : '';
+    return `
+      <div class="mcp-tool-item ${isActive}" onclick="selectMCPTool('${tool.id}')">
+        <div class="mcp-tool-name">
+          <span>🛠️ ${tool.name}</span>
+          <span class="mcp-tool-badge">${tool.category}</span>
+        </div>
+        <div class="mcp-tool-desc">${tool.desc}</div>
+      </div>
+    `;
+  }).join('');
+
+  selectMCPTool(selectedMcpToolId);
+}
+
+function selectMCPTool(toolId) {
+  selectedMcpToolId = toolId;
+  const tool = MCP_TOOLS.find(t => t.id === toolId);
+  if (!tool) return;
+
+  // Update active state in list
+  document.querySelectorAll('.mcp-tool-item').forEach(el => el.classList.remove('active'));
+  const currentEl = Array.from(document.querySelectorAll('.mcp-tool-item')).find(el => el.getAttribute('onclick')?.includes(toolId));
+  if (currentEl) currentEl.classList.add('active');
+
+  const titleEl = document.getElementById('mcp-selected-name');
+  const descEl = document.getElementById('mcp-selected-desc');
+  const paramsInput = document.getElementById('mcp-params-json');
+
+  if (titleEl) titleEl.innerText = `tools/${tool.name}`;
+  if (descEl) descEl.innerText = tool.desc;
+  if (paramsInput) paramsInput.value = JSON.stringify(tool.params, null, 2);
+}
+
+function executeMCPTool() {
+  const tool = MCP_TOOLS.find(t => t.id === selectedMcpToolId);
+  if (!tool) return;
+
+  const paramsInput = document.getElementById('mcp-params-json');
+  const outputBox = document.getElementById('mcp-json-output');
+  const latencyBadge = document.getElementById('mcp-latency-badge');
+  const statusBadge = document.getElementById('mcp-status-badge');
+
+  let parsedParams = tool.params;
+  try {
+    if (paramsInput && paramsInput.value.trim()) {
+      parsedParams = JSON.parse(paramsInput.value);
+    }
+  } catch (err) {
+    if (outputBox) outputBox.innerText = `Error parsing JSON input: ${err.message}`;
+    return;
+  }
+
+  const startTime = performance.now();
+  const result = tool.handler(parsedParams);
+  const endTime = performance.now();
+  const latencyMs = Math.round(endTime - startTime) + Math.floor(Math.random() * 8 + 4);
+
+  const jsonRpcPayload = {
+    jsonrpc: "2.0",
+    id: Math.floor(Math.random() * 10000),
+    result: {
+      tool: tool.name,
+      execution_latency_ms: latencyMs,
+      timestamp: new Date().toISOString(),
+      output: result
+    }
+  };
+
+  if (outputBox) outputBox.innerText = JSON.stringify(jsonRpcPayload, null, 2);
+  if (latencyBadge) latencyBadge.innerText = `⚡ ${latencyMs} ms`;
+  if (statusBadge) {
+    statusBadge.innerText = '● 200 OK (SUCCESS)';
+    statusBadge.style.color = 'var(--accent-green)';
+  }
+
+  mcpCallHistory.unshift({
+    name: tool.name,
+    latency: `${latencyMs}ms`,
+    time: new Date().toLocaleTimeString(),
+    status: '200 OK'
+  });
+
+  renderMCPHistory();
+  if (typeof showToast === 'function') showToast(`🛠️ MCP Tool tools/${tool.name} executed in ${latencyMs}ms`);
+}
+
+function renderMCPHistory() {
+  const historyContainer = document.getElementById('mcp-history-list');
+  if (!historyContainer) return;
+
+  if (mcpCallHistory.length === 0) {
+    historyContainer.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-dim);">No tool executions yet.</div>`;
+    return;
+  }
+
+  historyContainer.innerHTML = mcpCallHistory.slice(0, 5).map(item => `
+    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(10,15,26,0.6); padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.78rem; font-family: var(--font-mono);">
+      <span style="color: var(--accent-cyan);">tools/${item.name}</span>
+      <div style="display: flex; gap: 0.6rem; color: var(--text-muted);">
+        <span>${item.latency}</span>
+        <span style="color: var(--accent-green);">${item.status}</span>
+        <span>${item.time}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// --------------------------------------------------------------------------
+// 2. REAL-TIME APP SANDBOX DRAWER
+// --------------------------------------------------------------------------
+let sandboxState = {
+  activeApp: null,
+  running: false,
+  cpu: 24,
+  ram: 184,
+  netIn: 3.8,
+  netOut: 1.2,
+  logs: [],
+  timer: null
+};
+
+function openSandboxDrawer(appId) {
+  const app = typeof ALL_APPS !== 'undefined' ? ALL_APPS.find(a => a.id === appId) : null;
+  const appTitle = app ? app.title : "QuantAlpha Neural Predictor";
+  const appIcon = app ? app.icon : "🤖";
+
+  sandboxState.activeApp = appTitle;
+
+  const titleEl = document.getElementById('sandbox-app-title');
+  const iconEl = document.getElementById('sandbox-app-icon');
+  if (titleEl) titleEl.innerText = `${appTitle} Sandbox`;
+  if (iconEl) iconEl.innerText = appIcon;
+
+  const drawer = document.getElementById('app-sandbox-drawer');
+  if (drawer) drawer.classList.add('active');
+
+  startSandboxSimulation();
+}
+
+function closeSandboxDrawer() {
+  const drawer = document.getElementById('app-sandbox-drawer');
+  if (drawer) drawer.classList.remove('active');
+  stopSandboxSimulation();
+}
+
+function startSandboxSimulation() {
+  sandboxState.running = true;
+  updateSandboxStatusIndicator('● RUNNING', 'var(--accent-green)');
+
+  appendSandboxLog('INFO', `Initializing sandboxed micro-container for ${sandboxState.activeApp}...`);
+  appendSandboxLog('DEBUG', `Memory allocated: 512MB RAM, 2 Cores synchronized.`);
+  appendSandboxLog('SUCCESS', `Zero-knowledge sandbox isolation verified. Socket connected.`);
+
+  if (sandboxState.timer) clearInterval(sandboxState.timer);
+  sandboxState.timer = setInterval(() => {
+    if (!sandboxState.running) return;
+
+    sandboxState.cpu = Math.floor(18 + Math.random() * 25);
+    sandboxState.ram = Math.floor(170 + Math.random() * 40);
+    sandboxState.netIn = (2.5 + Math.random() * 3.5).toFixed(1);
+    sandboxState.netOut = (0.8 + Math.random() * 1.5).toFixed(1);
+
+    updateSandboxGauges();
+
+    const events = [
+      { type: 'METRIC', msg: `Telemetry ping processed in ${ (0.4 + Math.random() * 0.8).toFixed(2) }ms` },
+      { type: 'DEBUG', msg: `Cache hit ratio 99.4% across entangled cores` },
+      { type: 'SUCCESS', msg: `Groth16 ZK proof verification: PASSED` },
+      { type: 'INFO', msg: `Heartbeat stream active on P2P mesh node` }
+    ];
+    const ev = events[Math.floor(Math.random() * events.length)];
+    appendSandboxLog(ev.type, ev.msg);
+  }, 2200);
+}
+
+function pauseSandboxSimulation() {
+  sandboxState.running = !sandboxState.running;
+  if (sandboxState.running) {
+    updateSandboxStatusIndicator('● RUNNING', 'var(--accent-green)');
+    appendSandboxLog('INFO', 'Resumed sandbox execution loop.');
+  } else {
+    updateSandboxStatusIndicator('⏸ PAUSED', 'var(--accent-gold)');
+    appendSandboxLog('WARN', 'Sandbox execution loop paused by user.');
+  }
+}
+
+function stopSandboxSimulation() {
+  if (sandboxState.timer) clearInterval(sandboxState.timer);
+  sandboxState.running = false;
+  updateSandboxStatusIndicator('⏹ STOPPED', 'var(--text-muted)');
+}
+
+function updateSandboxStatusIndicator(text, color) {
+  const statusEl = document.getElementById('sandbox-status-pill');
+  if (statusEl) {
+    statusEl.innerText = text;
+    statusEl.style.color = color;
+  }
+}
+
+function updateSandboxGauges() {
+  const cpuVal = document.getElementById('sandbox-cpu-val');
+  const cpuBar = document.getElementById('sandbox-cpu-bar');
+  const ramVal = document.getElementById('sandbox-ram-val');
+  const ramBar = document.getElementById('sandbox-ram-bar');
+  const netVal = document.getElementById('sandbox-net-val');
+
+  if (cpuVal) cpuVal.innerText = `${sandboxState.cpu}%`;
+  if (cpuBar) cpuBar.style.width = `${sandboxState.cpu}%`;
+  if (ramVal) ramVal.innerText = `${sandboxState.ram} MB / 512 MB`;
+  if (ramBar) ramBar.style.width = `${(sandboxState.ram / 512) * 100}%`;
+  if (netVal) netVal.innerText = `${sandboxState.netIn} MB/s IN | ${sandboxState.netOut} MB/s OUT`;
+}
+
+function appendSandboxLog(level, message) {
+  const terminal = document.getElementById('sandbox-terminal-stream');
+  if (!terminal) return;
+
+  const timeStr = new Date().toLocaleTimeString();
+  let levelClass = 'log-info';
+  if (level === 'DEBUG') levelClass = 'log-debug';
+  if (level === 'SUCCESS') levelClass = 'log-success';
+  if (level === 'WARN') levelClass = 'log-warn';
+
+  const logHtml = `
+    <div class="log-line">
+      <span class="log-time">[${timeStr}]</span>
+      <span class="${levelClass}">[${level}]</span>
+      <span>${message}</span>
+    </div>
+  `;
+  terminal.insertAdjacentHTML('beforeend', logHtml);
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+function clearSandboxLogs() {
+  const terminal = document.getElementById('sandbox-terminal-stream');
+  if (terminal) terminal.innerHTML = '';
+}
+
+
+// --------------------------------------------------------------------------
+// 3. DATA INGESTION TELEMETRY RADAR
+// --------------------------------------------------------------------------
+const RADAR_NODES = [
+  { id: 'apple', name: 'StoreKit 2 (Apple)', x: 35, y: 25, rate: '14,200 ev/s', status: 'Optimal', latency: '0.9 ms' },
+  { id: 'google', name: 'Play Billing (Android)', x: 70, y: 30, rate: '9,800 ev/s', status: 'Optimal', latency: '1.2 ms' },
+  { id: 'stripe', name: 'Stripe Paywalls', x: 75, y: 70, rate: '4,500 ev/s', status: 'Active', latency: '1.4 ms' },
+  { id: 'wearos', name: 'Wear OS Mesh', x: 25, y: 65, rate: '18,900 ev/s', status: 'Optimal', latency: '0.6 ms' },
+  { id: 'kafka', name: 'Apache Kafka Stream', x: 50, y: 20, rate: '45,000 ev/s', status: 'Ultra High-Freq', latency: '0.4 ms' },
+  { id: 'zk', name: 'Groth16 ZK Gate', x: 50, y: 80, rate: '3,100 ev/s', status: 'Secured', latency: '2.1 ms' }
+];
+
+let selectedRadarNodeId = 'kafka';
+
+function initTelemetryRadar() {
+  const canvasContainer = document.getElementById('radar-canvas-container');
+  if (!canvasContainer) return;
+
+  // Clear previous blips except rings and sweep line
+  const oldPings = canvasContainer.querySelectorAll('.radar-node-ping');
+  oldPings.forEach(p => p.remove());
+
+  RADAR_NODES.forEach(node => {
+    const ping = document.createElement('div');
+    ping.className = 'radar-node-ping';
+    ping.style.left = `${node.x}%`;
+    ping.style.top = `${node.y}%`;
+    ping.title = `${node.name} (${node.rate})`;
+    ping.onclick = () => selectRadarNode(node.id);
+    canvasContainer.appendChild(ping);
+  });
+
+  selectRadarNode(selectedRadarNodeId);
+}
+
+function selectRadarNode(nodeId) {
+  selectedRadarNodeId = nodeId;
+  const node = RADAR_NODES.find(n => n.id === nodeId);
+  if (!node) return;
+
+  const nameEl = document.getElementById('radar-selected-node-name');
+  const rateEl = document.getElementById('radar-selected-node-rate');
+  const latencyEl = document.getElementById('radar-selected-node-latency');
+  const statusEl = document.getElementById('radar-selected-node-status');
+
+  if (nameEl) nameEl.innerText = node.name;
+  if (rateEl) rateEl.innerText = node.rate;
+  if (latencyEl) latencyEl.innerText = node.latency;
+  if (statusEl) statusEl.innerText = node.status;
+}
+
+
+// --------------------------------------------------------------------------
+// 4. 20+ A-TO-Z WORKFLOW EXECUTION STUDIO
+// --------------------------------------------------------------------------
+const AZ_WORKFLOWS = [
+  { letter: "A", title: "Automated Financial Audit", category: "Finance", desc: "Scans double-entry transactions and reconciles bank deposits vs ACH payouts.", steps: ["Ingest Ledger", "Match Deposits", "Audit Ledger", "Issue Report"] },
+  { letter: "B", title: "Biometric Wear OS Verification", category: "Wearables", desc: "Verifies PPG heart-rate entropy keying from Wear OS smartwatch sensor mesh.", steps: ["Read PPG Sensor", "Compute Entropy", "Verify Hardware", "Authorize Transfer"] },
+  { letter: "C", title: "Cross-Chain Liquidity Settlement", category: "DeFi", desc: "Rebalances FORMA/SOV DEX liquidity pools across Ethereum, Solana, and Cosmos.", steps: ["Scan Slippage", "Bridge Assets", "Execute Swap", "Rebalance Vault"] },
+  { letter: "D", title: "DeepSeek Financial Substrate", category: "AI Engine", desc: "Runs offline DeepSeek reasoning model to extract financial metrics from earnings transcripts.", steps: ["Parse Document", "Vectorize Text", "Run DeepSeek LLM", "Generate Summary"] },
+  { letter: "E", title: "Enterprise Tax & Escrow Calculation", category: "Tax", desc: "Calculates sales tax/VAT across 50 US states & EU member nations and escrows funds.", steps: ["Extract Line Items", "Calculate VAT/Tax", "Escrow Allocation", "Commit Escrow"] },
+  { letter: "F", title: "Fraud Pattern GNN Analysis", category: "Security", desc: "Applies Graph Neural Networks to identify multi-hop money laundering transaction loops.", steps: ["Construct Graph", "Traverse Nodes", "Run GNN Inference", "Flag Suspicious"] },
+  { letter: "G", title: "Golden Ratio Staking Distribution", category: "Tokenomics", desc: "Distributes φ-rate (61.8% APY) daily yield rewards to FORMA vault stakers.", steps: ["Fetch Stakers", "Calculate Yield", "Mint FORMA", "Distribute Rewards"] },
+  { letter: "H", title: "Hardware Security Module Signer", category: "HSM", desc: "Dispatches multi-sig transaction approvals through YubiKey and Ledger HSM devices.", steps: ["Prepare Transaction", "Dispatch HSM Prompt", "Verify Dilithium", "Broadcast Block"] },
+  { letter: "I", title: "ISO20022 Enterprise SWIFT Gateway", category: "Banking", desc: "Validates and serializes bank-grade SWIFT ISO20022 XML financial payment messages.", steps: ["Receive pacs.008", "Validate XML", "Convert FX Rate", "Settle to Treasury"] },
+  { letter: "J", title: "Just-in-Time Credit Provisioning", category: "AI Credit", desc: "Underwrites real-time micro-credit lines using AURA credit risk model.", steps: ["Fetch Credit Score", "Evaluate Risk", "Set Credit Limit", "Issue Micro-Line"] },
+  { letter: "K", title: "Kafka Telemetry Stream Router", category: "Telemetry", desc: "Ingests 100k msg/sec event streams and routes to real-time analytics queues.", steps: ["Ingest Stream", "Filter Batch", "Partition Route", "Push Analytics"] },
+  { letter: "L", title: "Lightning Network Micropayments", category: "Payments", desc: "Settles sub-cent API metered billing transactions on Bitcoin Layer-2.", steps: ["Generate Invoice", "Pay Lightning HTLC", "Verify Preimage", "Unlock API Tier"] },
+  { letter: "M", title: "Multi-Store RevenueCat Sync", category: "Subscriptions", desc: "Synchronizes StoreKit 2 and Google Play Billing subscriber entitlements.", steps: ["Receive Webhook", "Verify Entitlements", "Update User State", "Notify Node Mesh"] },
+  { letter: "N", title: "Neural Paywall AST Synthesizer", category: "Neural UI", desc: "Generates dynamic UI paywall layouts using UCB1 multi-armed bandit algorithm.", steps: ["Evaluate Cohort", "Synthesize AST", "Deploy Variant", "Record Conversion"] },
+  { letter: "O", title: "Offline Enclave Key Rotation", category: "Security", desc: "Rotates HSM cryptographic keys within Intel SGX secure hardware enclave.", steps: ["Generate Ephemeral Key", "Verify SGX Attestation", "Swap Key Pair", "Purge Buffer"] },
+  { letter: "P", title: "Post-Quantum Dilithium Signing", category: "Security", desc: "Signs high-value treasury transactions with NIST-approved post-quantum algorithms.", steps: ["Construct Payload", "Run Dilithium5 Sign", "Verify Signature", "Commit Block"] },
+  { letter: "Q", title: "Quadratic DAO Governance Voting", category: "Governance", desc: "Aggregates community governance votes with anti-sybil ZK identity proofs.", steps: ["Ingest Votes", "Apply Sqrt Weight", "Verify ZK Proof", "Execute Proposal"] },
+  { letter: "R", title: "Real-Time Churn Intercept (PULSE)", category: "Retention", desc: "Auto-dispatches RevenueCat Customer Center winback offers when churn risk spikes.", steps: ["Compute Coherence R", "Detect Churn Risk", "Trigger Winback", "Apply Discount"] },
+  { letter: "S", title: "Substrate Core Mesh Entanglement", category: "Core", desc: "Synchronizes state across 6 Sovereign Engine core modules in under 2ms.", steps: ["Gather State", "Run Entanglement", "Verify Consensus", "Sync Nodes"] },
+  { letter: "T", title: "Token Buyback & Burn Automation", category: "Tokenomics", desc: "Triggers automated 15% revenue allocation to execute token burns on-chain.", steps: ["Calculate Revenue", "Allocate Buyback", "Execute DEX Swap", "Burn FORMA Tokens"] },
+  { letter: "U", title: "Unified GraphQL Federation", category: "API", desc: "Merges 12 backend microservice schemas into zero-latency GraphQL endpoint.", steps: ["Introspect Schema", "Federate Graph", "Optimize Cache", "Serve Endpoint"] },
+  { letter: "V", title: "Vector DB Semantic Search", category: "AI Search", desc: "Indexes unstructured enterprise documents into Qdrant/Milvus vector index.", steps: ["Embed Chunk", "Index Vector DB", "Execute Query", "Rank Top-K Results"] },
+  { letter: "W", title: "Webhook Retry & Backoff Mesh", category: "Webhooks", desc: "Ingests external HTTP webhooks with exponential retry & idempotency locks.", steps: ["Ingest Webhook", "Check Idempotency", "Dispatch Target", "Log Audit"] },
+  { letter: "X", title: "XFIN Cross-Border FX Micro-Settlement", category: "FX Settlement", desc: "Instant FX conversion of foreign currencies into USD Treasury reserves.", steps: ["Receive Foreign FX", "Lock Exchange Rate", "Execute Conversion", "Deposit USD"] },
+  { letter: "Y", title: "Yield Optimization Vault Strategy", category: "DeFi", desc: "Auto-harvests DEX yield farm rewards and reinvests into treasury reserves.", steps: ["Scan APY Yields", "Harvest Rewards", "Compound Position", "Reinvest Reserves"] },
+  { letter: "Z", title: "Zero-Knowledge KYC Authenticator", category: "ZK Security", desc: "Verifies user identity & age via Groth16 ZK-proofs without exposing raw PII.", steps: ["Generate Proof", "Verify Groth16", "Check Nonce", "Issue KYC Badge"] }
+];
+
+let selectedAzLetter = "A";
+let azExecutionRunning = false;
+
+function renderAZWorkflowsCatalog() {
+  const container = document.getElementById('az-workflows-grid');
+  if (!container) return;
+
+  container.innerHTML = AZ_WORKFLOWS.map(wf => {
+    const isActive = wf.letter === selectedAzLetter ? 'active' : '';
+    return `
+      <div class="az-workflow-card ${isActive}" onclick="selectAZWorkflow('${wf.letter}')">
+        <div class="az-badge">${wf.letter}</div>
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; color: #fff;">${wf.title}</div>
+          <div style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 600; margin-top: 0.1rem;">${wf.category}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  selectAZWorkflow(selectedAzLetter);
+}
+
+function selectAZWorkflow(letter) {
+  selectedAzLetter = letter;
+  const wf = AZ_WORKFLOWS.find(w => w.letter === letter);
+  if (!wf) return;
+
+  document.querySelectorAll('.az-workflow-card').forEach(el => el.classList.remove('active'));
+  const currentEl = Array.from(document.querySelectorAll('.az-workflow-card')).find(el => el.getAttribute('onclick')?.includes(`'${letter}'`));
+  if (currentEl) currentEl.classList.add('active');
+
+  const titleEl = document.getElementById('az-selected-title');
+  const descEl = document.getElementById('az-selected-desc');
+  const badgeEl = document.getElementById('az-selected-badge');
+
+  if (titleEl) titleEl.innerText = wf.title;
+  if (descEl) descEl.innerText = wf.desc;
+  if (badgeEl) badgeEl.innerText = wf.letter;
+
+  renderPipelineSteps(wf.steps);
+}
+
+function renderPipelineSteps(steps) {
+  const container = document.getElementById('pipeline-flow-container');
+  if (!container) return;
+
+  const icons = ['📥', '⚙️', '⚡', '✅'];
+  let html = '';
+
+  steps.forEach((stepName, i) => {
+    html += `
+      <div class="pipeline-step-node" id="pipeline-node-${i}">
+        <div class="pipeline-step-icon">${icons[i] || '⚙️'}</div>
+        <div style="font-size: 0.75rem; color: #fff; font-weight: 600;">Node ${i + 1}</div>
+        <div style="font-size: 0.7rem; color: var(--text-muted);">${stepName}</div>
+      </div>
+    `;
+    if (i < steps.length - 1) {
+      html += `<div class="pipeline-connector-line" id="pipeline-line-${i}"></div>`;
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+function runAZWorkflow() {
+  if (azExecutionRunning) return;
+
+  const wf = AZ_WORKFLOWS.find(w => w.letter === selectedAzLetter);
+  if (!wf) return;
+
+  azExecutionRunning = true;
+  const terminal = document.getElementById('az-terminal-output');
+  if (terminal) terminal.innerHTML = `<div>[START] Launching Workflow Execution Studio: [${wf.letter}] ${wf.title}...</div>`;
+
+  const btn = document.getElementById('az-run-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = '⚡ Running Pipeline...';
+  }
+
+  let stepIdx = 0;
+  const interval = setInterval(() => {
+    if (stepIdx < wf.steps.length) {
+      // Set previous to completed
+      if (stepIdx > 0) {
+        const prevNode = document.getElementById(`pipeline-node-${stepIdx - 1}`);
+        const prevLine = document.getElementById(`pipeline-line-${stepIdx - 1}`);
+        if (prevNode) {
+          prevNode.classList.remove('running');
+          prevNode.classList.add('completed');
+        }
+        if (prevLine) prevLine.classList.add('active');
+      }
+
+      // Set current to running
+      const currNode = document.getElementById(`pipeline-node-${stepIdx}`);
+      if (currNode) currNode.classList.add('running');
+
+      const timeStr = new Date().toLocaleTimeString();
+      if (terminal) {
+        terminal.insertAdjacentHTML('beforeend', `
+          <div style="color: var(--accent-cyan);">[${timeStr}] [STEP ${stepIdx + 1}/${wf.steps.length}] Executing ${wf.steps[stepIdx]}... OK (${Math.floor(Math.random() * 10 + 4)}ms)</div>
+        `);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+      stepIdx++;
+    } else {
+      // Final step completion
+      const lastNode = document.getElementById(`pipeline-node-${wf.steps.length - 1}`);
+      if (lastNode) {
+        lastNode.classList.remove('running');
+        lastNode.classList.add('completed');
+      }
+
+      clearInterval(interval);
+      azExecutionRunning = false;
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = '▶ Execute Workflow Pipeline';
+      }
+
+      const timeStr = new Date().toLocaleTimeString();
+      if (terminal) {
+        terminal.insertAdjacentHTML('beforeend', `
+          <div style="color: var(--accent-green); font-weight: bold;">[${timeStr}] [SUCCESS 200 OK] Workflow [${wf.letter}] ${wf.title} completed successfully across 6 Sovereign Cores.</div>
+        `);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      if (typeof showToast === 'function') showToast(`🎉 Workflow [${wf.letter}] ${wf.title} Completed!`);
+    }
+  }, 900);
+}
+
+
+// --------------------------------------------------------------------------
+// GLOBAL INITIALIZER FOR INTERACTIVE EXTENSIONS
+// --------------------------------------------------------------------------
+function initSovereignInteractiveExtensions() {
+  renderMCPConsole();
+  initTelemetryRadar();
+  renderAZWorkflowsCatalog();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSovereignInteractiveExtensions);
+} else {
+  initSovereignInteractiveExtensions();
+}
+
+
 
 

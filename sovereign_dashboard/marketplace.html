@@ -82,85 +82,272 @@
   <!-- MAIN CONTAINER -->
   <main class="main-container" style="margin-top: 1rem;">
     
-    <!-- SEARCH & FILTER SECTION -->
-    <section class="search-filter-section">
-      <!-- SEARCH BAR ROW -->
-      <div class="search-bar-row">
-        <div class="search-input-wrapper">
-          <span class="search-input-icon">🔍</span>
-          <input 
-            type="text" 
-            id="marketplace-search" 
-            class="search-input" 
-            placeholder="Instant search 200 apps by name, tag, feature, publisher, or pricing tier..." 
-            oninput="handleSearchInput(this.value)"
-          >
-          <button id="search-clear-btn" class="search-clear-btn" style="display: none;" onclick="clearSearchInput()" title="Clear Search (Esc)">✕</button>
-        </div>
-        <div class="shortcut-badge">Ctrl + /</div>
-      </div>
-
-      <!-- CATEGORY TABS ROW -->
-      <div class="category-tabs-wrapper" id="category-tabs-container">
-        <!-- Rendered by JS -->
-      </div>
-
-      <!-- FILTER CONTROLS BAR -->
-      <div class="filter-controls-bar">
-        <div class="filter-selects">
-          <select id="filter-tier" class="select-custom" onchange="applyFilters()">
-            <option value="all">Pricing: All Tiers</option>
-            <option value="free">Free Tier Only</option>
-            <option value="pro">RevenueCat Pro ($29/mo)</option>
-            <option value="quantum">Enterprise Quantum ($199/mo)</option>
-          </select>
-
-          <select id="filter-status" class="select-custom" onchange="applyFilters()">
-            <option value="all">Status: All Apps</option>
-            <option value="installed">Installed Only</option>
-            <option value="uninstalled">Available to Install</option>
-            <option value="featured">Featured Plugins</option>
-          </select>
-
-          <select id="filter-sort" class="select-custom" onchange="applyFilters()">
-            <option value="rating">Sort by: Top Rated (★ 5.0)</option>
-            <option value="reviews">Sort by: Most Popular</option>
-            <option value="name">Sort by: Name (A - Z)</option>
-            <option value="newest">Sort by: Newest Releases</option>
-          </select>
-        </div>
-
-        <div class="results-meta">
-          <span id="results-count-text">Showing 200 of 200 Apps</span>
-          <span style="color: var(--border-glass-bright);">•</span>
-          <span id="active-category-label" style="color: var(--accent-cyan); font-weight: 600;">All Ecosystem Apps</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- APP CARDS GRID -->
-    <div id="app-grid" class="app-grid">
-      <!-- 200 App cards dynamically rendered here -->
+    <!-- VIEW MODE SWITCHER TABS -->
+    <div class="view-mode-tabs">
+      <button class="view-tab-btn active" id="view-btn-apps" onclick="switchMarketplaceView('apps')">🛍️ Ecosystem Apps (200)</button>
+      <button class="view-tab-btn" id="view-btn-mcp" onclick="switchMarketplaceView('mcp')">🛠️ MCP Tool Console</button>
+      <button class="view-tab-btn" id="view-btn-radar" onclick="switchMarketplaceView('radar')">📡 Ingestion Telemetry Radar</button>
+      <button class="view-tab-btn" id="view-btn-az" onclick="switchMarketplaceView('az')">⚡ 20+ A-to-Z Workflow Studio</button>
     </div>
 
-    <!-- PAGINATION CONTROLS BAR -->
-    <div class="pagination-container">
-      <div style="font-size: 0.84rem; color: var(--text-muted);" id="pagination-info">
-        Page 1 of 9 (Showing 24 apps per page)
+    <!-- VIEW 1: APP MARKETPLACE CATALOG -->
+    <div id="sec-apps-view">
+      <!-- SEARCH & FILTER SECTION -->
+      <section class="search-filter-section">
+        <!-- SEARCH BAR ROW -->
+        <div class="search-bar-row">
+          <div class="search-input-wrapper">
+            <span class="search-input-icon">🔍</span>
+            <input 
+              type="text" 
+              id="marketplace-search" 
+              class="search-input" 
+              placeholder="Instant search 200 apps by name, tag, feature, publisher, or pricing tier..." 
+              oninput="handleSearchInput(this.value)"
+            >
+            <button id="search-clear-btn" class="search-clear-btn" style="display: none;" onclick="clearSearchInput()" title="Clear Search (Esc)">✕</button>
+          </div>
+          <div class="shortcut-badge">Ctrl + /</div>
+        </div>
+
+        <!-- CATEGORY TABS ROW -->
+        <div class="category-tabs-wrapper" id="category-tabs-container">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- FILTER CONTROLS BAR -->
+        <div class="filter-controls-bar">
+          <div class="filter-selects">
+            <select id="filter-tier" class="select-custom" onchange="applyFilters()">
+              <option value="all">Pricing: All Tiers</option>
+              <option value="free">Free Tier Only</option>
+              <option value="pro">RevenueCat Pro ($29/mo)</option>
+              <option value="quantum">Enterprise Quantum ($199/mo)</option>
+            </select>
+
+            <select id="filter-status" class="select-custom" onchange="applyFilters()">
+              <option value="all">Status: All Apps</option>
+              <option value="installed">Installed Only</option>
+              <option value="uninstalled">Available to Install</option>
+              <option value="featured">Featured Plugins</option>
+            </select>
+
+            <select id="filter-sort" class="select-custom" onchange="applyFilters()">
+              <option value="rating">Sort by: Top Rated (★ 5.0)</option>
+              <option value="reviews">Sort by: Most Popular</option>
+              <option value="name">Sort by: Name (A - Z)</option>
+              <option value="newest">Sort by: Newest Releases</option>
+            </select>
+          </div>
+
+          <div class="results-meta">
+            <span id="results-count-text">Showing 200 of 200 Apps</span>
+            <span style="color: var(--border-glass-bright);">•</span>
+            <span id="active-category-label" style="color: var(--accent-cyan); font-weight: 600;">All Ecosystem Apps</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- APP CARDS GRID -->
+      <div id="app-grid" class="app-grid">
+        <!-- 200 App cards dynamically rendered here -->
       </div>
 
-      <div class="pagination-pages" id="pagination-buttons">
-        <!-- Page buttons dynamically rendered -->
+      <!-- PAGINATION CONTROLS BAR -->
+      <div class="pagination-container">
+        <div style="font-size: 0.84rem; color: var(--text-muted);" id="pagination-info">
+          Page 1 of 9 (Showing 24 apps per page)
+        </div>
+
+        <div class="pagination-pages" id="pagination-buttons">
+          <!-- Page buttons dynamically rendered -->
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Per Page:</span>
+          <select id="per-page-select" class="select-custom" onchange="changePerPage(this.value)">
+            <option value="24" selected>24 Cards</option>
+            <option value="48">48 Cards</option>
+            <option value="96">96 Cards</option>
+            <option value="200">Show All 200</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: INTERACTIVE MCP TOOL CONSOLE -->
+    <div id="sec-mcp-view" style="display: none;" class="glass-panel">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">🛠️ Interactive Model Context Protocol (MCP) Tool Console</h3>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Inspect tool schemas, construct JSON-RPC 2.0 payloads, execute tools, and measure real-time substrate latency</div>
+        </div>
+        <span class="status-pill cyan">MCP Protocol v1.0 Active</span>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <span style="font-size: 0.8rem; color: var(--text-muted);">Per Page:</span>
-        <select id="per-page-select" class="select-custom" onchange="changePerPage(this.value)">
-          <option value="24" selected>24 Cards</option>
-          <option value="48">48 Cards</option>
-          <option value="96">96 Cards</option>
-          <option value="200">Show All 200</option>
-        </select>
+      <div class="mcp-console-grid">
+        <!-- LEFT: TOOL SELECTOR -->
+        <div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.6rem;">Available Substrate MCP Tools</div>
+          <div class="mcp-tool-list" id="mcp-tool-list-container">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- RIGHT: EXECUTION PANEL -->
+        <div class="mcp-execution-panel">
+          <div style="background: rgba(10, 15, 26, 0.8); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <h4 id="mcp-selected-name" style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 1.1rem; margin: 0;">tools/query_ledger</h4>
+                <div id="mcp-selected-desc" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">Query double-entry financial ledger accounts and balances</div>
+              </div>
+              <button class="btn-primary" onclick="executeMCPTool()">▶ Execute MCP Tool</button>
+            </div>
+
+            <div class="mcp-form-row">
+              <label class="mcp-label">Tool Input Parameters (JSON Schema)</label>
+              <textarea id="mcp-params-json" class="mcp-input" rows="5" style="width: 100%; resize: vertical;"></textarea>
+            </div>
+          </div>
+
+          <!-- RESPONSE OUTPUT TERMINAL -->
+          <div style="background: #04060c; border: 1px solid var(--border-glass-bright); border-radius: 14px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-family: var(--font-heading); font-size: 0.9rem; color: #fff; font-weight: 700;">JSON-RPC 2.0 Response Payload</span>
+                <span id="mcp-status-badge" style="font-size: 0.75rem; color: var(--accent-green); font-weight: 600;">● READY</span>
+              </div>
+              <span id="mcp-latency-badge" class="badge-revenuecat" style="background: rgba(0, 242, 254, 0.1); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.3);">⚡ 0 ms</span>
+            </div>
+            <pre id="mcp-json-output" class="mcp-json-output">{ "jsonrpc": "2.0", "result": "Ready for MCP tool execution." }</pre>
+          </div>
+
+          <!-- RECENT HISTORY -->
+          <div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Recent Execution Log</div>
+            <div id="mcp-history-list" style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <!-- History rendered by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: DATA INGESTION TELEMETRY RADAR -->
+    <div id="sec-radar-view" style="display: none;" class="glass-panel">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">📡 Real-Time Data Ingestion Telemetry Radar</h3>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Monitor live multi-node telemetry ingestion rates, buffer throughput, packet health, and sub-millisecond latencies</div>
+        </div>
+        <span class="status-pill success">● 85.2k Events/sec Streamed</span>
+      </div>
+
+      <div class="radar-grid">
+        <!-- RADAR VISUALIZER CANVAS -->
+        <div class="radar-screen-wrapper">
+          <div class="radar-canvas-container" id="radar-canvas-container">
+            <div class="radar-ring radar-ring-1"></div>
+            <div class="radar-ring radar-ring-2"></div>
+            <div class="radar-ring radar-ring-3"></div>
+            <div class="radar-axis-h"></div>
+            <div class="radar-axis-v"></div>
+            <div class="radar-sweep-line"></div>
+            <!-- Radar node pings rendered by JS -->
+          </div>
+          <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Ingestion Sweep Radar Active</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;">Click any radar node blip to inspect live metrics</div>
+        </div>
+
+        <!-- NODE DETAILS & GLOBAL METRICS -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <!-- SELECTED NODE INSPECTOR CARD -->
+          <div style="background: rgba(10, 15, 26, 0.8); border: 1px solid var(--border-glow); border-radius: 16px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Selected Ingestion Node</div>
+                <h4 id="radar-selected-node-name" style="font-family: var(--font-heading); color: #fff; font-size: 1.2rem; margin: 0.1rem 0;">Apache Kafka Stream</h4>
+              </div>
+              <span id="radar-selected-node-status" class="status-pill cyan">Ultra High-Freq</span>
+            </div>
+
+            <div class="grid-2" style="gap: 0.85rem;">
+              <div style="background: rgba(13, 19, 33, 0.8); padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border-glass);">
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Ingestion Rate</div>
+                <div id="radar-selected-node-rate" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent-cyan); font-weight: 700;">45,000 ev/s</div>
+              </div>
+              <div style="background: rgba(13, 19, 33, 0.8); padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border-glass);">
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Mesh Latency</div>
+                <div id="radar-selected-node-latency" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent-green); font-weight: 700;">0.4 ms</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GLOBAL INGESTION METRICS BAR -->
+          <div class="grid-2" style="gap: 1rem;">
+            <div class="metric-card" style="padding: 1rem;">
+              <div class="metric-label">Aggregate Ingestion Speed</div>
+              <div class="metric-value" style="font-size: 1.4rem; color: var(--accent-cyan);">85,200 ev/sec</div>
+              <div class="metric-change positive">▲ 4.8 GB / hour Throughput</div>
+            </div>
+            <div class="metric-card" style="padding: 1rem;">
+              <div class="metric-label">Ring Buffer Capacity</div>
+              <div class="metric-value" style="font-size: 1.4rem; color: var(--accent-green);">99.9%</div>
+              <div class="metric-change positive">▲ Zero Packet Drops Detected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: 20+ A-TO-Z WORKFLOW EXECUTION STUDIO -->
+    <div id="sec-az-view" style="display: none;" class="glass-panel">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">⚡ 20+ A-to-Z Enterprise Workflow Execution Studio</h3>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Select from 26 pre-built A-to-Z enterprise workflows, configure pipeline arguments, and execute multi-core operations in real time</div>
+        </div>
+        <span class="status-pill cyan">26 Workflows Ready</span>
+      </div>
+
+      <div class="mcp-console-grid">
+        <!-- LEFT: A-Z WORKFLOW CATALOG -->
+        <div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.6rem;">A-to-Z Workflows Directory</div>
+          <div class="az-workflow-catalog" id="az-workflows-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- RIGHT: WORKFLOW PIPELINE RUNNER -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div style="background: rgba(10, 15, 26, 0.8); border: 1px solid var(--border-glow); border-radius: 16px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div class="az-badge" id="az-selected-badge">A</div>
+                <div>
+                  <h4 id="az-selected-title" style="font-family: var(--font-heading); color: #fff; font-size: 1.2rem; margin: 0;">Automated Financial Audit</h4>
+                  <div id="az-selected-desc" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">Scans double-entry transactions and reconciles bank deposits vs ACH payouts.</div>
+                </div>
+              </div>
+              <button id="az-run-btn" class="btn-primary" onclick="runAZWorkflow()">▶ Execute Workflow Pipeline</button>
+            </div>
+
+            <!-- PIPELINE FLOW VISUALIZER -->
+            <div class="pipeline-flow-container" id="pipeline-flow-container">
+              <!-- Pipeline steps rendered by JS -->
+            </div>
+          </div>
+
+          <!-- EXECUTION TERMINAL OUTPUT -->
+          <div style="background: #04060c; border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Pipeline Execution Terminal</div>
+            <div id="az-terminal-output" style="font-family: var(--font-mono); font-size: 0.8rem; color: #a7f3d0; height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem;">
+              <div>[INFO] Select a workflow and click 'Execute Workflow Pipeline' to run.</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -338,6 +525,74 @@
         <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="simulateRevenueCatPurchase('quantum')">
           ⚡ Simulate StoreKit 2 Purchase Success
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REAL-TIME APP SANDBOX DRAWER -->
+  <div id="app-sandbox-drawer" class="sandbox-drawer">
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center; background: rgba(8, 12, 22, 0.95);">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span id="sandbox-app-icon" style="font-size: 1.6rem;">🤖</span>
+        <div>
+          <h3 id="sandbox-app-title" style="font-family: var(--font-heading); color: #fff; font-size: 1.15rem; margin: 0;">QuantAlpha Neural Predictor Sandbox</h3>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Real-Time Container Sandbox & Runtime Debugger</div>
+        </div>
+      </div>
+      <button class="modal-close-btn" onclick="closeSandboxDrawer()">✕</button>
+    </div>
+
+    <div style="padding: 1.5rem; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
+      <!-- RUNTIME STATUS & CONTROLS TOOLBAR -->
+      <div style="background: rgba(13, 19, 33, 0.8); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Sandbox State:</span>
+          <span id="sandbox-status-pill" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">● RUNNING</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-card-action btn-card-primary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="startSandboxSimulation()">▶ Start</button>
+          <button class="btn-card-action" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="pauseSandboxSimulation()">⏸ Pause</button>
+          <button class="btn-card-action" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="clearSandboxLogs()">🧹 Clear Logs</button>
+        </div>
+      </div>
+
+      <!-- LIVE METRIC GAUGES -->
+      <div class="sandbox-gauges-grid">
+        <div class="sandbox-gauge-card">
+          <div class="sandbox-gauge-header">
+            <span>CPU Utilization</span>
+            <span>2 Cores</span>
+          </div>
+          <div class="sandbox-gauge-value" id="sandbox-cpu-val">24%</div>
+          <div class="sandbox-progress-bg">
+            <div class="sandbox-progress-bar" id="sandbox-cpu-bar" style="width: 24%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));"></div>
+          </div>
+        </div>
+
+        <div class="sandbox-gauge-card">
+          <div class="sandbox-gauge-header">
+            <span>RAM Memory</span>
+            <span>Allocated</span>
+          </div>
+          <div class="sandbox-gauge-value" id="sandbox-ram-val">184 MB / 512 MB</div>
+          <div class="sandbox-progress-bg">
+            <div class="sandbox-progress-bar" id="sandbox-ram-bar" style="width: 36%; background: linear-gradient(90deg, var(--accent-violet), var(--accent-magenta));"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NETWORK & LATENCY CARD -->
+      <div style="background: rgba(10, 15, 26, 0.7); border: 1px solid var(--border-glass); border-radius: 12px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem;">
+        <span style="color: var(--text-muted);">Network I/O Throughput:</span>
+        <span id="sandbox-net-val" style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600;">3.8 MB/s IN | 1.2 MB/s OUT</span>
+      </div>
+
+      <!-- LIVE STREAM TERMINAL -->
+      <div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Live Sandbox Runtime Console Stream</div>
+        <div id="sandbox-terminal-stream" class="sandbox-terminal-stream">
+          <!-- Log lines auto-streamed by JS -->
+        </div>
       </div>
     </div>
   </div>
@@ -697,12 +952,31 @@
           <div class="app-card-footer">
             <div class="app-price-tag">${app.priceTag}</div>
             <div class="app-actions">
+              <button class="btn-card-action" onclick="openSandboxDrawer(${app.id})" title="Launch Real-Time Sandbox Debugger">🧪 Sandbox</button>
               <button class="btn-card-action" onclick="openAppModal(${app.id})" title="View Specifications">Details</button>
               ${actionBtnHtml}
             </div>
           </div>
         </div>
       `;
+    }
+
+    // VIEW MODE SWITCHER
+    function switchMarketplaceView(viewName) {
+      const views = ['apps', 'mcp', 'radar', 'az'];
+      views.forEach(v => {
+        const sec = document.getElementById(`sec-${v}-view`);
+        const btn = document.getElementById(`view-btn-${v}`);
+        if (sec) sec.style.display = (v === viewName) ? 'block' : 'none';
+        if (btn) {
+          if (v === viewName) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+
+      if (viewName === 'mcp' && typeof renderMCPConsole === 'function') renderMCPConsole();
+      if (viewName === 'radar' && typeof initTelemetryRadar === 'function') initTelemetryRadar();
+      if (viewName === 'az' && typeof renderAZWorkflowsCatalog === 'function') renderAZWorkflowsCatalog();
     }
 
     // PAGINATION RENDERER

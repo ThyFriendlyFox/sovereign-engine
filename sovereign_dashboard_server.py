@@ -56,6 +56,7 @@ from mega_11_platform_master_suite import (
     FreshBooksMasterModule
 )
 from embedded_marketplace_integrations_hub import EmbeddedMarketplaceHub
+from sovereign_mcp_server import SovereignMCPServer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -99,6 +100,37 @@ gemini_chat = GeminiChatOrchestrator(
 
 # Initialize Embedded Marketplace Hub
 marketplace_hub = EmbeddedMarketplaceHub()
+
+# Initialize Sovereign MCP Server & Workflow Map
+mcp_server = SovereignMCPServer()
+
+WORKFLOW_SHORTHAND_MAP = {
+    "wf_01": "workflow_end_to_end_subscriber_lifecycle",
+    "wf_02": "workflow_revenue_recognition_asc606",
+    "wf_03": "workflow_cross_border_fx_hedging",
+    "wf_04": "workflow_b2b_invoice_underwriting_bnpl",
+    "wf_05": "workflow_multi_entity_consolidation",
+    "wf_06": "workflow_fifo_inventory_valuation",
+    "wf_07": "workflow_fixed_assets_macrs_depreciation",
+    "wf_08": "workflow_expense_ocr_3way_po_reconciliation",
+    "wf_09": "workflow_global_vat_gst_tax_compliance",
+    "wf_10": "workflow_payroll_pto_accrual_escrow",
+    "wf_11": "workflow_smart_dunning_payment_recovery",
+    "wf_12": "workflow_metered_usage_billing",
+    "wf_13": "workflow_iot_hardware_entitlement_depreciation",
+    "wf_14": "workflow_deflationary_tokenomics_bonding_curve",
+    "wf_15": "workflow_neural_marketplace_stack_provisioning",
+    "wf_16": "workflow_tax_audit_trail_export",
+    "wf_17": "workflow_realtime_pnl_balance_sheet_cashflow",
+    "wf_18": "workflow_dynamic_paywall_ppp_pricing",
+    "wf_19": "workflow_subscriber_churn_retention_campaign",
+    "wf_20": "workflow_bank_feed_algorithmic_reconciliation",
+    "wf_21": "workflow_sovereign_ecosystem_health_audit",
+    "wf_22": "workflow_onesignal_push_retention",
+    "wf_23": "workflow_galaxy_apk_optimization",
+    "wf_24": "workflow_kmp_cross_platform_sync",
+    "wf_25": "workflow_ultimate_25_protocol_suite",
+}
 
 DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "sovereign_dashboard")
 
