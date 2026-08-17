@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Marketplace — Sovereign Engine OS</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <!-- TOP NAVBAR -->
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-icon">S</div>
+      <div>
+        <div class="brand-title">Sovereign Engine OS</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">C-Suite Executive Telemetry & App Ecosystem</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <button class="badge-revenuecat" onclick="openRevenueCatDrawer()" title="Configure RevenueCat Entitlements">
+        ⚡ RevenueCat Substrate Active
+      </button>
+      <div class="system-status-indicator">
+        <div class="pulse-dot"></div>
+        <span>6 Cores Entangled</span>
+      </div>
+      <button class="btn-primary" onclick="toggleGeminiCopilot()" style="padding: 0.4rem 0.9rem; font-size: 0.82rem;">
+        🤖 Gemini Copilot
+      </button>
+    </div>
+  </nav>
+
+  <!-- NAVIGATION TABS -->
+  <div class="nav-tabs-container">
+    <div class="nav-tabs">
+      <a href="overview.html" class="tab-btn">📊 C-Suite Overview</a>
+      <a href="quickbooks.html" class="tab-btn">💼 QuickBooks Replacement</a>
+      <a href="stripe.html" class="tab-btn">💳 Stripe Replacement</a>
+      <a href="tokenomics.html" class="tab-btn">🪙 Tokenomics & Treasury</a>
+      <a href="iot.html" class="tab-btn">⌚ Wear OS & IoT Mesh</a>
+      <a href="nexs.html" class="tab-btn">⚡ Neural Synthesizer</a>
+      <a href="marketplace.html" class="tab-btn active">🛍️ App Marketplace</a>
+    </div>
+  </div>
+
+  <!-- PAGE HEADER TITLE -->
+  <div class="page-header-title">
+    <div>
+      <h1>🛍️ Sovereign App Marketplace & Plugin Ecosystem</h1>
+      <div class="page-header-sub">Deploy enterprise AI agents, zero-knowledge financial engines, and cross-chain hardware connectors with 1-click RevenueCat entitlements.</div>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+      <button class="btn-primary" onclick="openRevenueCatDrawer()">⚙️ RevenueCat Paywalls</button>
+      <button class="btn-card-action" onclick="resetMarketplaceFilters()">🔄 Reset Filters</button>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE TELEMETRY METRICS BAR -->
+  <section class="metrics-bar">
+    <div class="metric-card">
+      <div class="metric-label">Total Scalable Catalog</div>
+      <div class="metric-value" id="metric-total-apps">200 Apps</div>
+      <div class="metric-change positive">▲ 7 Core Tech Domains</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Active Node Plugins</div>
+      <div class="metric-value" id="metric-installed-apps">38 Installed</div>
+      <div class="metric-change positive">▲ 100% Core Entangled</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">RevenueCat Substrate MRR</div>
+      <div class="metric-value">$148,920.00</div>
+      <div class="metric-change positive">▲ +18.4% StoreKit & Play Billing</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Entitlement Tier</div>
+      <div class="metric-value" id="metric-entitlement-tier" style="color: var(--accent-cyan);">Enterprise Quantum</div>
+      <div class="metric-change positive">▲ All 200 Apps Unlocked</div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTAINER -->
+  <main class="main-container" style="margin-top: 1rem;">
+    
+    <!-- SEARCH & FILTER SECTION -->
+    <section class="search-filter-section">
+      <!-- SEARCH BAR ROW -->
+      <div class="search-bar-row">
+        <div class="search-input-wrapper">
+          <span class="search-input-icon">🔍</span>
+          <input 
+            type="text" 
+            id="marketplace-search" 
+            class="search-input" 
+            placeholder="Instant search 200 apps by name, tag, feature, publisher, or pricing tier..." 
+            oninput="handleSearchInput(this.value)"
+          >
+          <button id="search-clear-btn" class="search-clear-btn" style="display: none;" onclick="clearSearchInput()" title="Clear Search (Esc)">✕</button>
+        </div>
+        <div class="shortcut-badge">Ctrl + /</div>
+      </div>
+
+      <!-- CATEGORY TABS ROW -->
+      <div class="category-tabs-wrapper" id="category-tabs-container">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- FILTER CONTROLS BAR -->
+      <div class="filter-controls-bar">
+        <div class="filter-selects">
+          <select id="filter-tier" class="select-custom" onchange="applyFilters()">
+            <option value="all">Pricing: All Tiers</option>
+            <option value="free">Free Tier Only</option>
+            <option value="pro">RevenueCat Pro ($29/mo)</option>
+            <option value="quantum">Enterprise Quantum ($199/mo)</option>
+          </select>
+
+          <select id="filter-status" class="select-custom" onchange="applyFilters()">
+            <option value="all">Status: All Apps</option>
+            <option value="installed">Installed Only</option>
+            <option value="uninstalled">Available to Install</option>
+            <option value="featured">Featured Plugins</option>
+          </select>
+
+          <select id="filter-sort" class="select-custom" onchange="applyFilters()">
+            <option value="rating">Sort by: Top Rated (★ 5.0)</option>
+            <option value="reviews">Sort by: Most Popular</option>
+            <option value="name">Sort by: Name (A - Z)</option>
+            <option value="newest">Sort by: Newest Releases</option>
+          </select>
+        </div>
+
+        <div class="results-meta">
+          <span id="results-count-text">Showing 200 of 200 Apps</span>
+          <span style="color: var(--border-glass-bright);">•</span>
+          <span id="active-category-label" style="color: var(--accent-cyan); font-weight: 600;">All Ecosystem Apps</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- APP CARDS GRID -->
+    <div id="app-grid" class="app-grid">
+      <!-- 200 App cards dynamically rendered here -->
+    </div>
+
+    <!-- PAGINATION CONTROLS BAR -->
+    <div class="pagination-container">
+      <div style="font-size: 0.84rem; color: var(--text-muted);" id="pagination-info">
+        Page 1 of 9 (Showing 24 apps per page)
+      </div>
+
+      <div class="pagination-pages" id="pagination-buttons">
+        <!-- Page buttons dynamically rendered -->
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Per Page:</span>
+        <select id="per-page-select" class="select-custom" onchange="changePerPage(this.value)">
+          <option value="24" selected>24 Cards</option>
+          <option value="48">48 Cards</option>
+          <option value="96">96 Cards</option>
+          <option value="200">Show All 200</option>
+        </select>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL INSTALLATION DRAWER -->
+  <div id="app-modal" class="modal-overlay" onclick="handleModalOverlayClick(event)">
+    <div class="modal-glass-container">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div class="app-icon" id="modal-app-icon">🤖</div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <h2 id="modal-app-title" style="font-family: var(--font-heading); color: #fff; font-size: 1.3rem; margin: 0;">App Title</h2>
+              <span id="modal-app-version" class="app-version">v1.0.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.2rem; font-size: 0.8rem; color: var(--text-muted);">
+              <span id="modal-app-publisher">Sovereign Core</span>
+              <span>•</span>
+              <span id="modal-app-category" class="app-badge-category badge-ai">AI & Neural</span>
+              <span>•</span>
+              <span id="modal-app-rating" style="color: var(--accent-gold); font-weight: 600;">★ 4.9</span>
+            </div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeAppModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: var(--accent-cyan); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Architecture Overview</h4>
+          <p id="modal-app-desc" style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6;"></p>
+        </div>
+
+        <!-- SPECIFICATIONS GRID -->
+        <div class="grid-2" style="margin-bottom: 1.5rem; gap: 1rem;">
+          <div style="background: rgba(10, 15, 26, 0.7); border: 1px solid var(--border-glass); padding: 1rem; border-radius: 14px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Node Memory Requirement</div>
+            <div id="modal-spec-ram" style="font-family: var(--font-mono); font-size: 1rem; color: #fff; font-weight: 600; margin-top: 0.2rem;">512 MB Allocation</div>
+          </div>
+          <div style="background: rgba(10, 15, 26, 0.7); border: 1px solid var(--border-glass); padding: 1rem; border-radius: 14px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Core Entanglement</div>
+            <div id="modal-spec-cpu" style="font-family: var(--font-mono); font-size: 1rem; color: #fff; font-weight: 600; margin-top: 0.2rem;">2 Cores Synchronized</div>
+          </div>
+          <div style="background: rgba(10, 15, 26, 0.7); border: 1px solid var(--border-glass); padding: 1rem; border-radius: 14px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">RevenueCat Entitlement Key</div>
+            <div id="modal-spec-key" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600; margin-top: 0.2rem;">sov_pro_tier</div>
+          </div>
+          <div style="background: rgba(10, 15, 26, 0.7); border: 1px solid var(--border-glass); padding: 1rem; border-radius: 14px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Zero-Knowledge Proof</div>
+            <div id="modal-spec-zk" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-green); font-weight: 600; margin-top: 0.2rem;">Groth16 / Halo2 Verified</div>
+          </div>
+        </div>
+
+        <!-- PERMISSIONS & ENDPOINTS -->
+        <div style="background: rgba(13, 19, 33, 0.8); border: 1px solid var(--border-glass); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
+          <h4 style="color: #fff; font-size: 0.9rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>🛡️ Enterprise Security & Permissions</span>
+          </h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.6rem; font-size: 0.82rem; color: var(--text-muted);">
+            <div>✓ Encrypted Storage Sandbox</div>
+            <div>✓ Keyring Access Granted</div>
+            <div>✓ Gemini Copilot Telemetry Bridge</div>
+            <div>✓ Node P2P Mesh Routing</div>
+          </div>
+        </div>
+
+        <!-- LIVE INSTALLATION SIMULATION TERMINAL -->
+        <div id="modal-install-terminal" style="display: none; background: #04060c; border: 1px solid var(--border-glow); border-radius: 14px; padding: 1rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 1rem; max-height: 120px; overflow-y: auto;">
+          <div>[INFO] Initializing plugin installer for node deployment...</div>
+          <div id="terminal-log-content"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div id="modal-price-display" class="app-price-tag" style="font-size: 1rem;">Free</div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn-card-action" onclick="closeAppModal()">Close</button>
+          <button id="modal-primary-btn" class="btn-card-action btn-card-primary" onclick="toggleModalAppInstallation()">
+            ⚡ Install & Deploy Plugin
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVENUECAT PAYWALL CONFIGURATION DRAWER -->
+  <div id="revenuecat-drawer" class="revenuecat-drawer">
+    <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(8, 12, 22, 0.9);">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="font-size: 1.5rem;">⚡</span>
+        <div>
+          <h3 style="font-family: var(--font-heading); color: #fff; font-size: 1.15rem; margin: 0;">RevenueCat Substrate Paywall</h3>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">StoreKit 2 & Google Play Entitlements Engine</div>
+        </div>
+      </div>
+      <button class="modal-close-btn" onclick="closeRevenueCatDrawer()">✕</button>
+    </div>
+
+    <div style="padding: 1.5rem; flex: 1; overflow-y: auto;">
+      <!-- ACTIVE SUBSCRIPTION STATUS -->
+      <div style="background: linear-gradient(135deg, rgba(121, 40, 202, 0.2), rgba(0, 242, 254, 0.15)); border: 1px solid var(--border-glow); border-radius: 18px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Active Account Entitlement</span>
+          <span class="badge-revenuecat" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border-color: rgba(16, 185, 129, 0.4);">LIVE SUBSCRIBER</span>
+        </div>
+        <div style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #fff;" id="rc-active-tier-name">Enterprise Quantum Tier</div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+          All 200 Apps Unlocked • Unlimited Gemini AI Copilot • ZK Security Mesh
+        </div>
+      </div>
+
+      <!-- ENTITLEMENT FLAGS -->
+      <h4 style="color: #fff; font-size: 0.9rem; margin-bottom: 0.85rem; font-family: var(--font-heading);">🔑 RevenueCat Entitlement Keys</h4>
+      <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; background: rgba(13, 19, 33, 0.7); border: 1px solid var(--border-glass); padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.84rem;">
+          <span style="font-family: var(--font-mono); color: var(--text-main);">sov_app_marketplace</span>
+          <span style="color: var(--accent-green); font-weight: 600;">ACTIVE (Unlocked)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; background: rgba(13, 19, 33, 0.7); border: 1px solid var(--border-glass); padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.84rem;">
+          <span style="font-family: var(--font-mono); color: var(--text-main);">sov_pro_tier</span>
+          <span style="color: var(--accent-green); font-weight: 600;">ACTIVE (Unlocked)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; background: rgba(13, 19, 33, 0.7); border: 1px solid var(--border-glass); padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.84rem;">
+          <span style="font-family: var(--font-mono); color: var(--text-main);">sov_quantum_zk_security</span>
+          <span style="color: var(--accent-green); font-weight: 600;" id="rc-flag-quantum">ACTIVE (Unlocked)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; background: rgba(13, 19, 33, 0.7); border: 1px solid var(--border-glass); padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.84rem;">
+          <span style="font-family: var(--font-mono); color: var(--text-main);">sov_gemini_ai_copilot</span>
+          <span style="color: var(--accent-green); font-weight: 600;">ACTIVE (Unlocked)</span>
+        </div>
+      </div>
+
+      <!-- PAYWALL OFFERINGS -->
+      <h4 style="color: #fff; font-size: 0.9rem; margin-bottom: 0.85rem; font-family: var(--font-heading);">💳 Paywall Offering Tiers</h4>
+      <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+        
+        <!-- STARTER TIER -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 16px; padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">Starter Sovereign</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Basic 50 plugins • Standard node speed</div>
+            <div style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700; margin-top: 0.3rem;">Free Always</div>
+          </div>
+          <button class="btn-card-action" onclick="simulateRevenueCatPurchase('free')">Select Tier</button>
+        </div>
+
+        <!-- PRO TIER -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 16px; padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">Pro Substrate</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">150 Plugins • Gemini AI Copilot • 6 Cores</div>
+            <div style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700; margin-top: 0.3rem;">$29.00 / month</div>
+          </div>
+          <button class="btn-card-action btn-card-primary" onclick="simulateRevenueCatPurchase('pro')">Upgrade Pro</button>
+        </div>
+
+        <!-- ENTERPRISE QUANTUM TIER -->
+        <div style="background: linear-gradient(135deg, rgba(0, 242, 254, 0.1), rgba(121, 40, 202, 0.15)); border: 1px solid var(--border-glow); border-radius: 16px; padding: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <span style="font-family: var(--font-heading); font-weight: 700; color: #fff;">Enterprise Quantum</span>
+              <span style="background: var(--accent-magenta); color: #fff; font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 6px; font-weight: 800;">TOP TIER</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">All 200 Apps • Post-Quantum ZK Security • Priority Mesh</div>
+            <div style="font-family: var(--font-mono); color: var(--accent-magenta); font-weight: 700; margin-top: 0.3rem;">$199.00 / month</div>
+          </div>
+          <button class="btn-card-action btn-card-primary" style="background: linear-gradient(135deg, var(--accent-magenta), var(--accent-violet)); color: #fff;" onclick="simulateRevenueCatPurchase('quantum')">Unlock Quantum</button>
+        </div>
+      </div>
+
+      <!-- SANDBOX SIMULATION BUTTON -->
+      <div style="background: rgba(10, 15, 26, 0.8); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1rem; text-align: center;">
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.6rem;">StoreKit 2 / Google Play Billing Sandbox Testing</div>
+        <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="simulateRevenueCatPurchase('quantum')">
+          ⚡ Simulate StoreKit 2 Purchase Success
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- INCLUDES DASHBOARD APP JS -->
+  <script src="app.js"></script>
+
+  <!-- APP MARKETPLACE ENGINE SCRIPT -->
+  <script>
+    // ==========================================
+    // 200 ENTERPRISE APP DATASET GENERATOR
+    // ==========================================
+
+    const CATEGORIES = [
+      { id: 'all', name: '🌐 All Apps', count: 200 },
+      { id: 'ai', name: '🤖 AI & Neural Agents', count: 35 },
+      { id: 'finance', name: '💼 Finance & Accounting', count: 30 },
+      { id: 'payments', name: '💳 Payments & Billing', count: 25 },
+      { id: 'web3', name: '🪙 DeFi & Tokenomics', count: 30 },
+      { id: 'iot', name: '⌚ Wear OS & Hardware', count: 25 },
+      { id: 'zk', name: '🔒 ZK Security & Encryption', count: 25 },
+      { id: 'workflow', name: '⚡ Workflows & Automation', count: 30 }
+    ];
+
+    const PUBLISHERS = [
+      'Sovereign Core', 'RevenueCat Verified', 'AIEOS Labs', 'MINT Protocol', 
+      'Zero-Knowledge Corp', 'Quantum Mesh Inc', 'Wear OS Entangled', 'Stripe Bridge Co'
+    ];
+
+    // Template generators for each of the 7 domains to build 200 distinct apps
+    const DOMAIN_TEMPLATES = {
+      ai: [
+        { title: 'QuantAlpha Neural Predictor', icon: '🤖', desc: 'Real-time deep neural net prediction engine for algorithmic trading and portfolio risk modeling.', tag: 'AI Agent' },
+        { title: 'SentimentPulse Web3 Copilot', icon: '🧠', desc: 'Monitors global crypto & SaaS sentiment telemetry across social feeds, news, and Discord.', tag: 'Sentiment' },
+        { title: 'Autonomous General Auditor', icon: '⚖️', desc: 'AI agent that continuously audits ledger entries, flagging anomalies with zero human latency.', tag: 'Auditing' },
+        { title: 'LLM Prompt Routing Mesh', icon: '⚡', desc: 'Dynamic router for DeepSeek, Gemini, and Llama 3 models optimizing latency and token cost.', tag: 'LLM Router' },
+        { title: 'Agentic Execution Graph', icon: '🕸️', desc: 'Multi-agent orchestration framework for executing complex multi-step enterprise workflows.', tag: 'Agents' },
+        { title: 'DeepSeek Financial Substrate', icon: '🔍', desc: 'Local offline DeepSeek fine-tune running on node TPU/GPU for confidential financial analysis.', tag: 'Local LLM' },
+        { title: 'Whisper Voice Telemetry Node', icon: '🎙️', desc: 'Real-time neural voice transcription and executive summary generator for board meetings.', tag: 'Voice AI' },
+        { title: 'Auto-GNN Fraud Detector', icon: '🛡️', desc: 'Graph Neural Network engine identifying complex transaction laundering cycles in micro-seconds.', tag: 'Fraud AI' }
+      ],
+      finance: [
+        { title: 'Sovereign Ledger Enterprise', icon: '💼', desc: 'Double-entry cryptographic ledger replacing QuickBooks with zero-trust real-time P&L.', tag: 'Accounting' },
+        { title: 'Real-time Tax Compliance Engine', icon: '🏛️', desc: 'Autonomic sales tax & VAT escrow calculation across 50 US states and 27 EU member countries.', tag: 'Tax' },
+        { title: 'Autonomic Depreciation Tracker', icon: '📉', desc: 'MACRS 200% & Straight-line asset depreciation schedule generator for GPU compute clusters.', tag: 'Assets' },
+        { title: 'Multi-Entity Balance Sheet', icon: '🌐', desc: 'Consolidated balance sheet aggregator with automatic intercompany elimination entries.', tag: 'Consolidation' },
+        { title: 'ExpenseAI Neural Scanner', icon: '📷', desc: 'Mobile & desktop receipt OCR scanner with instant general ledger account classification.', tag: 'Expenses' },
+        { title: 'Automated Cashflow Forecast', icon: '📊', desc: '365-day predictive cashflow simulation modeling runway, burn rate, and seasonal revenue.', tag: 'Cashflow' },
+        { title: 'RevenueCat MRR Analytics Core', icon: '📈', desc: 'Deep subscription analytics integrating directly with StoreKit 2 and Google Play Billing.', tag: 'MRR Analytics' },
+        { title: 'Sovereign Equity & Cap Table', icon: '📜', desc: 'Tokenized equity cap table management with automated option vesting and tax withholding.', tag: 'Cap Table' }
+      ],
+      payments: [
+        { title: 'Sovereign Pay Direct Bridge', icon: '💳', desc: 'Zero-fee direct payment gateway replacing Stripe with instant multi-currency settlement.', tag: 'Payments' },
+        { title: 'RevenueCat Substrate Paywall', icon: '⚡', desc: 'Dynamic paywall renderer supporting StoreKit 2, Android Billing, and Web Crypto checkout.', tag: 'Paywall' },
+        { title: 'Lightning Network Instant Pay', icon: '⚡', desc: 'Bitcoin Lightning & Layer-2 instant micropayment settlement node with sub-cent transaction costs.', tag: 'Lightning' },
+        { title: 'Automated Dispute Shield', icon: '🛡️', desc: 'AI chargeback prevention system auto-submitting cryptographic evidence to credit card networks.', tag: 'Disputes' },
+        { title: 'ISO20022 Enterprise Gateway', icon: '🏦', desc: 'Bank-grade SWIFT and ISO20022 XML messaging gateway for high-value enterprise wires.', tag: 'SWIFT' },
+        { title: 'Micro-SaaS Metered Billing', icon: '⏱️', desc: 'High-frequency token & API usage rating engine for charging per compute millisecond.', tag: 'Metered' },
+        { title: 'ACH Direct Substrate Node', icon: '🏦', desc: 'Same-day ACH debit and credit processor for direct bank-to-bank payroll and vendor payouts.', tag: 'ACH' }
+      ],
+      web3: [
+        { title: 'FORMA Liquidity Vault', icon: '🪙', desc: 'Automated liquidity provider vault balancing SOV and FORMA tokens across DEX pools.', tag: 'DeFi' },
+        { title: 'Golden Ratio Staking Core', icon: '✨', desc: 'Staking yield distribution contract paying phi-rate (61.8% APY) rewards with buyback burn.', tag: 'Staking' },
+        { title: 'Real-World Asset Tokenizer', icon: '🏢', desc: 'Fractionalizes commercial real estate and GPU clusters into compliant security tokens.', tag: 'RWA' },
+        { title: 'Cross-Chain Bridge Validator', icon: '🌉', desc: 'Zero-knowledge validator node securing token transfers across Ethereum, Solana, and Cosmos.', tag: 'Bridge' },
+        { title: 'MEV Protection Sentinel', icon: '🛡️', desc: 'Front-running protection relay preventing sandwich attacks on decentralized exchange swaps.', tag: 'MEV Guard' },
+        { title: 'Sovereign DAO Governance', icon: '🏛️', desc: 'On-chain quadratic voting and treasury proposal execution portal with ZK identity verification.', tag: 'Governance' },
+        { title: 'Collateralized Vault Engine', icon: '🏦', desc: 'Mint algorithmic stablecoins backed by multi-asset cryptographic collateral vaults.', tag: 'Stablecoins' }
+      ],
+      iot: [
+        { title: 'Wear OS Telemetry Node', icon: '⌚', desc: 'Live biometrics & health status collector streaming Wear OS watch metrics to Sovereign Core.', tag: 'Wearables' },
+        { title: 'BLE Mesh Sensor Gateway', icon: '📡', desc: 'Low-power Bluetooth mesh hub entangling industrial temperature, vibration, and motion sensors.', tag: 'IoT Mesh' },
+        { title: 'Edge AI Drone Telemetry', icon: '🚁', desc: 'Autonomous drone flight path calculator and real-time video neural processing pipeline.', tag: 'Drones' },
+        { title: 'Hardware Security Module Driver', icon: '🔐', desc: 'Driver for YubiKey and Ledger hardware security modules for multi-signature transaction approval.', tag: 'HSM' },
+        { title: 'Smart Building Energy Mesh', icon: '⚡', desc: 'AI power grid optimizer managing solar arrays, battery reserves, and EV charging stations.', tag: 'Energy' },
+        { title: 'Sovereign Camera Sentinel', icon: '🎥', desc: 'Privacy-first edge computer vision node processing surveillance video locally without cloud leaks.', tag: 'Vision' }
+      ],
+      zk: [
+        { title: 'Sovereign ZK-SNARK Verifier', icon: '🔒', desc: 'Ultra-fast Groth16 and Halo2 proof verifier running zero-knowledge credential checks.', tag: 'ZK Proofs' },
+        { title: 'Post-Quantum Dilithium Signer', icon: '🗝️', desc: 'CRYSTALS-Dilithium quantum-resistant digital signature suite safeguarding node keys.', tag: 'Quantum Sec' },
+        { title: 'Homomorphic Encryption Engine', icon: '🧬', desc: 'Executes mathematical computations on fully encrypted data without ever decrypting in RAM.', tag: 'FHE' },
+        { title: 'Zero-Trust Enclave Isolation', icon: '🛡️', desc: 'Intel SGX and AMD SEV secure enclave container running sensitive key operations.', tag: 'Enclave' },
+        { title: 'Encrypted Database Search', icon: '🔍', desc: 'Search SQL and NoSQL databases using zero-knowledge searchable symmetric encryption.', tag: 'ZK Search' },
+        { title: 'Zero-Knowledge KYC Authenticator', icon: '🆔', desc: 'Prove user age, citizenship, and identity credentials without revealing raw PII documents.', tag: 'ZK KYC' }
+      ],
+      workflow: [
+        { title: 'Sovereign Pipeline Studio', icon: '⚡', desc: 'Drag-and-drop visual workflow builder orchestrating event-driven microservice pipelines.', tag: 'Workflows' },
+        { title: 'Real-time Event Streaming Mesh', icon: '🌊', desc: 'Sub-millisecond event streaming broker handling 1M+ messages per second across nodes.', tag: 'Streaming' },
+        { title: 'Kafka Sovereign Adapter', icon: '🔌', desc: 'Enterprise Apache Kafka connector entangling external pub/sub topics into Sovereign Substrate.', tag: 'Kafka' },
+        { title: 'GraphQL Federation Gateway', icon: '🕸️', desc: 'Unified GraphQL schema stitching layer exposing high-performance gRPC backends.', tag: 'GraphQL' },
+        { title: 'Sovereign Cron Scheduler', icon: '⏰', desc: 'Distributed fault-tolerant task scheduler supporting cron expressions and event triggers.', tag: 'Cron' },
+        { title: 'Webhook Relay & Replay', icon: '🔄', desc: 'Reliable webhook ingestion service with automatic exponential backoff retry and payload inspection.', tag: 'Webhooks' }
+      ]
+    };
+
+    // Generate 200 structured apps
+    function generate200Apps() {
+      const apps = [];
+      let idCounter = 1;
+
+      const domainKeys = ['ai', 'finance', 'payments', 'web3', 'iot', 'zk', 'workflow'];
+      const targetCounts = { ai: 35, finance: 30, payments: 25, web3: 30, iot: 25, zk: 25, workflow: 30 };
+
+      domainKeys.forEach(domain => {
+        const count = targetCounts[domain];
+        const templates = DOMAIN_TEMPLATES[domain];
+
+        for (let i = 0; i < count; i++) {
+          const tmpl = templates[i % templates.length];
+          const num = Math.floor(i / templates.length) + 1;
+          const nameSuffix = num > 1 ? ` Mark ${num}` : '';
+          
+          const rating = (4.5 + Math.random() * 0.5).toFixed(1);
+          const reviews = Math.floor(100 + Math.random() * 2500);
+          const version = `v${1 + Math.floor(i / 5)}.${i % 5}.${Math.floor(Math.random() * 9)}`;
+          const publisher = PUBLISHERS[i % PUBLISHERS.length];
+          
+          let tierRequired = 'free';
+          let priceTag = 'Free';
+          if (i % 3 === 1) {
+            tierRequired = 'pro';
+            priceTag = '$29/mo Pro';
+          } else if (i % 3 === 2) {
+            tierRequired = 'quantum';
+            priceTag = '$199/mo Quantum';
+          }
+
+          // Initial installed state for ~38 apps
+          const installed = idCounter <= 38;
+          const featured = i < 3;
+
+          const catInfo = CATEGORIES.find(c => c.id === domain);
+
+          apps.push({
+            id: idCounter,
+            title: `${tmpl.title}${nameSuffix}`,
+            category: domain,
+            categoryLabel: catInfo ? catInfo.name.replace(/^[^\s]+\s/, '') : domain,
+            icon: tmpl.icon,
+            version: version,
+            publisher: publisher,
+            verified: true,
+            rating: parseFloat(rating),
+            reviews: reviews,
+            desc: tmpl.desc,
+            priceTag: priceTag,
+            tierRequired: tierRequired,
+            installed: installed,
+            featured: featured,
+            specs: {
+              ram: `${256 * ((i % 4) + 1)} MB Allocation`,
+              cpu: `${(i % 3) + 1} Core Entangled`,
+              key: `sov_${tierRequired === 'free' ? 'basic' : tierRequired === 'pro' ? 'pro_tier' : 'quantum_zk_security'}`,
+              zk: domain === 'zk' || i % 2 === 0 ? 'Groth16 / Halo2 Verified' : 'Standard Cryptographic Signature'
+            },
+            tags: [tmpl.tag, domain, publisher.toLowerCase(), tierRequired]
+          });
+
+          idCounter++;
+        }
+      });
+
+      return apps;
+    }
+
+    // STATE MANAGEMENT
+    let ALL_APPS = generate200Apps();
+    let currentCategory = 'all';
+    let currentSearch = '';
+    let currentTier = 'all';
+    let currentStatus = 'all';
+    let currentSort = 'rating';
+    let currentPage = 1;
+    let perPage = 24;
+
+    // RevenueCat Entitlements State
+    let revenueCatState = {
+      tier: 'quantum', // Default unlocked state for Enterprise Quantum
+      unlockedKeys: ['sov_app_marketplace', 'sov_pro_tier', 'sov_quantum_zk_security', 'sov_gemini_ai_copilot']
+    };
+
+    // Selected App for Modal
+    let selectedAppId = null;
+
+    // INITIALIZATION
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategoryTabs();
+      renderAppGrid();
+      setupKeyboardShortcuts();
+    });
+
+    // RENDER CATEGORY TABS
+    function renderCategoryTabs() {
+      const container = document.getElementById('category-tabs-container');
+      container.innerHTML = CATEGORIES.map(cat => {
+        const isActive = cat.id === currentCategory ? 'active' : '';
+        return `
+          <button class="cat-tab-btn ${isActive}" onclick="selectCategory('${cat.id}')">
+            ${cat.name}
+            <span class="cat-count">${cat.count}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCategory(catId) {
+      currentCategory = catId;
+      currentPage = 1;
+      renderCategoryTabs();
+      applyFilters();
+
+      const catObj = CATEGORIES.find(c => c.id === catId);
+      document.getElementById('active-category-label').innerText = catObj ? catObj.name : 'All Apps';
+    }
+
+    // SEARCH & FILTERING LOGIC
+    function handleSearchInput(val) {
+      currentSearch = val.toLowerCase().trim();
+      currentPage = 1;
+      
+      const clearBtn = document.getElementById('search-clear-btn');
+      clearBtn.style.display = currentSearch.length > 0 ? 'flex' : 'none';
+      
+      applyFilters();
+    }
+
+    function clearSearchInput() {
+      document.getElementById('marketplace-search').value = '';
+      currentSearch = '';
+      document.getElementById('search-clear-btn').style.display = 'none';
+      currentPage = 1;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      currentTier = document.getElementById('filter-tier').value;
+      currentStatus = document.getElementById('filter-status').value;
+      currentSort = document.getElementById('filter-sort').value;
+
+      let filtered = ALL_APPS.filter(app => {
+        // Category Filter
+        if (currentCategory !== 'all' && app.category !== currentCategory) return false;
+
+        // Tier Filter
+        if (currentTier !== 'all' && app.tierRequired !== currentTier) return false;
+
+        // Status Filter
+        if (currentStatus === 'installed' && !app.installed) return false;
+        if (currentStatus === 'uninstalled' && app.installed) return false;
+        if (currentStatus === 'featured' && !app.featured) return false;
+
+        // Search Filter
+        if (currentSearch.length > 0) {
+          const matchTitle = app.title.toLowerCase().includes(currentSearch);
+          const matchDesc = app.desc.toLowerCase().includes(currentSearch);
+          const matchPublisher = app.publisher.toLowerCase().includes(currentSearch);
+          const matchCat = app.categoryLabel.toLowerCase().includes(currentSearch);
+          const matchTags = app.tags.some(t => t.toLowerCase().includes(currentSearch));
+          return matchTitle || matchDesc || matchPublisher || matchCat || matchTags;
+        }
+
+        return true;
+      });
+
+      // Sorting
+      if (currentSort === 'rating') {
+        filtered.sort((a, b) => b.rating - a.rating);
+      } else if (currentSort === 'reviews') {
+        filtered.sort((a, b) => b.reviews - a.reviews);
+      } else if (currentSort === 'name') {
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (currentSort === 'newest') {
+        filtered.sort((a, b) => b.id - a.id);
+      }
+
+      renderFilteredGrid(filtered);
+    }
+
+    function renderFilteredGrid(filteredApps) {
+      const grid = document.getElementById('app-grid');
+      const resultsText = document.getElementById('results-count-text');
+      resultsText.innerText = `Showing ${filteredApps.length} of 200 Apps`;
+
+      if (filteredApps.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; padding: 4rem 2rem; text-align: center; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3 style="font-family: var(--font-heading); color: #fff; font-size: 1.25rem;">No matching apps found</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Try adjusting your search terms or clearing tier filters.</p>
+            <button class="btn-primary" style="margin-top: 1.25rem;" onclick="resetMarketplaceFilters()">🔄 Clear All Filters</button>
+          </div>
+        `;
+        renderPagination(0, 0);
+        return;
+      }
+
+      // Pagination slice
+      const totalPages = Math.ceil(filteredApps.length / perPage);
+      if (currentPage > totalPages) currentPage = 1;
+
+      const startIdx = (currentPage - 1) * perPage;
+      const paginatedApps = filteredApps.slice(startIdx, startIdx + perPage);
+
+      grid.innerHTML = paginatedApps.map(app => renderAppCard(app)).join('');
+      renderPagination(totalPages, filteredApps.length);
+    }
+
+    function renderAppGrid() {
+      applyFilters();
+    }
+
+    // APP CARD HTML TEMPLATE
+    function renderAppCard(app) {
+      const badgeClass = `badge-${app.category}`;
+      const isLocked = app.tierRequired === 'quantum' && revenueCatState.tier !== 'quantum';
+
+      let actionBtnHtml = '';
+      if (app.installed) {
+        actionBtnHtml = `<button class="btn-card-action btn-card-installed" onclick="openAppModal(${app.id})">✓ Installed</button>`;
+      } else if (isLocked) {
+        actionBtnHtml = `<button class="btn-card-action btn-card-locked" onclick="openRevenueCatDrawer()">🔒 Unlock Tier</button>`;
+      } else {
+        actionBtnHtml = `<button class="btn-card-action btn-card-primary" onclick="quickInstallApp(${app.id})">⚡ Install</button>`;
+      }
+
+      return `
+        <div class="app-card" id="app-card-${app.id}">
+          <div>
+            <div class="app-card-top">
+              <div class="app-icon">${app.icon}</div>
+              <div class="app-header-info">
+                <div class="app-title-row">
+                  <span class="app-title" title="${app.title}">${app.title}</span>
+                  <span class="app-version">${app.version}</span>
+                </div>
+                <div class="app-publisher">
+                  <span>${app.publisher}</span>
+                  <span class="verified-icon" title="RevenueCat Verified Publisher">✓</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="app-meta-row">
+              <span class="app-badge-category ${badgeClass}">${app.categoryLabel}</span>
+              <div class="app-rating">
+                ★ <span>${app.rating}</span>
+                <span class="app-rating-count">(${app.reviews})</span>
+              </div>
+            </div>
+
+            <div class="app-desc">${app.desc}</div>
+          </div>
+
+          <div class="app-card-footer">
+            <div class="app-price-tag">${app.priceTag}</div>
+            <div class="app-actions">
+              <button class="btn-card-action" onclick="openAppModal(${app.id})" title="View Specifications">Details</button>
+              ${actionBtnHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // PAGINATION RENDERER
+    function renderPagination(totalPages, totalItems) {
+      const container = document.getElementById('pagination-buttons');
+      const info = document.getElementById('pagination-info');
+
+      info.innerText = `Page ${currentPage} of ${totalPages || 1} (${totalItems || 0} apps matching)`;
+
+      if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let buttonsHtml = '';
+      
+      // Prev button
+      buttonsHtml += `<button class="page-btn" ${currentPage === 1 ? 'disabled style="opacity:0.4;cursor:default;"' : ''} onclick="goToPage(${currentPage - 1})">◄</button>`;
+
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) {
+          const activeClass = p === currentPage ? 'active' : '';
+          buttonsHtml += `<button class="page-btn ${activeClass}" onclick="goToPage(${p})">${p}</button>`;
+        } else if (p === currentPage - 3 || p === currentPage + 3) {
+          buttonsHtml += `<span style="color:var(--text-dim); align-self:center;">...</span>`;
+        }
+      }
+
+      // Next button
+      buttonsHtml += `<button class="page-btn" ${currentPage === totalPages ? 'disabled style="opacity:0.4;cursor:default;"' : ''} onclick="goToPage(${currentPage + 1})">►</button>`;
+
+      container.innerHTML = buttonsHtml;
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      applyFilters();
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+    }
+
+    function changePerPage(val) {
+      perPage = parseInt(val, 10);
+      currentPage = 1;
+      applyFilters();
+    }
+
+    function resetMarketplaceFilters() {
+      currentCategory = 'all';
+      clearSearchInput();
+      document.getElementById('filter-tier').value = 'all';
+      document.getElementById('filter-status').value = 'all';
+      document.getElementById('filter-sort').value = 'rating';
+      renderCategoryTabs();
+      applyFilters();
+      showToast('🔄 Marketplace filters reset to default');
+    }
+
+    // MODAL INSTALLATION & DETAILS LOGIC
+    function openAppModal(appId) {
+      selectedAppId = appId;
+      const app = ALL_APPS.find(a => a.id === appId);
+      if (!app) return;
+
+      document.getElementById('modal-app-icon').innerText = app.icon;
+      document.getElementById('modal-app-title').innerText = app.title;
+      document.getElementById('modal-app-version').innerText = app.version;
+      document.getElementById('modal-app-publisher').innerText = app.publisher;
+      document.getElementById('modal-app-desc').innerText = app.desc;
+      document.getElementById('modal-app-rating').innerText = `★ ${app.rating} (${app.reviews} reviews)`;
+      document.getElementById('modal-price-display').innerText = app.priceTag;
+
+      document.getElementById('modal-spec-ram').innerText = app.specs.ram;
+      document.getElementById('modal-spec-cpu').innerText = app.specs.cpu;
+      document.getElementById('modal-spec-key').innerText = app.specs.key;
+      document.getElementById('modal-spec-zk').innerText = app.specs.zk;
+
+      const catBadge = document.getElementById('modal-app-category');
+      catBadge.innerText = app.categoryLabel;
+      catBadge.className = `app-badge-category badge-${app.category}`;
+
+      const primaryBtn = document.getElementById('modal-primary-btn');
+      if (app.installed) {
+        primaryBtn.innerText = '🗑️ Uninstall Plugin';
+        primaryBtn.className = 'btn-card-action btn-card-locked';
+      } else {
+        primaryBtn.innerText = '⚡ Install & Deploy Plugin';
+        primaryBtn.className = 'btn-card-action btn-card-primary';
+      }
+
+      document.getElementById('modal-install-terminal').style.display = 'none';
+      document.getElementById('app-modal').classList.add('active');
+    }
+
+    function closeAppModal() {
+      document.getElementById('app-modal').classList.remove('active');
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target.id === 'app-modal') closeAppModal();
+    }
+
+    function quickInstallApp(appId) {
+      const app = ALL_APPS.find(a => a.id === appId);
+      if (!app) return;
+
+      app.installed = true;
+      updateInstalledMetrics();
+      applyFilters();
+      showToast(`⚡ Installed ${app.title} to Node Mesh!`);
+    }
+
+    function toggleModalAppInstallation() {
+      if (!selectedAppId) return;
+      const app = ALL_APPS.find(a => a.id === selectedAppId);
+      if (!app) return;
+
+      const terminal = document.getElementById('modal-install-terminal');
+      const terminalContent = document.getElementById('terminal-log-content');
+      terminal.style.display = 'block';
+
+      if (!app.installed) {
+        terminalContent.innerHTML = `
+          <div>[SYNC] Contacting RevenueCat Entitlement Engine (${app.specs.key})... OK</div>
+          <div>[ZK] Verifying Groth16 cryptographic proof signature... OK</div>
+          <div>[CORE] Allocating ${app.specs.ram} on Substrate Node... OK</div>
+          <div style="color: var(--accent-green);">[SUCCESS] ${app.title} ${app.version} successfully installed!</div>
+        `;
+        app.installed = true;
+        showToast(`⚡ ${app.title} Installed Successfully`);
+      } else {
+        terminalContent.innerHTML = `
+          <div>[WARN] Deallocating node memory resources...</div>
+          <div>[INFO] Terminating P2P mesh telemetry bridge...</div>
+          <div style="color: var(--accent-rose);">[SUCCESS] ${app.title} uninstalled from node.</div>
+        `;
+        app.installed = false;
+        showToast(`🗑️ ${app.title} Uninstalled`);
+      }
+
+      updateInstalledMetrics();
+      applyFilters();
+
+      setTimeout(() => {
+        closeAppModal();
+      }, 1200);
+    }
+
+    function updateInstalledMetrics() {
+      const installedCount = ALL_APPS.filter(a => a.installed).length;
+      document.getElementById('metric-installed-apps').innerText = `${installedCount} Installed`;
+    }
+
+    // REVENUECAT DRAWER LOGIC
+    function openRevenueCatDrawer() {
+      document.getElementById('revenuecat-drawer').classList.add('active');
+    }
+
+    function closeRevenueCatDrawer() {
+      document.getElementById('revenuecat-drawer').classList.remove('active');
+    }
+
+    function simulateRevenueCatPurchase(tierKey) {
+      if (tierKey === 'quantum') {
+        revenueCatState.tier = 'quantum';
+        document.getElementById('rc-active-tier-name').innerText = 'Enterprise Quantum Tier';
+        document.getElementById('metric-entitlement-tier').innerText = 'Enterprise Quantum';
+        document.getElementById('rc-flag-quantum').innerText = 'ACTIVE (Unlocked)';
+        document.getElementById('rc-flag-quantum').style.color = 'var(--accent-green)';
+        showToast('🎉 RevenueCat Entitlement Granted: Enterprise Quantum Tier Unlocked!');
+      } else if (tierKey === 'pro') {
+        revenueCatState.tier = 'pro';
+        document.getElementById('rc-active-tier-name').innerText = 'Pro Substrate Tier';
+        document.getElementById('metric-entitlement-tier').innerText = 'Pro Substrate';
+        showToast('⚡ RevenueCat Tier Updated: Pro Substrate Active');
+      } else {
+        revenueCatState.tier = 'free';
+        document.getElementById('rc-active-tier-name').innerText = 'Starter Sovereign Tier';
+        document.getElementById('metric-entitlement-tier').innerText = 'Starter Sovereign';
+        showToast('ℹ️ Switched to Starter Sovereign Tier');
+      }
+
+      applyFilters();
+      closeRevenueCatDrawer();
+    }
+
+    // KEYBOARD SHORTCUTS
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+          e.preventDefault();
+          const searchInput = document.getElementById('marketplace-search');
+          searchInput.focus();
+          searchInput.select();
+        } else if (e.key === 'Escape') {
+          if (document.getElementById('app-modal').classList.contains('active')) {
+            closeAppModal();
+          } else if (document.getElementById('revenuecat-drawer').classList.contains('active')) {
+            closeRevenueCatDrawer();
+          } else if (document.activeElement.id === 'marketplace-search') {
+            clearSearchInput();
+          }
+        }
+      });
+    }
+
+    // TOAST NOTIFICATIONS SYSTEM
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<span>✨</span> <div>${msg}</div>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>

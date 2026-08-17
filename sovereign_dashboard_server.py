@@ -55,6 +55,7 @@ from mega_11_platform_master_suite import (
     AvalaraMasterModule,
     FreshBooksMasterModule
 )
+from embedded_marketplace_integrations_hub import EmbeddedMarketplaceHub
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -96,6 +97,9 @@ gemini_chat = GeminiChatOrchestrator(
     pulse=pulse, aura=aura, xfin=xfin, mint=mint, grid=grid, nexs=nexs
 )
 
+# Initialize Embedded Marketplace Hub
+marketplace_hub = EmbeddedMarketplaceHub()
+
 DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "sovereign_dashboard")
 
 class SovereignDashboardHandler(SimpleHTTPRequestHandler):
@@ -114,6 +118,20 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
         if len(path) > 1 and path.endswith('/'):
             path = path[:-1]
         return path
+
+    def parse_query_params(self) -> dict:
+        if '?' not in self.path:
+            return {}
+        query_str = self.path.split('?', 1)[1]
+        params = {}
+        from urllib.parse import unquote
+        for pair in query_str.split('&'):
+            if '=' in pair:
+                k, v = pair.split('=', 1)
+                params[unquote(k)] = unquote(v)
+            elif pair:
+                params[unquote(pair)] = ""
+        return params
 
     def do_GET(self):
         logger.info(f"[GET] {self.path}")
@@ -211,6 +229,33 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(mega11.run_full_11_platform_audit())
         elif path == "/api/v1/platforms/integrated_core_audit":
             self.send_json_response(mega11.run_integrated_11_platform_6_core_audit(orchestrator))
+        # ---------------------------------------------------------------------
+        # Embedded Marketplace REST API Endpoints (GET)
+        # ---------------------------------------------------------------------
+        elif path == "/api/v1/marketplace/apps":
+            params = self.parse_query_params()
+            cat = params.get("category")
+            query = params.get("search", params.get("search_query", params.get("q")))
+            apps = marketplace_hub.list_apps(category=cat, search_query=query)
+            self.send_json_response({
+                "apps": apps,
+                "total": len(apps),
+                "category_filter": cat,
+                "search_query": query,
+                "status": "MARKETPLACE_APPS_RETRIEVED"
+            })
+        elif path == "/api/v1/marketplace/connect":
+            params = self.parse_query_params()
+            app_id = params.get("app_id", "app_001")
+            res = marketplace_hub.connect_app(app_id, orchestrator=orchestrator, revenuecat=mega11.rc)
+            self.send_json_response(res)
+        elif path == "/api/v1/marketplace/recommend_ai":
+            params = self.parse_query_params()
+            biz_type = params.get("business_type", "SaaS_Subscription")
+            res = marketplace_hub.recommend_ai_integrations(business_type=biz_type, orchestrator=orchestrator)
+            self.send_json_response(res)
+        elif path == "/api/v1/marketplace/audit":
+            self.send_json_response(marketplace_hub.run_full_marketplace_audit())
         else:
             super().do_GET()
 
@@ -431,6 +476,31 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(mega11.run_full_11_platform_audit())
         elif path == "/api/v1/platforms/integrated_core_audit":
             self.send_json_response(mega11.run_integrated_11_platform_6_core_audit(orchestrator))
+        # ---------------------------------------------------------------------
+        # Embedded Marketplace REST API Endpoints (POST)
+        # ---------------------------------------------------------------------
+        elif path == "/api/v1/marketplace/apps":
+            cat = body.get("category")
+            query = body.get("search_query", body.get("search", body.get("q")))
+            apps = marketplace_hub.list_apps(category=cat, search_query=query)
+            self.send_json_response({
+                "apps": apps,
+                "total": len(apps),
+                "category_filter": cat,
+                "search_query": query,
+                "status": "MARKETPLACE_APPS_RETRIEVED"
+            })
+        elif path == "/api/v1/marketplace/connect":
+            app_id = body.get("app_id", "app_001")
+            auth_payload = body.get("auth_payload")
+            res = marketplace_hub.connect_app(app_id, auth_payload=auth_payload, orchestrator=orchestrator, revenuecat=mega11.rc)
+            self.send_json_response(res)
+        elif path == "/api/v1/marketplace/recommend_ai":
+            biz_type = body.get("business_type", "SaaS_Subscription")
+            res = marketplace_hub.recommend_ai_integrations(business_type=biz_type, orchestrator=orchestrator)
+            self.send_json_response(res)
+        elif path == "/api/v1/marketplace/audit":
+            self.send_json_response(marketplace_hub.run_full_marketplace_audit())
 
         # Legacy / Existing Endpoints
         elif path == "/api/v1/invoices/create":

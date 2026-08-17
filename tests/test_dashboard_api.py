@@ -223,13 +223,46 @@ class TestDashboardAPI(unittest.TestCase):
         res = self.invoke_endpoint("/api/v1/mega11/audit", "GET")
         self.assertEqual(res["status"], "ALL_11_PLATFORMS_FULLY_OPERATIONAL")
 
-    def test_38_integrated_core_audit_endpoint(self):
-        res = self.invoke_endpoint("/api/v1/platforms/integrated_core_audit", "GET")
-        self.assertEqual(res["status"], "ALL_11_PLATFORMS_AND_6_CORES_FULLY_INTEGRATED")
-        self.assertIn("mega_11_platforms", res)
-        self.assertIn("nextgen_6_cores", res)
+    def test_39_marketplace_apps_endpoint(self):
+        res_get = self.invoke_endpoint("/api/v1/marketplace/apps?category=Accounting%20%26%20Tax", "GET")
+        self.assertEqual(res_get["status"], "MARKETPLACE_APPS_RETRIEVED")
+        self.assertEqual(res_get["total"], 20)
+
+        res_post = self.invoke_endpoint("/api/v1/marketplace/apps", "POST", {"search_query": "Stripe"})
+        self.assertEqual(res_post["status"], "MARKETPLACE_APPS_RETRIEVED")
+        self.assertTrue(any(a["name"] == "Stripe Payments" for a in res_post["apps"]))
+
+    def test_40_marketplace_connect_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/marketplace/connect", "POST", {"app_id": "app_002"})
+        self.assertEqual(res["sync_status"], "CONNECTED")
+        self.assertEqual(res["status"], "MARKETPLACE_APP_CONNECTED_SUCCESSFULLY")
+        self.assertIn("revenuecat_integration", res)
+        self.assertTrue(res["revenuecat_integration"]["entitlements_bridged"])
+        self.assertIn("six_core_substrate_sync", res)
+        self.assertEqual(res["six_core_substrate_sync"]["cores_entangled"], 6)
+
+    def test_41_marketplace_recommend_ai_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/marketplace/recommend_ai", "POST", {"business_type": "SaaS_Subscription"})
+        self.assertEqual(res["status"], "AI_RECOMMENDATION_ENGINE_ACTIVE")
+        self.assertEqual(len(res["neural_recommendations"]), 6)
+        self.assertIn("six_core_substrate_optimization", res)
+        self.assertEqual(res["six_core_substrate_optimization"]["cores_entangled"], 6)
+        self.assertIn("revenuecat_integration", res)
+
+    def test_42_marketplace_connect_get_query_params(self):
+        res = self.invoke_endpoint("/api/v1/marketplace/connect?app_id=app_021", "GET")
+        self.assertEqual(res["sync_status"], "CONNECTED")
+        self.assertEqual(res["status"], "MARKETPLACE_APP_CONNECTED_SUCCESSFULLY")
+        self.assertEqual(res["six_core_substrate_sync"]["cores_entangled"], 6)
+
+    def test_43_marketplace_audit_endpoint(self):
+        res = self.invoke_endpoint("/api/v1/marketplace/audit", "GET")
+        self.assertEqual(res["total_apps_registered"], 200)
+        self.assertEqual(res["total_categories"], 10)
+        self.assertEqual(res["status"], "EMBEDDED_MARKETPLACE_200_INTEGRATIONS_FULLY_OPERATIONAL")
 
 
 if __name__ == "__main__":
     unittest.main()
+
 

@@ -1200,12 +1200,23 @@ const COPILOT_PAGE_CONFIGS = {
       { label: '💼 B2B SaaS Compose UI', prompt: 'Build a B2B SaaS Dashboard with AURA risk credit underwriting and automated P&L statements' },
       { label: '⌚ IoT Sensor App Architecture', prompt: 'Build an IoT Hardware Sensor Mesh app with real-time biometric telemetry and unlock keys' }
     ]
+  },
+  'marketplace': {
+    name: '🛍️ Sovereign App Marketplace',
+    welcome: '⚡ **Gemini 2.5 Flash Marketplace Copilot Active**\n\nI am connected to the **200 Sovereign Ecosystem Apps**, RevenueCat Paywall Entitlement Engine, and Node Deployment Mesh.\n\n* Total Catalog: **200 Enterprise Apps**\n* Active RevenueCat Subscriptions: **$148,920.00 MRR**\n* Entitlement Status: **Enterprise Quantum Node**\n\nHow can I help you find, configure, or unlock enterprise plugins and RevenueCat paywalls?',
+    chips: [
+      { label: '🤖 Recommend Top 5 AI Agents', prompt: 'Recommend the top 5 AI Agent plugins for quantitative finance and automated trading.' },
+      { label: '💼 QuickBooks Substitutes', prompt: 'Show all financial apps that replace QuickBooks and manage double-entry ledgers.' },
+      { label: '⚙️ RevenueCat Paywall Config', prompt: 'How do I configure RevenueCat offerings and unlock Enterprise Quantum entitlements?' },
+      { label: '🔒 Deploy ZK Security Suite', prompt: 'Filter catalog for Zero-Knowledge security apps and deploy post-quantum encryption.' }
+    ]
   }
 };
 
 // Detect active page key
 function getCopilotPageKey() {
   const path = window.location.pathname.toLowerCase();
+  if (path.includes('marketplace')) return 'marketplace';
   if (path.includes('quickbooks')) return 'quickbooks';
   if (path.includes('stripe')) return 'stripe';
   if (path.includes('tokenomics')) return 'tokenomics';
