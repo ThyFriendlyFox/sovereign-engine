@@ -58,6 +58,9 @@ from mega_11_platform_master_suite import (
 from embedded_marketplace_integrations_hub import EmbeddedMarketplaceHub
 from sovereign_mcp_server import SovereignMCPServer
 from alpha_unlimited_work_engine import AlphaUnlimitedWorkEngine, AlphaAppWorkGenerator
+from mega_office_business_suite import MegaOfficeBusinessSuite
+
+office_suite = MegaOfficeBusinessSuite()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -241,6 +244,36 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(alpha_work_engine.dispatch_200())
         elif path == "/api/v1/alpha/work/audit":
             self.send_json_response(alpha_work_engine.run_alpha_audit())
+
+        # ---------------------------------------------------------------------
+        # Sovereign Office & Business Suite GET Endpoints
+        # ---------------------------------------------------------------------
+        elif path in ["/api/v1/office/tools", "/api/v1/office/audit"]:
+            audit = office_suite.run_full_office_audit()
+            audit["tools"] = [
+                {"name": "SovereignDocs", "endpoint": "/api/v1/office/docs"},
+                {"name": "SovereignSheets", "endpoint": "/api/v1/office/sheets/solve"},
+                {"name": "SovereignSlides", "endpoint": "/api/v1/office/slides"},
+                {"name": "SovereignSign", "endpoint": "/api/v1/office/sign"},
+                {"name": "SovereignMail", "endpoint": "/api/v1/office/mail"},
+                {"name": "SovereignDrive", "endpoint": "/api/v1/office/drive"},
+                {"name": "AgenticMultiArtifactGenerator", "endpoint": "/api/v1/office/generate_artifact"}
+            ]
+            audit["supported_artifact_types"] = office_suite.artifact_generator.supported_artifact_types
+            self.send_json_response(audit)
+        elif path == "/api/v1/office/generate_artifact":
+            params = self.parse_query_params()
+            art_type = params.get("artifact_type", params.get("type", "SPREADSHEET"))
+            title = params.get("title", "Q1 Executive Financial Model")
+            self.send_json_response(office_suite.artifact_generator.generate_artifact(art_type, title, params))
+        elif path == "/api/v1/office/sheets/solve":
+            params = self.parse_query_params()
+            sheet_data = {}
+            if "revenue_rows" in params:
+                sheet_data["revenue_rows"] = [float(x) for x in params["revenue_rows"].split(",") if x.strip()]
+            if "expense_rows" in params:
+                sheet_data["expense_rows"] = [float(x) for x in params["expense_rows"].split(",") if x.strip()]
+            self.send_json_response(office_suite.sheets.solve_formulas(sheet_data))
 
         # ---------------------------------------------------------------------
         # 11 Platform Master Suite GET Endpoints
@@ -536,6 +569,19 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(alpha_work_engine.dispatch_200())
         elif path == "/api/v1/alpha/work/audit":
             self.send_json_response(alpha_work_engine.run_alpha_audit())
+
+        # ---------------------------------------------------------------------
+        # Sovereign Office & Business Suite POST Endpoints
+        # ---------------------------------------------------------------------
+        elif path in ["/api/v1/office/tools", "/api/v1/office/audit"]:
+            self.send_json_response(office_suite.run_full_office_audit())
+        elif path == "/api/v1/office/generate_artifact":
+            art_type = body.get("artifact_type", "SPREADSHEET")
+            title = body.get("title", "Q1 Executive Financial Model")
+            params = body.get("parameters", {})
+            self.send_json_response(office_suite.artifact_generator.generate_artifact(art_type, title, params))
+        elif path == "/api/v1/office/sheets/solve":
+            self.send_json_response(office_suite.sheets.solve_formulas(body))
 
         # ---------------------------------------------------------------------
         # 11 Platform Master Suite POST Endpoints

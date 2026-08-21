@@ -2506,9 +2506,10 @@ function switchCommandCenterView(viewName) {
   views.forEach(v => {
     const sec = document.getElementById(`sec-${v}-view`);
     const btn = document.getElementById(`view-btn-${v}`);
-    if (sec) sec.style.display = (v === viewName) ? 'block' : 'none';
+    const isTarget = (v === viewName) || (v === 'autonomic' && viewName === 'az') || (v === 'az' && viewName === 'autonomic');
+    if (sec) sec.style.display = isTarget ? 'block' : 'none';
     if (btn) {
-      if (v === viewName) btn.classList.add('active');
+      if (isTarget) btn.classList.add('active');
       else btn.classList.remove('active');
     }
   });
@@ -2516,9 +2517,11 @@ function switchCommandCenterView(viewName) {
   if (viewName === 'apps' && typeof renderAppGrid === 'function') renderAppGrid();
   if (viewName === 'mcp' && typeof renderMCPConsole === 'function') renderMCPConsole();
   if ((viewName === 'telemetry' || viewName === 'radar') && typeof initTelemetryRadar === 'function') initTelemetryRadar();
-  if (viewName === 'az' && typeof renderAZWorkflowsCatalog === 'function') renderAZWorkflowsCatalog();
+  if (viewName === 'az' || viewName === 'autonomic') {
+    if (typeof renderAZWorkflowsCatalog === 'function') renderAZWorkflowsCatalog();
+    if (typeof renderAutonomicStudio === 'function') renderAutonomicStudio();
+  }
   if (viewName === 'sandbox' && typeof updateSandboxGauges === 'function') updateSandboxGauges();
-  if (viewName === 'autonomic' && typeof renderAutonomicStudio === 'function') renderAutonomicStudio();
 }
 
 function switchMarketplaceView(viewName) {
@@ -3170,6 +3173,7 @@ function addAutonomicLog(msg) {
 }
 
 function renderAutonomicStudio() {
+  populateAutonomicAppSelector();
   if (autonomicState.workers.length === 0) {
     initAutonomicWorkersPool();
     seedAutonomicTaskQueue();
@@ -3371,6 +3375,118 @@ function changeWorkerCount(newCount) {
   showToast(`⚙️ Parallel Worker Threads scaled to ${newCount}`);
   addAutonomicLog(`[WORKERS] Worker pool scaled to ${newCount} parallel execution threads.`);
   updateAutonomicUI();
+}
+
+function populateAutonomicAppSelector() {
+  const selectEls = document.querySelectorAll('#autonomic-app-selector');
+  if (!selectEls || selectEls.length === 0) return;
+
+  const optionsHtml = [
+    '<option value="all">⚡ ALL 200 APPS (Global Autonomic Ecosystem Mesh)</option>',
+    ...ALL_APPS.map(app => `<option value="${app.id}">${app.icon} #${app.id}: ${escapeHtml(app.title)} (${app.categoryLabel})</option>`)
+  ].join('');
+
+  selectEls.forEach(el => {
+    const currentVal = el.value;
+    el.innerHTML = optionsHtml;
+    if (currentVal) el.value = currentVal;
+  });
+}
+
+function handleAutonomicAppSelect(appId) {
+  if (appId === 'all') {
+    showToast('⚡ Autonomic Studio set to Global 200 Apps Mesh');
+    addAutonomicLog(`[SELECTOR] Target filter reset to ALL 200 Ecosystem Apps.`);
+  } else {
+    const targetApp = ALL_APPS.find(a => String(a.id) === String(appId));
+    if (targetApp) {
+      showToast(`🎯 Target app locked: ${targetApp.icon} ${targetApp.title}`);
+      addAutonomicLog(`[SELECTOR] Locked target app #${targetApp.id}: ${targetApp.title} (${targetApp.categoryLabel}).`);
+      const task = generateSingleAutonomicTaskForApp(targetApp);
+      if (task) {
+        autonomicState.activeQueue.unshift(task);
+        autonomicState.tasksGenerated++;
+        updateAutonomicUI();
+      }
+    }
+  }
+}
+
+function generateSingleAutonomicTaskForApp(app) {
+  if (!app) return null;
+  const domainOps = DOMAIN_OPCODES[app.category] || DOMAIN_OPCODES.ai;
+  const op = domainOps[Math.floor(Math.random() * domainOps.length)];
+  const taskId = `TSK-${Math.floor(80000 + Math.random() * 20000)}`;
+
+  return {
+    id: taskId,
+    appId: app.id,
+    appTitle: app.title,
+    appIcon: app.icon,
+    domain: app.category,
+    domainLabel: app.categoryLabel,
+    op: op.title,
+    priority: op.p,
+    progress: 0,
+    status: 'queued',
+    workerId: null,
+    createdAt: new Date().toLocaleTimeString()
+  };
+}
+
+function generateTaskForSelectedApp() {
+  const selectEl = document.getElementById('autonomic-app-selector');
+  const appId = selectEl ? selectEl.value : 'all';
+  if (appId === 'all') {
+    triggerAutonomicBurst();
+  } else {
+    const targetApp = ALL_APPS.find(a => String(a.id) === String(appId));
+    if (targetApp) {
+      const task = generateSingleAutonomicTaskForApp(targetApp);
+      if (task) {
+        autonomicState.activeQueue.unshift(task);
+        autonomicState.tasksGenerated++;
+        showToast(`⚡ Synthesized task for ${targetApp.title}`);
+        addAutonomicLog(`[SYNTHESIZE] Manually synthesized task #${task.id} [${task.op}] for ${targetApp.title}.`);
+        updateAutonomicUI();
+      }
+    }
+  }
+}
+
+function filterStudioByDomain(domain) {
+  const pills = document.querySelectorAll('.domain-pill');
+  pills.forEach(p => {
+    if (p.getAttribute('onclick')?.includes(`'${domain}'`)) p.classList.add('active');
+    else p.classList.remove('active');
+  });
+
+  const selectFilter = document.getElementById('autonomic-domain-filter');
+  if (selectFilter) selectFilter.value = domain;
+
+  showToast(`Filtered Studio Tasks by Domain: ${domain.toUpperCase()}`);
+  renderAutonomicTaskFeed();
+}
+
+function toggleAutonomicLiveLoop() {
+  toggleAutonomicEngine();
+  const badge = document.getElementById('autonomic-loop-badge');
+  const btn = document.getElementById('btn-toggle-autonomic-loop');
+  if (badge) {
+    badge.innerText = autonomicState.running ? '● Live Stream Active' : '⏸ Swarm Paused';
+    badge.className = autonomicState.running ? 'status-pill success glow-pulse' : 'status-pill warning';
+  }
+  if (btn) {
+    btn.innerText = autonomicState.running ? '⏸ Pause Live Loop' : '▶ Resume Live Loop';
+  }
+}
+
+function triggerBatchTaskGeneration() {
+  triggerAutonomicBurst();
+}
+
+function clearAutonomicTaskQueue() {
+  flushAutonomicQueue();
 }
 
 
