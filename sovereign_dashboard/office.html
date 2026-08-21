@@ -3,146 +3,222 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SOVEREIGN OS — Mega Office & Business Suite</title>
+  <title>Sovereign Office Suite — Sovereign Engine OS</title>
   <link rel="stylesheet" href="index.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-dark text-light">
-
-  <header class="sovereign-header">
-    <div class="header-brand">
-      <span class="brand-logo">👑</span>
-      <div class="brand-text">
-        <h1 class="brand-title">SOVEREIGN OS</h1>
-        <span class="brand-subtitle">Mega Office & Business Suite • Multi-Artifact AI Engine</span>
+<body>
+  <!-- TOP NAVBAR -->
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-icon">S</div>
+      <div>
+        <div class="brand-title">Sovereign Engine OS</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Sovereign Office & Business Productivity Suite</div>
       </div>
     </div>
-    <div class="header-nav">
-      <a href="overview.html" class="nav-link">Command Center</a>
-      <a href="marketplace.html" class="nav-link">200 Apps Marketplace</a>
-      <a href="office.html" class="nav-link active">Office & Business Suite</a>
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <button class="badge-revenuecat" onclick="openRevenueCatDrawer()" title="Configure RevenueCat Entitlements">
+        ⚡ RevenueCat Substrate Active
+      </button>
+      <div class="system-status-indicator">
+        <div class="pulse-dot"></div>
+        <span>6 Cores Entangled</span>
+      </div>
+      <button class="btn-primary" onclick="toggleGeminiCopilot()" style="padding: 0.4rem 0.9rem; font-size: 0.82rem;">
+        🤖 Gemini Copilot
+      </button>
     </div>
-  </header>
+  </nav>
 
-  <main class="container-fluid py-4">
+  <!-- NAVIGATION TABS -->
+  <div class="nav-tabs-container">
+    <div class="nav-tabs">
+      <a href="overview.html" class="tab-btn">⚡ Command Center</a>
+      <a href="office.html" class="tab-btn active">🏢 Sovereign Office</a>
+      <a href="quickbooks.html" class="tab-btn">💼 QuickBooks Replacement</a>
+      <a href="stripe.html" class="tab-btn">💳 Stripe Replacement</a>
+      <a href="tokenomics.html" class="tab-btn">🪙 Tokenomics & Treasury</a>
+      <a href="iot.html" class="tab-btn">⌚ Wear OS & IoT Mesh</a>
+      <a href="nexs.html" class="tab-btn">⚡ Neural Synthesizer</a>
+      <a href="marketplace.html" class="tab-btn">🛍️ App Marketplace</a>
+    </div>
+  </div>
 
-    <!-- Executive Suite Header -->
-    <div class="office-hero-banner">
-      <div class="hero-badge">💼 ALL-IN-ONE ENTERPRISE REPLACEMENT</div>
-      <h2 class="hero-title">Sovereign Office & Business Suite</h2>
-      <p class="hero-desc">Replacing Microsoft 365, Google Workspace, Notion, and DocuSign with an autonomous agentic substrate and multi-artifact AI generation engine.</p>
+  <!-- PAGE HEADER TITLE -->
+  <div class="page-header-title">
+    <div>
+      <h1>🏢 Sovereign Office & Business Productivity Suite</h1>
+      <div class="page-header-sub">Glassmorphic AI-powered enterprise workspace featuring live spreadsheets, document engines, pitch deck builders, and multi-artifact co-piloting.</div>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+      <button class="btn-card-action" onclick="openMultiArtifactDrawer()">🤖 Multi-Artifact AI Drawer</button>
+      <button class="btn-primary" onclick="aiAutofillGrid()">✨ AI Financial Co-Pilot</button>
+      <button class="btn-card-action" onclick="exportGridCSV()">📥 Export Suite</button>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE METRICS BAR -->
+  <section class="metrics-bar">
+    <div class="metric-card">
+      <div class="metric-label">Active Sovereign Docs</div>
+      <div class="metric-value">14 Executive Memos</div>
+      <div class="metric-change positive">▲ Real-Time WYSIWYG & Markdown</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Financial Spreadsheet Models</div>
+      <div class="metric-value">8 Active Grids</div>
+      <div class="metric-change positive">▲ Live RevenueCat Formula Computation</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Investor Pitch Decks</div>
+      <div class="metric-value">6 Decks (30 Slides)</div>
+      <div class="metric-change positive">▲ Widescreen Presenter Mode</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Multi-Artifact AI Substrate</div>
+      <div class="metric-value" style="color: var(--accent-cyan);">100% Entangled</div>
+      <div class="metric-change positive">▲ Gemini 2.5 Multi-Modal Co-Pilot</div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTAINER -->
+  <main class="main-container" style="margin-top: 1rem;">
+    
+    <!-- OFFICE SUITE VIEW SWITCHER TABS -->
+    <div class="view-mode-tabs">
+      <button class="view-tab-btn active" id="office-tab-btn-grid" onclick="switchOfficeTab('grid')">📊 Sovereign Grid (Spreadsheet)</button>
+      <button class="view-tab-btn" id="office-tab-btn-doc" onclick="switchOfficeTab('doc')">📝 Sovereign Doc (Document Editor)</button>
+      <button class="view-tab-btn" id="office-tab-btn-slides" onclick="switchOfficeTab('slides')">📽️ Sovereign Slides (Pitch Deck Studio)</button>
+      <button class="view-tab-btn" id="office-tab-btn-artifacts" onclick="openMultiArtifactDrawer()">🤖 Multi-Artifact AI Drawer</button>
     </div>
 
-    <!-- Office App Switcher Grid -->
-    <div class="office-apps-grid">
-      <div class="office-app-card active" onclick="selectOfficeApp('docs')">
-        <div class="app-icon">📄</div>
-        <div class="app-info">
-          <h3>SovereignDocs</h3>
-          <p>Dynamic AI Document Processor</p>
+    <!-- SECTION 1: SOVEREIGN GRID (SPREADSHEET) -->
+    <div id="sec-office-grid">
+      <div class="sovereign-spreadsheet-container">
+        <!-- SHEET TOOLBAR -->
+        <div class="sheet-toolbar">
+          <div class="sheet-toolbar-group">
+            <span class="office-tab-badge">📊 Financial Model 2026.xlsx</span>
+            <button class="sheet-btn" onclick="addGridRow()">➕ Add Row</button>
+            <button class="sheet-btn" onclick="addGridCol()">➕ Add Column</button>
+            <button class="sheet-btn" onclick="loadSampleFinancialModel()">🔄 Reset Model</button>
+          </div>
+          <div class="sheet-toolbar-group">
+            <button class="sheet-btn sheet-btn-primary" onclick="aiAutofillGrid()">✨ AI Cell Autofill</button>
+            <button class="sheet-btn" onclick="exportGridCSV()">📥 Export CSV</button>
+          </div>
         </div>
-      </div>
-      <div class="office-app-card" onclick="selectOfficeApp('sheets')">
-        <div class="app-icon">📊</div>
-        <div class="app-info">
-          <h3>SovereignSheets</h3>
-          <p>Financial Models & Formulas</p>
+
+        <!-- FORMULA BAR -->
+        <div class="sheet-formula-bar">
+          <div class="cell-address-pill" id="sheet-active-address">A1</div>
+          <span class="formula-symbol">fx</span>
+          <input type="text" id="sheet-formula-input" class="formula-input" placeholder="Enter formula or cell value (e.g. =SUM(B2:B5), =B6*0.2)..." onchange="applyFormulaBarInput()" />
+          <button class="sheet-btn" onclick="applyFormulaBarInput()" style="padding: 0.25rem 0.6rem; font-size: 0.78rem;">Apply</button>
         </div>
-      </div>
-      <div class="office-app-card" onclick="selectOfficeApp('slides')">
-        <div class="app-icon">📽️</div>
-        <div class="app-info">
-          <h3>SovereignSlides</h3>
-          <p>AI Pitch Deck Generator</p>
+
+        <!-- SPREADSHEET TABLE GRID CONTAINER -->
+        <div class="sheet-grid-wrapper" id="spreadsheet-table-container">
+          <!-- Dynamically initialized by initSpreadsheetGrid() -->
         </div>
-      </div>
-      <div class="office-app-card" onclick="selectOfficeApp('sign')">
-        <div class="app-icon">✍️</div>
-        <div class="app-info">
-          <h3>SovereignSign</h3>
-          <p>Cryptographic Signatures</p>
-        </div>
-      </div>
-      <div class="office-app-card" onclick="selectOfficeApp('mail')">
-        <div class="app-icon">📨</div>
-        <div class="app-info">
-          <h3>SovereignMail</h3>
-          <p>Autonomic AI Email Inbox</p>
-        </div>
-      </div>
-      <div class="office-app-card" onclick="selectOfficeApp('drive')">
-        <div class="app-icon">📁</div>
-        <div class="app-info">
-          <h3>SovereignDrive</h3>
-          <p>Cloud Storage & Versioning</p>
+
+        <!-- SHEET FOOTER SUMMARY BAR -->
+        <div class="sheet-summary-bar">
+          <div>
+            <span>Status: </span>
+            <strong style="color: var(--accent-green);">● Formula Calculation Engine Active</strong>
+          </div>
+          <div>
+            <span>RevenueCat Telemetry Hooked: </span>
+            <strong style="color: var(--accent-cyan); font-family: var(--font-mono);">$148,920.00 MRR</strong>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Active App Workspace Drawer -->
-    <div class="workspace-main-panel">
-      <div class="panel-header">
-        <h3 id="active-app-title">📊 SovereignSheets — Financial Model & Formula Solver</h3>
-        <div class="panel-actions">
-          <button class="btn btn-primary" onclick="triggerArtifactGeneration()">✨ Generate AI Artifact</button>
-          <button class="btn btn-outline" onclick="solveSpreadsheetFormulas()">🧮 Solve Formulas</button>
+    <!-- SECTION 2: SOVEREIGN DOC (DOCUMENT EDITOR) -->
+    <div id="sec-office-doc" style="display: none;">
+      <div class="sovereign-doc-container">
+        <!-- DOC METADATA & TITLE BAR -->
+        <div class="doc-meta-bar">
+          <input type="text" id="doc-title-input" class="doc-title-input" value="Sovereign Engine Series A Executive Memo.md" onchange="docState.title = this.value" />
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <span class="office-tab-badge" id="doc-word-count">342 Words</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);" id="doc-char-count">2,150 Chars</span>
+            <span style="font-size: 0.8rem; color: var(--accent-cyan);" id="doc-read-time">~2 min read</span>
+          </div>
+        </div>
+
+        <!-- DOC TOOLBAR -->
+        <div class="doc-toolbar">
+          <div class="sheet-toolbar-group">
+            <button class="doc-tool-btn" onclick="formatDocText('bold')" title="Bold"><b>B</b></button>
+            <button class="doc-tool-btn" onclick="formatDocText('italic')" title="Italic"><i>I</i></button>
+            <button class="doc-tool-btn" onclick="formatDocText('h1')" title="Heading 1">H1</button>
+            <button class="doc-tool-btn" onclick="formatDocText('h2')" title="Heading 2">H2</button>
+            <button class="doc-tool-btn" onclick="formatDocText('quote')" title="Blockquote">” Quote</button>
+            <button class="doc-tool-btn" onclick="formatDocText('code')" title="Code Block">&lt;/&gt;</button>
+            <button class="doc-tool-btn" onclick="formatDocText('bullet')" title="Bullet List">• List</button>
+          </div>
+          <div class="sheet-toolbar-group">
+            <button class="sheet-btn" onclick="aiPolishDoc()">✨ AI Polish</button>
+            <button class="sheet-btn" onclick="aiSummarizeDoc()">🪄 AI Summarize</button>
+            <div style="border-left: 1px solid var(--border-glass); height: 20px; margin: 0 0.25rem;"></div>
+            <button class="doc-tool-btn doc-view-btn active" id="doc-view-btn-split" onclick="switchDocViewMode('split')">Split View</button>
+            <button class="doc-tool-btn doc-view-btn" id="doc-view-btn-edit" onclick="switchDocViewMode('edit')">Editor</button>
+            <button class="doc-tool-btn doc-view-btn" id="doc-view-btn-preview" onclick="switchDocViewMode('preview')">Preview</button>
+            <button class="sheet-btn sheet-btn-primary" onclick="exportDocMD()">📥 Export .md</button>
+          </div>
+        </div>
+
+        <!-- DOC WORKSPACE GRID -->
+        <div class="doc-editor-workspace" id="doc-workspace-grid">
+          <!-- EDITOR TEXTAREA -->
+          <div id="doc-editor-pane">
+            <textarea id="doc-textarea-input" class="doc-textarea" oninput="updateDocContent(this.value)" placeholder="Type document markdown content..."></textarea>
+          </div>
+          <!-- LIVE PREVIEW PANE -->
+          <div class="doc-preview-pane" id="doc-preview-pane-container">
+            <!-- Dynamically rendered markdown -->
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Live Interactive Spreadsheet Grid -->
-      <div class="spreadsheet-container">
-        <table class="table table-dark table-hover text-start">
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Subscription Revenue</th>
-              <th>App Store Fees (15%)</th>
-              <th>Gross Profit</th>
-              <th>Operating Expenses</th>
-              <th>Net Income</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Jan 2026</td>
-              <td>$124,500.00</td>
-              <td>-$18,675.00</td>
-              <td>$105,825.00</td>
-              <td>-$34,500.00</td>
-              <td class="text-success fw-bold">$71,325.00</td>
-            </tr>
-            <tr>
-              <td>Feb 2026</td>
-              <td>$138,200.00</td>
-              <td>-$20,730.00</td>
-              <td>$117,470.00</td>
-              <td>-$36,200.00</td>
-              <td class="text-success fw-bold">$81,270.00</td>
-            </tr>
-            <tr>
-              <td>Mar 2026</td>
-              <td>$152,900.00</td>
-              <td>-$22,935.00</td>
-              <td>$129,965.00</td>
-              <td>-$38,000.00</td>
-              <td class="text-success fw-bold">$91,965.00</td>
-            </tr>
-            <tr class="table-active">
-              <td class="fw-bold">Q1 TOTAL</td>
-              <td class="fw-bold">$415,600.00</td>
-              <td class="fw-bold">-$62,340.00</td>
-              <td class="fw-bold">$353,260.00</td>
-              <td class="fw-bold">-$108,700.00</td>
-              <td class="text-success fw-bold text-lg">$244,560.00</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- SECTION 3: SOVEREIGN SLIDES (PITCH DECK STUDIO) -->
+    <div id="sec-office-slides" style="display: none;">
+      <div class="sovereign-deck-container">
+        <!-- DECK HEADER TOOLBAR -->
+        <div class="sheet-toolbar">
+          <div class="sheet-toolbar-group">
+            <span class="office-tab-badge">📽️ Series A Investor Pitch Deck.deck</span>
+            <span class="office-tab-badge" id="slide-counter-badge" style="background: rgba(121,40,202,0.15); color: var(--accent-purple);">Slide 1 of 5</span>
+          </div>
+          <div class="sheet-toolbar-group">
+            <button class="sheet-btn" onclick="prevSlide()">◀ Prev Slide</button>
+            <button class="sheet-btn" onclick="nextSlide()">Next Slide ▶</button>
+            <button class="sheet-btn sheet-btn-primary" onclick="toggleDeckFullscreen()">📺 Fullscreen Presentation</button>
+            <button class="sheet-btn" onclick="aiGenerateNewSlide()">✨ AI Generate Slide</button>
+          </div>
+        </div>
+
+        <!-- DECK WORKSPACE LAYOUT -->
+        <div class="deck-workspace-layout">
+          <!-- SLIDE THUMBNAILS SIDEBAR -->
+          <div class="slide-thumbnails-sidebar" id="slide-thumbnails-sidebar-container">
+            <!-- Dynamically rendered by initPitchDeck() -->
+          </div>
+          <!-- PRESENTATION STAGE VIEWPORT -->
+          <div class="slide-stage-viewport" id="slide-stage-viewport-container">
+            <!-- Dynamically rendered active slide -->
+          </div>
+        </div>
       </div>
-
     </div>
 
   </main>
 
+  <!-- SCRIPTS -->
   <script src="app.js"></script>
 </body>
 </html>

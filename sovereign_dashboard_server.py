@@ -163,13 +163,13 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             return {}
         query_str = self.path.split('?', 1)[1]
         params = {}
-        from urllib.parse import unquote
+        from urllib.parse import unquote_plus
         for pair in query_str.split('&'):
             if '=' in pair:
                 k, v = pair.split('=', 1)
-                params[unquote(k)] = unquote(v)
+                params[unquote_plus(k)] = unquote_plus(v)
             elif pair:
-                params[unquote(pair)] = ""
+                params[unquote_plus(pair)] = ""
         return params
 
     def do_GET(self):
@@ -574,14 +574,26 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
         # Sovereign Office & Business Suite POST Endpoints
         # ---------------------------------------------------------------------
         elif path in ["/api/v1/office/tools", "/api/v1/office/audit"]:
-            self.send_json_response(office_suite.run_full_office_audit())
+            audit = office_suite.run_full_office_audit()
+            audit["tools"] = [
+                {"name": "SovereignDocs", "endpoint": "/api/v1/office/docs"},
+                {"name": "SovereignSheets", "endpoint": "/api/v1/office/sheets/solve"},
+                {"name": "SovereignSlides", "endpoint": "/api/v1/office/slides"},
+                {"name": "SovereignSign", "endpoint": "/api/v1/office/sign"},
+                {"name": "SovereignMail", "endpoint": "/api/v1/office/mail"},
+                {"name": "SovereignDrive", "endpoint": "/api/v1/office/drive"},
+                {"name": "AgenticMultiArtifactGenerator", "endpoint": "/api/v1/office/generate_artifact"}
+            ]
+            audit["supported_artifact_types"] = office_suite.artifact_generator.supported_artifact_types
+            self.send_json_response(audit)
         elif path == "/api/v1/office/generate_artifact":
-            art_type = body.get("artifact_type", "SPREADSHEET")
+            art_type = body.get("artifact_type", body.get("type", "SPREADSHEET"))
             title = body.get("title", "Q1 Executive Financial Model")
-            params = body.get("parameters", {})
-            self.send_json_response(office_suite.artifact_generator.generate_artifact(art_type, title, params))
+            params = body.get("parameters", body)
+            self.send_json_response(office_suite.artifact_generator.generate_artifact(art_type, title, params if isinstance(params, dict) else {}))
         elif path == "/api/v1/office/sheets/solve":
-            self.send_json_response(office_suite.sheets.solve_formulas(body))
+            sheet_data = body.get("sheet_data", body) if isinstance(body, dict) else {}
+            self.send_json_response(office_suite.sheets.solve_formulas(sheet_data))
 
         # ---------------------------------------------------------------------
         # 11 Platform Master Suite POST Endpoints

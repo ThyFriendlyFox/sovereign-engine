@@ -2502,7 +2502,7 @@ let selectedAppId = null;
 
 // UNIFIED COMMAND CENTER VIEW SWITCHER
 function switchCommandCenterView(viewName) {
-  const views = ['telemetry', 'apps', 'az', 'mcp', 'sandbox', 'radar', 'autonomic'];
+  const views = ['telemetry', 'apps', 'az', 'mcp', 'sandbox', 'radar', 'autonomic', 'office'];
   views.forEach(v => {
     const sec = document.getElementById(`sec-${v}-view`);
     const btn = document.getElementById(`view-btn-${v}`);
@@ -2522,6 +2522,7 @@ function switchCommandCenterView(viewName) {
     if (typeof renderAutonomicStudio === 'function') renderAutonomicStudio();
   }
   if (viewName === 'sandbox' && typeof updateSandboxGauges === 'function') updateSandboxGauges();
+  if (viewName === 'office' && typeof renderOfficeWorkspace === 'function') renderOfficeWorkspace();
 }
 
 function switchMarketplaceView(viewName) {
@@ -2923,11 +2924,13 @@ function setupKeyboardShortcuts() {
       const rcDrawer = document.getElementById('revenuecat-drawer');
       const sandboxDrawer = document.getElementById('app-sandbox-drawer');
       const copilotDrawer = document.getElementById('gemini-copilot-drawer');
+      const artifactDrawer = document.getElementById('multi-artifact-drawer');
 
       if (appModal && appModal.classList.contains('active')) closeAppModal();
       else if (rcDrawer && rcDrawer.classList.contains('active')) closeRevenueCatDrawer();
       else if (sandboxDrawer && sandboxDrawer.classList.contains('active')) closeSandboxDrawer();
       else if (copilotDrawer && copilotDrawer.classList.contains('active')) closeGeminiCopilot();
+      else if (artifactDrawer && artifactDrawer.classList.contains('active')) closeMultiArtifactDrawer();
       else if (document.activeElement && document.activeElement.id === 'marketplace-search') clearSearchInput();
     }
   });
@@ -3490,6 +3493,903 @@ function clearAutonomicTaskQueue() {
 }
 
 
+// ==========================================================================
+// SOVEREIGN OFFICE & BUSINESS PRODUCTIVITY SUITE ENGINE
+// ==========================================================================
+
+// --------------------------------------------------------------------------
+// 1. LIVE SPREADSHEET GRID ENGINE
+// --------------------------------------------------------------------------
+let gridState = {
+  cols: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+  rowCount: 18,
+  activeCell: 'A1',
+  data: {
+    'A1': 'Revenue Metric', 'B1': 'Q1 2026', 'C1': 'Q2 2026', 'D1': 'Q3 2026', 'E1': 'Q4 2026 (Est)', 'F1': 'ARR Impact',
+    'A2': 'Apple StoreKit 2', 'B2': 42500, 'C2': 51000, 'D2': 68500, 'E2': 82000, 'F2': '=SUM(B2:E2)',
+    'A3': 'Google Play Billing', 'B3': 38000, 'C3': 44200, 'D3': 54200, 'E3': 65000, 'F3': '=SUM(B3:E3)',
+    'A4': 'Samsung Galaxy Store', 'B4': 11000, 'C4': 13500, 'D4': 16400, 'E4': 19500, 'F4': '=SUM(B4:E4)',
+    'A5': 'Stripe Web Paywalls', 'B5': 6200, 'C5': 7800, 'D5': 9820, 'E5': 12500, 'F5': '=SUM(B5:E5)',
+    'A6': 'Total Gross MRR', 'B6': '=SUM(B2:B5)', 'C6': '=SUM(C2:C5)', 'D6': '=SUM(D2:D5)', 'E6': '=SUM(E2:E5)', 'F6': '=SUM(F2:F5)',
+    'A7': 'AI Compute COGS (20%)', 'B7': '=B6*0.2', 'C7': '=C6*0.2', 'D7': '=D6*0.2', 'E7': '=E6*0.2', 'F7': '=F6*0.2',
+    'A8': 'Autonomic Net Profit', 'B8': '=B6-B7', 'C8': '=C6-C7', 'D8': '=D6-D7', 'E8': '=E6-E7', 'F8': '=F6-F7',
+    'A9': 'Growth Rate YoY', 'B9': '14.2%', 'C9': '18.1%', 'D9': '22.4%', 'E9': '28.5%', 'F9': 'AVG: 20.8%'
+  }
+};
+
+function initSpreadsheetGrid(containerId = 'spreadsheet-table-container') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  let html = `<table class="sheet-table">
+    <thead>
+      <tr>
+        <th class="sheet-th sheet-th-corner">#</th>`;
+  
+  gridState.cols.forEach(col => {
+    html += `<th class="sheet-th">${col}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  for (let r = 1; r <= gridState.rowCount; r++) {
+    html += `<tr><td class="sheet-row-header">${r}</td>`;
+    gridState.cols.forEach(col => {
+      const cellId = `${col}${r}`;
+      const rawVal = gridState.data[cellId] !== undefined ? gridState.data[cellId] : '';
+      const displayVal = evaluateCellDisplay(cellId, rawVal);
+      const isSelected = cellId === gridState.activeCell ? 'selected' : '';
+
+      html += `<td class="sheet-td ${isSelected}" id="cell-td-${cellId}" onclick="selectSheetCell('${cellId}')">
+        <input class="sheet-cell-input" id="cell-input-${cellId}" 
+               value="${escapeHtml(String(displayVal))}" 
+               onfocus="onCellInputFocus('${cellId}')"
+               onchange="onCellInputChange('${cellId}', this.value)"
+               onkeydown="handleCellKeydown(event, '${cellId}')" />
+      </td>`;
+    });
+    html += `</tr>`;
+  }
+
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+  updateFormulaBarUI();
+}
+
+function evaluateCellDisplay(cellId, rawVal) {
+  if (typeof rawVal === 'string' && rawVal.startsWith('=')) {
+    return evaluateFormula(rawVal);
+  }
+  if (typeof rawVal === 'number') {
+    return rawVal.toLocaleString('en-US');
+  }
+  return rawVal;
+}
+
+function evaluateFormula(expr) {
+  try {
+    const formula = expr.substring(1).toUpperCase().trim();
+    
+    // SUM range support e.g. SUM(B2:B5)
+    const sumMatch = formula.match(/^SUM\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    if (sumMatch) {
+      const colStart = sumMatch[1], rowStart = parseInt(sumMatch[2]);
+      const colEnd = sumMatch[3], rowEnd = parseInt(sumMatch[4]);
+      let total = 0;
+      for (let r = rowStart; r <= rowEnd; r++) {
+        const val = gridState.data[`${colStart}${r}`];
+        const num = parseFloat(val);
+        if (!isNaN(num)) total += num;
+      }
+      return total.toLocaleString('en-US');
+    }
+
+    // AVG range support e.g. AVG(B2:B5)
+    const avgMatch = formula.match(/^AVG\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    if (avgMatch) {
+      const colStart = avgMatch[1], rowStart = parseInt(avgMatch[2]);
+      const colEnd = avgMatch[3], rowEnd = parseInt(avgMatch[4]);
+      let total = 0, count = 0;
+      for (let r = rowStart; r <= rowEnd; r++) {
+        const val = gridState.data[`${colStart}${r}`];
+        const num = parseFloat(val);
+        if (!isNaN(num)) { total += num; count++; }
+      }
+      return count > 0 ? (total / count).toFixed(2) : 0;
+    }
+
+    // Simple arithmetic cell references e.g. B6-B7 or B6*0.2
+    const cellOpMatch = formula.match(/^([A-Z]\d+)\s*([\+\-\*\/])\s*([A-Z]\d+|\d+(?:\.\d+)?)$/);
+    if (cellOpMatch) {
+      const cellA = cellOpMatch[1];
+      const op = cellOpMatch[2];
+      const rightOperand = cellOpMatch[3];
+      
+      let valA = parseFloat(gridState.data[cellA]);
+      if (typeof gridState.data[cellA] === 'string' && gridState.data[cellA].startsWith('=')) {
+        valA = parseFloat(evaluateFormula(gridState.data[cellA]).replace(/,/g, ''));
+      }
+      let valB = parseFloat(rightOperand);
+      if (isNaN(valB) && gridState.data[rightOperand] !== undefined) {
+        valB = parseFloat(gridState.data[rightOperand]);
+        if (typeof gridState.data[rightOperand] === 'string' && gridState.data[rightOperand].startsWith('=')) {
+          valB = parseFloat(evaluateFormula(gridState.data[rightOperand]).replace(/,/g, ''));
+        }
+      }
+
+      if (isNaN(valA) || isNaN(valB)) return expr;
+
+      let res = 0;
+      if (op === '+') res = valA + valB;
+      else if (op === '-') res = valA - valB;
+      else if (op === '*') res = valA * valB;
+      else if (op === '/') res = valB !== 0 ? valA / valB : 0;
+      return res.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    return expr;
+  } catch (err) {
+    return '#VALUE!';
+  }
+}
+
+function selectSheetCell(cellId) {
+  gridState.activeCell = cellId;
+  document.querySelectorAll('.sheet-td').forEach(td => td.classList.remove('selected'));
+  const targetTd = document.getElementById(`cell-td-${cellId}`);
+  if (targetTd) targetTd.classList.add('selected');
+  updateFormulaBarUI();
+}
+
+function onCellInputFocus(cellId) {
+  selectSheetCell(cellId);
+  const input = document.getElementById(`cell-input-${cellId}`);
+  if (input) {
+    const rawVal = gridState.data[cellId] !== undefined ? gridState.data[cellId] : '';
+    input.value = rawVal;
+  }
+}
+
+function onCellInputChange(cellId, val) {
+  if (val.trim() === '') {
+    delete gridState.data[cellId];
+  } else {
+    const num = Number(val);
+    gridState.data[cellId] = (!isNaN(num) && val.trim() !== '' && !val.startsWith('=')) ? num : val;
+  }
+  initSpreadsheetGrid();
+}
+
+function handleCellKeydown(e, cellId) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const col = cellId[0];
+    const row = parseInt(cellId.substring(1));
+    const nextCell = `${col}${row + 1}`;
+    selectSheetCell(nextCell);
+    const nextInput = document.getElementById(`cell-input-${nextCell}`);
+    if (nextInput) nextInput.focus();
+  }
+}
+
+function updateFormulaBarUI() {
+  const addrPill = document.getElementById('sheet-active-address');
+  const formulaInput = document.getElementById('sheet-formula-input');
+  if (addrPill) addrPill.textContent = gridState.activeCell;
+  if (formulaInput) {
+    const rawVal = gridState.data[gridState.activeCell] !== undefined ? gridState.data[gridState.activeCell] : '';
+    formulaInput.value = rawVal;
+  }
+}
+
+function applyFormulaBarInput() {
+  const formulaInput = document.getElementById('sheet-formula-input');
+  if (formulaInput && gridState.activeCell) {
+    onCellInputChange(gridState.activeCell, formulaInput.value);
+    showToast(`Applied formula to ${gridState.activeCell}: ${formulaInput.value}`);
+  }
+}
+
+function addGridRow() {
+  gridState.rowCount++;
+  initSpreadsheetGrid();
+  showToast(`Added Row ${gridState.rowCount} to Sovereign Grid.`);
+}
+
+function addGridCol() {
+  const lastColCode = gridState.cols[gridState.cols.length - 1].charCodeAt(0);
+  if (lastColCode < 90) { // Up to 'Z'
+    const nextCol = String.fromCharCode(lastColCode + 1);
+    gridState.cols.push(nextCol);
+    initSpreadsheetGrid();
+    showToast(`Added Column ${nextCol} to Sovereign Grid.`);
+  }
+}
+
+function exportGridCSV() {
+  let csvContent = gridState.cols.join(',') + '\n';
+  for (let r = 1; r <= gridState.rowCount; r++) {
+    const rowVals = gridState.cols.map(col => {
+      const cellId = `${col}${r}`;
+      const rawVal = gridState.data[cellId] !== undefined ? gridState.data[cellId] : '';
+      const displayVal = evaluateCellDisplay(cellId, rawVal);
+      return `"${String(displayVal).replace(/"/g, '""')}"`;
+    });
+    csvContent += rowVals.join(',') + '\n';
+  }
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Sovereign_Financial_Grid_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('Downloaded Sovereign Grid as CSV file.');
+}
+
+function loadSampleFinancialModel() {
+  gridState.data['A10'] = 'Enterprise SaaS Clients'; gridState.data['B10'] = 142; gridState.data['C10'] = 188; gridState.data['D10'] = 245; gridState.data['E10'] = 310; gridState.data['F10'] = '=SUM(B10:E10)';
+  gridState.data['A11'] = 'ARPU (Monthly Avg)'; gridState.data['B11'] = 980; gridState.data['C11'] = 1050; gridState.data['D11'] = 1180; gridState.data['E11'] = 1250; gridState.data['F11'] = '=AVG(B11:E11)';
+  initSpreadsheetGrid();
+  showToast('Loaded Enterprise Financial Model into Sovereign Grid.');
+}
+
+function aiAutofillGrid() {
+  gridState.data['A12'] = 'AI Autonomous Workflows'; gridState.data['B12'] = 12500; gridState.data['C12'] = 18900; gridState.data['D12'] = 27400; gridState.data['E12'] = 38000; gridState.data['F12'] = '=SUM(B12:E12)';
+  initSpreadsheetGrid();
+  showToast('✨ Gemini AI populated projected AI Autonomous Workflows line item.');
+}
+
+
+// --------------------------------------------------------------------------
+// 2. LIVE DOCUMENT EDITOR ENGINE
+// --------------------------------------------------------------------------
+let docState = {
+  title: 'Sovereign Engine Series A Executive Memo.md',
+  viewMode: 'split',
+  content: `# ⚡ Sovereign Engine OS — Executive Memorandum (Q3 2026)
+
+> **CONFIDENTIAL** — Prepared for Quantum Enterprise Partners & Sovereign Board of Directors
+
+---
+
+## 1. Executive Summary
+
+Sovereign Engine OS has officially reached **$1.78M ARR ($148.9k MRR)** with **74.2% Autonomic Net Profit Margin**. By unifying zero-knowledge ledger accounting, app store entitlement routing, and autonomous AI micro-workers, Sovereign Engine completely replaces legacy SaaS stacks including QuickBooks, Stripe, and Zapier.
+
+### Key Milestones Achieved
+- **RevenueCat Substrate Entanglement**: Live entitlement routing across Apple StoreKit 2, Google Play Billing, Samsung Galaxy Store, and Stripe Web Paywalls.
+- **200 Ecosystem Apps Catalog**: Instant 1-click deployment with zero-knowledge sandboxes.
+- **Autonomic Swarm Engine**: 6 entangling cores executing 26 A-to-Z workflows in real time.
+
+---
+
+## 2. Technical Architecture & Security Model
+
+The engine operates on a multi-substrate neural mesh:
+
+\`\`\`solidity
+// Sovereign Treasury Vault
+contract SovereignTreasuryVault is Initializable {
+    uint256 public totalEntangledMRR;
+    mapping(address => uint256) public nodeStakes;
+    
+    event EntanglementSynced(uint256 newMRR, uint256 timestamp);
+}
+\`\`\`
+
+> *"Autonomic sovereignty represents the logical evolution of software enterprise architecture."*
+`
+};
+
+function initDocEditor(textareaId = 'doc-textarea-input', previewId = 'doc-preview-pane-container') {
+  const textarea = document.getElementById(textareaId);
+  const titleInput = document.getElementById('doc-title-input');
+  if (titleInput) titleInput.value = docState.title;
+  if (textarea) {
+    textarea.value = docState.content;
+    renderDocPreview(previewId);
+    updateDocStats();
+  }
+}
+
+function updateDocContent(newVal, previewId = 'doc-preview-pane-container') {
+  docState.content = newVal;
+  renderDocPreview(previewId);
+  updateDocStats();
+}
+
+function renderDocPreview(previewId = 'doc-preview-pane-container') {
+  const preview = document.getElementById(previewId);
+  if (!preview) return;
+
+  let md = docState.content;
+  // Simple glassmorphic markdown parser
+  let html = md
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
+    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*)\*/gim, '<em>$1</em>')
+    .replace(/```solidity([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
+    .replace(/```javascript([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
+    .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
+    .replace(/`([^`]+)`/gim, '<code>$1</code>')
+    .replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>')
+    .replace(/\n\n/gim, '<br/><br/>');
+
+  preview.innerHTML = html;
+}
+
+function updateDocStats() {
+  const text = docState.content;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  const readTime = Math.max(1, Math.ceil(words / 200));
+
+  const wordCountEl = document.getElementById('doc-word-count');
+  const charCountEl = document.getElementById('doc-char-count');
+  const readTimeEl = document.getElementById('doc-read-time');
+
+  if (wordCountEl) wordCountEl.textContent = `${words} Words`;
+  if (charCountEl) charCountEl.textContent = `${chars} Chars`;
+  if (readTimeEl) readTimeEl.textContent = `~${readTime} min read`;
+}
+
+function formatDocText(syntaxType) {
+  const textarea = document.getElementById('doc-textarea-input');
+  if (!textarea) return;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selected = textarea.value.substring(start, end);
+  let replacement = '';
+
+  switch (syntaxType) {
+    case 'bold': replacement = `**${selected || 'bold text'}**`; break;
+    case 'italic': replacement = `*${selected || 'italic text'}*`; break;
+    case 'h1': replacement = `\n# ${selected || 'Heading 1'}\n`; break;
+    case 'h2': replacement = `\n## ${selected || 'Heading 2'}\n`; break;
+    case 'quote': replacement = `\n> ${selected || 'Blockquote text'}\n`; break;
+    case 'code': replacement = `\`\`\`javascript\n${selected || '// Code snippet'}\n\`\`\``; break;
+    case 'bullet': replacement = `\n- ${selected || 'Bullet item'}\n`; break;
+  }
+
+  textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+  updateDocContent(textarea.value);
+  textarea.focus();
+}
+
+function switchDocViewMode(mode) {
+  docState.viewMode = mode;
+  const workspace = document.getElementById('doc-workspace-grid');
+  const editorPane = document.getElementById('doc-editor-pane');
+  const previewPane = document.getElementById('doc-preview-pane-container');
+
+  if (!workspace || !editorPane || !previewPane) return;
+
+  if (mode === 'edit') {
+    workspace.style.gridTemplateColumns = '1fr';
+    editorPane.style.display = 'block';
+    previewPane.style.display = 'none';
+  } else if (mode === 'preview') {
+    workspace.style.gridTemplateColumns = '1fr';
+    editorPane.style.display = 'none';
+    previewPane.style.display = 'block';
+  } else { // split
+    workspace.style.gridTemplateColumns = '1fr 1fr';
+    editorPane.style.display = 'block';
+    previewPane.style.display = 'block';
+  }
+
+  document.querySelectorAll('.doc-view-btn').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById(`doc-view-btn-${mode}`);
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+function aiPolishDoc() {
+  docState.content += `\n\n> ✨ *Gemini Copilot Polish*: Verified executive readability, formatted financial key figures, and cross-referenced with live RevenueCat substrate telemetries.`;
+  initDocEditor();
+  showToast('✨ AI polished document tone and formatting.');
+}
+
+function aiSummarizeDoc() {
+  docState.content += `\n\n### ⚡ AI Executive Key Takeaways\n1. MRR trajectory tracking +18.4% MoM.\n2. 200 Ecosystem Apps active with 6 entangled worker cores.\n3. Zero-knowledge treasury contract fully operational.`;
+  initDocEditor();
+  showToast('✨ AI generated executive summary section.');
+}
+
+function exportDocMD() {
+  const blob = new Blob([docState.content], { type: 'text/markdown;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = docState.title || 'Sovereign_Executive_Memo.md';
+  a.click();
+  showToast('Downloaded document as Markdown file.');
+}
+
+
+// --------------------------------------------------------------------------
+// 3. LIVE PITCH DECK STUDIO ENGINE
+// --------------------------------------------------------------------------
+let deckState = {
+  currentSlideIndex: 0,
+  slides: [
+    {
+      id: 1,
+      title: '⚡ Sovereign Engine OS',
+      subtitle: 'The Sovereign AI & Autonomous Financial Infrastructure',
+      type: 'title',
+      badge: 'Series A Pitch Deck',
+      metrics: [
+        { label: 'Annual Run Rate', val: '$1.78M' },
+        { label: 'MRR Growth', val: '+18.4%' },
+        { label: 'Autonomic Profit Margin', val: '74.2%' },
+        { label: 'Scalable Apps', val: '200 Apps' }
+      ],
+      content: 'Unifying zero-knowledge ledger accounting, app store entitlement routing, and autonomous micro-workers into a single glassmorphic command platform.'
+    },
+    {
+      id: 2,
+      title: '🏢 Sovereign Office & Business Suite',
+      subtitle: 'Next-Generation Glassmorphic Enterprise Productivity',
+      type: 'features',
+      badge: 'Product Architecture',
+      bullets: [
+        '📊 Sovereign Grid: Real-time financial spreadsheet engine with formula evaluation and CSV sync',
+        '📝 Sovereign Doc: Rich markdown editor with live WYSIWYG rendering & AI co-authoring',
+        '📽️ Sovereign Slides: Dynamic pitch deck builder with interactive live slide presentation mode',
+        '🤖 Multi-Artifact AI Drawer: Seamless workspace for managing, inspecting diffs, and transforming AI artifacts'
+      ]
+    },
+    {
+      id: 3,
+      title: '📈 Financial Telemetry & MRR Substrate',
+      subtitle: 'Multi-Store Entitlement & Billing Integration',
+      type: 'chart',
+      badge: 'Revenue Substrate',
+      metrics: [
+        { label: 'Apple StoreKit 2', val: '$68.5k (46%)' },
+        { label: 'Google Play Billing', val: '$54.2k (36%)' },
+        { label: 'Samsung Galaxy Store', val: '$16.4k (11%)' },
+        { label: 'Stripe Web Paywalls', val: '$9.8k (7%)' }
+      ]
+    },
+    {
+      id: 4,
+      title: '🪙 Tokenomics & Treasury Mesh',
+      subtitle: 'Zero-Knowledge Sovereign Ledger',
+      type: 'architecture',
+      badge: 'Core Protocol',
+      content: 'Autonomous smart contracts manage node staking, automated dividend payouts, and cross-chain treasury reserves with zero reliance on legacy banking rails.'
+    },
+    {
+      id: 5,
+      title: '🚀 Series A Growth Roadmap',
+      subtitle: 'Scaling to $10M ARR in 2027',
+      type: 'roadmap',
+      badge: 'Executive Strategy',
+      bullets: [
+        'Q3 2026: Expand 200 App Marketplace to 500 Enterprise Connectors',
+        'Q4 2026: Launch Autonomous Swarm Worker Micro-Subscriptions',
+        'Q1 2027: Enterprise Hardware Node Entanglement & Wear OS Mesh',
+        'Q2 2027: Sovereign Engine Global Autonomous DAO Transition'
+      ]
+    }
+  ]
+};
+
+function initPitchDeck(containerId = 'slide-stage-viewport-container', sidebarId = 'slide-thumbnails-sidebar-container') {
+  renderSlideSidebar(sidebarId);
+  renderActiveSlide(containerId);
+}
+
+function renderSlideSidebar(sidebarId = 'slide-thumbnails-sidebar-container') {
+  const sidebar = document.getElementById(sidebarId);
+  if (!sidebar) return;
+
+  sidebar.innerHTML = deckState.slides.map((slide, idx) => {
+    const isActive = idx === deckState.currentSlideIndex ? 'active' : '';
+    return `
+      <div class="slide-thumb-card ${isActive}" onclick="goToSlide(${idx})">
+        <span class="slide-thumb-number">#0${idx + 1}</span>
+        <div class="slide-thumb-title">${escapeHtml(slide.title)}</div>
+        <div class="slide-thumb-desc">${escapeHtml(slide.subtitle)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderActiveSlide(containerId = 'slide-stage-viewport-container') {
+  const stage = document.getElementById(containerId);
+  const slideCounter = document.getElementById('slide-counter-badge');
+  if (slideCounter) slideCounter.textContent = `Slide ${deckState.currentSlideIndex + 1} of ${deckState.slides.length}`;
+
+  if (!stage) return;
+
+  const slide = deckState.slides[deckState.currentSlideIndex];
+  let metricsHtml = '';
+  if (slide.metrics) {
+    metricsHtml = `<div class="slide-grid-metrics">
+      ${slide.metrics.map(m => `
+        <div class="slide-metric-box">
+          <div class="slide-metric-val">${escapeHtml(m.val)}</div>
+          <div class="slide-metric-lbl">${escapeHtml(m.label)}</div>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  let bulletsHtml = '';
+  if (slide.bullets) {
+    bulletsHtml = `<ul style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; list-style: none;">
+      ${slide.bullets.map(b => `
+        <li style="display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.95rem; color: #e2e8f0;">
+          <span style="color: var(--accent-cyan); font-weight: bold;">⚡</span>
+          <span>${escapeHtml(b)}</span>
+        </li>
+      `).join('')}
+    </ul>`;
+  }
+
+  stage.innerHTML = `
+    <div class="slide-content-hero">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="office-tab-badge">🏷️ ${escapeHtml(slide.badge)}</span>
+        <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">Sovereign Deck Studio</span>
+      </div>
+      <h2>${escapeHtml(slide.title)}</h2>
+      <div class="slide-subtitle">${escapeHtml(slide.subtitle)}</div>
+      ${slide.content ? `<p style="font-size: 1.05rem; color: #cbd5e1; line-height: 1.7; max-width: 680px;">${escapeHtml(slide.content)}</p>` : ''}
+      ${metricsHtml}
+      ${bulletsHtml}
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; border-top: 1px solid var(--border-glass); padding-top: 1rem;">
+      <span style="font-size: 0.8rem; color: var(--text-dim);">Sovereign Engine OS Enterprise Presentation</span>
+      <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan);">0${deckState.currentSlideIndex + 1} / 0${deckState.slides.length}</span>
+    </div>
+  `;
+}
+
+function nextSlide() {
+  if (deckState.currentSlideIndex < deckState.slides.length - 1) {
+    deckState.currentSlideIndex++;
+    initPitchDeck();
+  }
+}
+
+function prevSlide() {
+  if (deckState.currentSlideIndex > 0) {
+    deckState.currentSlideIndex--;
+    initPitchDeck();
+  }
+}
+
+function goToSlide(idx) {
+  if (idx >= 0 && idx < deckState.slides.length) {
+    deckState.currentSlideIndex = idx;
+    initPitchDeck();
+  }
+}
+
+function toggleDeckFullscreen() {
+  const viewport = document.getElementById('slide-stage-viewport-container');
+  if (!viewport) return;
+  if (!document.fullscreenElement) {
+    viewport.requestFullscreen().catch(err => {
+      showToast('Fullscreen requested on viewport.');
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+function aiGenerateNewSlide() {
+  const newSlide = {
+    id: deckState.slides.length + 1,
+    title: '✨ AI Generated Market Opportunity',
+    subtitle: 'Autonomic Enterprise TAM Expansion',
+    type: 'features',
+    badge: 'AI Synthesized',
+    bullets: [
+      'Total Addressable Market (TAM): $85B Legacy Accounting & ERP Software',
+      'Serviceable Obtainable Market (SOM): $4.2B Sovereign Crypto & AI Enterprises',
+      'Competitive Advantage: Zero gas fee accounting with native RevenueCat entitlement routing'
+    ]
+  };
+  deckState.slides.push(newSlide);
+  deckState.currentSlideIndex = deckState.slides.length - 1;
+  initPitchDeck();
+  showToast('✨ AI generated new Market Opportunity slide.');
+}
+
+
+// --------------------------------------------------------------------------
+// 4. MULTI-ARTIFACT AI DRAWER ENGINE
+// --------------------------------------------------------------------------
+let artifactState = {
+  activeArtifactId: 'art-1',
+  artifacts: [
+    {
+      id: 'art-1',
+      type: 'grid',
+      title: 'Sovereign MRR Forecast 2026.xlsx',
+      badge: 'Spreadsheet Grid',
+      icon: '📊',
+      lines: 18,
+      date: 'Live Entangled',
+      diff: [
+        { type: 'add', text: '+ Row 6: Total Gross MRR = $148,920.00' },
+        { type: 'add', text: '+ Row 8: Autonomic Net Profit = $119,136.00 (74.2%)' },
+        { type: 'del', text: '- Row 6: Legacy QuickBooks Forecast = $95,000.00' }
+      ],
+      content: 'Spreadsheet Grid containing live RevenueCat telemetry across 4 store channels.'
+    },
+    {
+      id: 'art-2',
+      type: 'doc',
+      title: 'Series A Executive Memo.md',
+      badge: 'Document',
+      icon: '📝',
+      lines: 142,
+      date: 'Live Entangled',
+      diff: [
+        { type: 'add', text: '+ Section 1: Executive Summary updated with $1.78M ARR figures' },
+        { type: 'add', text: '+ Section 2: Technical Architecture Solidity Vault snippet added' }
+      ],
+      content: '# Executive Memorandum\nSovereign Engine OS has officially reached $1.78M ARR.'
+    },
+    {
+      id: 'art-3',
+      type: 'deck',
+      title: 'Series A Investor Pitch Deck.deck',
+      badge: 'Pitch Deck',
+      icon: '📽️',
+      lines: 58,
+      date: 'Live Entangled',
+      diff: [
+        { type: 'add', text: '+ Slide 2: Sovereign Office Suite architecture diagram slide added' },
+        { type: 'add', text: '+ Slide 5: Q3 2026 - Q2 2027 Enterprise Roadmap added' }
+      ],
+      content: '5 Widescreen slides formatted for Quantum Enterprise Partners presentation.'
+    },
+    {
+      id: 'art-4',
+      type: 'code',
+      title: 'SovereignTreasuryVault.sol',
+      badge: 'Smart Contract',
+      icon: '⚡',
+      lines: 88,
+      date: 'Live Entangled',
+      diff: [
+        { type: 'add', text: '+ function syncEntanglement(uint256 newMRR) external onlyOwner' },
+        { type: 'add', text: '+ event EntanglementSynced(uint256 indexed mrr, uint256 timestamp)' },
+        { type: 'del', text: '- function legacyStripeWebhook() private' }
+      ],
+      content: `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ncontract SovereignTreasuryVault {\n    uint256 public totalEntangledMRR;\n    event EntanglementSynced(uint256 mrr, uint256 timestamp);\n}`
+    }
+  ]
+};
+
+function openMultiArtifactDrawer(artifactId = null) {
+  let drawer = document.getElementById('multi-artifact-drawer');
+  if (!drawer) {
+    createMultiArtifactDrawerDOM();
+    drawer = document.getElementById('multi-artifact-drawer');
+  }
+
+  if (artifactId) artifactState.activeArtifactId = artifactId;
+
+  if (drawer) drawer.classList.add('active');
+  renderMultiArtifactTabs();
+  renderActiveArtifactViewer();
+}
+
+function closeMultiArtifactDrawer() {
+  const drawer = document.getElementById('multi-artifact-drawer');
+  if (drawer) drawer.classList.remove('active');
+}
+
+function createMultiArtifactDrawerDOM() {
+  const drawer = document.createElement('div');
+  drawer.id = 'multi-artifact-drawer';
+  drawer.className = 'multi-artifact-drawer';
+
+  drawer.innerHTML = `
+    <div class="artifact-drawer-header">
+      <div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+          🤖 Multi-Artifact AI Workspace & Drawer
+        </h3>
+        <div style="font-size: 0.76rem; color: var(--text-muted);">View, transform, inspect line diffs, and switch between multi-modal AI artifacts.</div>
+      </div>
+      <button class="copilot-close-btn" onclick="closeMultiArtifactDrawer()" title="Close Drawer">✕</button>
+    </div>
+
+    <div class="artifact-tab-strip" id="artifact-tab-strip-container"></div>
+
+    <div class="artifact-viewer-body" id="artifact-viewer-body-container"></div>
+
+    <div class="artifact-ai-prompt-box">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; font-weight: 600; color: var(--accent-cyan);">✨ Gemini 2.5 Multi-Artifact Transformer</span>
+        <span style="font-size: 0.72rem; color: var(--text-dim);">Context: Active Artifact #${artifactState.activeArtifactId}</span>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="artifact-ai-prompt-input" class="search-input" placeholder="Ask AI to update spreadsheet, expand doc section, or generate new artifact..." style="font-size: 0.84rem;" />
+        <button class="btn-primary" onclick="transformArtifactWithAI()" style="padding: 0.4rem 0.9rem; font-size: 0.82rem; white-space: nowrap;">✨ Transform</button>
+      </div>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button class="sheet-btn" onclick="quickPromptArtifact('Add 2027 Projections')">📊 Add 2027 Projections</button>
+        <button class="sheet-btn" onclick="quickPromptArtifact('Refactor Solidity Contract')">⚡ Refactor Smart Contract</button>
+        <button class="sheet-btn" onclick="quickPromptArtifact('Summarize Key Highlights')">📝 Summarize Highlights</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(drawer);
+}
+
+function renderMultiArtifactTabs() {
+  const container = document.getElementById('artifact-tab-strip-container');
+  if (!container) return;
+
+  container.innerHTML = artifactState.artifacts.map(art => {
+    const isActive = art.id === artifactState.activeArtifactId ? 'active' : '';
+    return `
+      <div class="artifact-tab-item ${isActive}" onclick="switchArtifact('${art.id}')">
+        <span>${art.icon}</span>
+        <span>${escapeHtml(art.title)}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function switchArtifact(artId) {
+  artifactState.activeArtifactId = artId;
+  renderMultiArtifactTabs();
+  renderActiveArtifactViewer();
+}
+
+function renderActiveArtifactViewer() {
+  const container = document.getElementById('artifact-viewer-body-container');
+  if (!container) return;
+
+  const art = artifactState.artifacts.find(a => a.id === artifactState.activeArtifactId) || artifactState.artifacts[0];
+
+  let previewBody = '';
+  if (art.type === 'grid') {
+    previewBody = `<div style="background: rgba(4,7,14,0.9); border: 1px solid var(--border-glass); border-radius: 10px; padding: 1rem;">
+      <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">[LIVE GRID SNAPSHOT]</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; font-family: var(--font-mono); font-size: 0.78rem;">
+        <div style="color: var(--text-muted);">Channel</div><div style="color: var(--text-muted);">Q1</div><div style="color: var(--text-muted);">Q2</div><div style="color: var(--text-muted);">Q3</div>
+        <div>StoreKit 2</div><div>$42.5k</div><div>$51.0k</div><div style="color: var(--accent-green); font-weight:bold;">$68.5k</div>
+        <div>Play Billing</div><div>$38.0k</div><div>$44.2k</div><div style="color: var(--accent-green); font-weight:bold;">$54.2k</div>
+        <div>Galaxy Store</div><div>$11.0k</div><div>$13.5k</div><div style="color: var(--accent-green); font-weight:bold;">$16.4k</div>
+      </div>
+    </div>`;
+  } else if (art.type === 'doc') {
+    previewBody = `<div class="doc-preview-pane" style="max-height: 220px; font-size: 0.85rem;">
+      <h3 style="color: var(--accent-cyan); margin-top:0;">${escapeHtml(art.title)}</h3>
+      <p style="color: #cbd5e1;">${escapeHtml(art.content)}</p>
+    </div>`;
+  } else if (art.type === 'deck') {
+    previewBody = `<div style="background: linear-gradient(135deg, rgba(12,18,32,0.9), rgba(20,30,50,0.95)); border: 1px solid var(--border-glass-bright); border-radius: 10px; padding: 1.25rem;">
+      <span class="office-tab-badge" style="margin-bottom:0.5rem;">${art.badge}</span>
+      <h4 style="font-family: var(--font-heading); color: #fff; font-size: 1.1rem; margin-top:0.4rem;">Sovereign Engine Series A Pitch Deck</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">5 Glassmorphic Widescreen Slides formatted for Quantum Enterprise Partners.</p>
+    </div>`;
+  } else {
+    previewBody = `<pre class="artifact-diff-box"><code>${escapeHtml(art.content)}</code></pre>`;
+  }
+
+  let diffHtml = '';
+  if (art.diff) {
+    diffHtml = `<div class="artifact-diff-box">
+      <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: bold;">⚡ LINE DIFF INSPECTION</div>
+      ${art.diff.map(d => `
+        <span class="${d.type === 'add' ? 'diff-line-add' : 'diff-line-del'}">${escapeHtml(d.text)}</span>
+      `).join('')}
+    </div>`;
+  }
+
+  container.innerHTML = `
+    <div class="artifact-action-bar">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span style="font-size: 1.2rem;">${art.icon}</span>
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 0.92rem; font-weight: 700; color: #fff;">${escapeHtml(art.title)}</div>
+          <div style="font-size: 0.74rem; color: var(--text-muted);">${art.badge} • ${art.lines} lines • ${art.date}</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.4rem;">
+        <button class="sheet-btn" onclick="copyArtifactContent('${art.id}')">📋 Copy</button>
+        <button class="sheet-btn" onclick="downloadArtifact('${art.id}')">📥 Export</button>
+      </div>
+    </div>
+
+    ${previewBody}
+    ${diffHtml}
+  `;
+}
+
+function transformArtifactWithAI() {
+  const input = document.getElementById('artifact-ai-prompt-input');
+  if (!input || !input.value.trim()) return;
+
+  const prompt = input.value.trim();
+  const art = artifactState.artifacts.find(a => a.id === artifactState.activeArtifactId) || artifactState.artifacts[0];
+
+  art.diff.unshift({ type: 'add', text: `+ AI Transform: "${prompt}" applied` });
+  art.lines += 4;
+  input.value = '';
+
+  renderActiveArtifactViewer();
+  showToast(`✨ Gemini AI transformed artifact ${art.title}`);
+}
+
+function quickPromptArtifact(str) {
+  const input = document.getElementById('artifact-ai-prompt-input');
+  if (input) {
+    input.value = str;
+    transformArtifactWithAI();
+  }
+}
+
+function copyArtifactContent(artId) {
+  const art = artifactState.artifacts.find(a => a.id === artId);
+  if (art) {
+    navigator.clipboard.writeText(art.content).then(() => {
+      showToast(`Copied artifact content to clipboard.`);
+    }).catch(() => {
+      showToast(`Content ready.`);
+    });
+  }
+}
+
+function downloadArtifact(artId) {
+  const art = artifactState.artifacts.find(a => a.id === artId);
+  if (art) {
+    const blob = new Blob([art.content], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = art.title;
+    a.click();
+    showToast(`Downloaded artifact: ${art.title}`);
+  }
+}
+
+
+// --------------------------------------------------------------------------
+// 5. OFFICE WORKSPACE SUITE NAVIGATOR
+// --------------------------------------------------------------------------
+function switchOfficeTab(tabName) {
+  const tabs = ['grid', 'doc', 'slides', 'artifacts'];
+  tabs.forEach(t => {
+    const sec = document.getElementById(`sec-office-${t}`);
+    const btn = document.getElementById(`office-tab-btn-${t}`);
+    if (sec) sec.style.display = (t === tabName) ? 'block' : 'none';
+    if (btn) {
+      if (t === tabName) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
+
+  if (tabName === 'grid') initSpreadsheetGrid();
+  if (tabName === 'doc') initDocEditor();
+  if (tabName === 'slides') initPitchDeck();
+  if (tabName === 'artifacts') openMultiArtifactDrawer();
+}
+
+function renderOfficeWorkspace() {
+  initSpreadsheetGrid();
+  initDocEditor();
+  initPitchDeck();
+}
+
+
 // --------------------------------------------------------------------------
 // GLOBAL INITIALIZER FOR INTERACTIVE EXTENSIONS
 // --------------------------------------------------------------------------
@@ -3500,6 +4400,7 @@ function initSovereignInteractiveExtensions() {
   initTelemetryRadar();
   renderAZWorkflowsCatalog();
   renderAutonomicStudio();
+  renderOfficeWorkspace();
   setupKeyboardShortcuts();
 
   // Check URL parameters for view switching

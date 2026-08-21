@@ -34,6 +34,7 @@
   <div class="nav-tabs-container">
     <div class="nav-tabs">
       <a href="overview.html" class="tab-btn active">⚡ Command Center</a>
+      <a href="office.html" class="tab-btn">🏢 Sovereign Office</a>
       <a href="quickbooks.html" class="tab-btn">💼 QuickBooks Replacement</a>
       <a href="stripe.html" class="tab-btn">💳 Stripe Replacement</a>
       <a href="tokenomics.html" class="tab-btn">🪙 Tokenomics & Treasury</a>
@@ -86,6 +87,7 @@
     <!-- COMMAND CENTER WORKSPACE VIEW TABS -->
     <div class="view-mode-tabs">
       <button class="view-tab-btn active" id="view-btn-telemetry" onclick="switchCommandCenterView('telemetry')">📊 Executive Telemetry & Substrate</button>
+      <button class="view-tab-btn" id="view-btn-office" onclick="switchCommandCenterView('office')">🏢 Sovereign Office & Suite</button>
       <button class="view-tab-btn" id="view-btn-apps" onclick="switchCommandCenterView('apps')">🛍️ 200 Ecosystem Apps Catalog</button>
       <button class="view-tab-btn" id="view-btn-az" onclick="switchCommandCenterView('az')">⚡ 26 A-to-Z Workflows Studio</button>
       <button class="view-tab-btn" id="view-btn-mcp" onclick="switchCommandCenterView('mcp')">🛠️ MCP Tool Console</button>
@@ -732,6 +734,54 @@
 
         </div>
 
+    <!-- VIEW 7: SOVEREIGN OFFICE & BUSINESS PRODUCTIVITY SUITE -->
+    <div id="sec-office-view" style="display: none;" class="glass-panel">
+      <div class="panel-header" style="flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <h3 class="panel-title" style="font-size: 1.35rem;">🏢 Sovereign Office & Business Productivity Suite</h3>
+            <span class="status-pill cyan">Live Spreadsheets & Docs</span>
+            <span class="status-pill success">● Co-Pilot Entangled</span>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Glassmorphic productivity workspace with real-time financial spreadsheet formulas, executive document editors, pitch deck presentation engines, and multi-artifact AI drawers.
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+          <a href="office.html" class="btn-card-action btn-card-primary" style="text-decoration: none;">🚀 Launch Full Office Suite</a>
+          <button class="btn-card-action" onclick="openMultiArtifactDrawer()">🤖 Multi-Artifact AI Drawer</button>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 1rem;">
+        <!-- MINI SPREADSHEET PREVIEW -->
+        <div style="background: rgba(4,7,14,0.85); border: 1px solid var(--border-glass); border-radius: 12px; padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff;">📊 Sovereign Financial Grid Snapshot</h4>
+            <button class="sheet-btn" onclick="aiAutofillGrid()">✨ AI Autofill</button>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">
+            [Formula Engine =SUM(B2:E2)] • MRR Total: $148,920.00
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; font-family: var(--font-mono); font-size: 0.76rem; background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-glass);">
+            <div style="color: var(--text-muted);">Channel</div><div style="color: var(--text-muted);">Q1 26</div><div style="color: var(--text-muted);">Q2 26</div><div style="color: var(--text-muted);">Q3 26</div>
+            <div>StoreKit 2</div><div>$42.5k</div><div>$51.0k</div><div style="color: var(--accent-green); font-weight:bold;">$68.5k</div>
+            <div>Play Billing</div><div>$38.0k</div><div>$44.2k</div><div style="color: var(--accent-green); font-weight:bold;">$54.2k</div>
+            <div>Galaxy Store</div><div>$11.0k</div><div>$13.5k</div><div style="color: var(--accent-green); font-weight:bold;">$16.4k</div>
+          </div>
+        </div>
+
+        <!-- MINI DOCUMENT PREVIEW -->
+        <div style="background: rgba(4,7,14,0.85); border: 1px solid var(--border-glass); border-radius: 12px; padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff;">📝 Sovereign Executive Document</h4>
+            <button class="sheet-btn" onclick="aiPolishDoc()">✨ AI Polish</button>
+          </div>
+          <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-glass); font-size: 0.8rem; line-height: 1.5; color: #cbd5e1; max-height: 120px; overflow-y: auto;">
+            <strong style="color: var(--accent-purple);"># Series A Executive Memorandum</strong><br/>
+            Sovereign Engine OS has reached $1.78M ARR with 74.2% Autonomic Net Profit Margin by unifying zero-knowledge accounting with RevenueCat multi-store billing.
+          </div>
+        </div>
       </div>
     </div>
 
