@@ -35,6 +35,19 @@ from sovereign_infrastructure.nextgen_systems.mega_office_business_suite import 
     SovereignCalendarModule
 )
 
+from sovereign_infrastructure.nextgen_systems.mcp_200_app_adapters_1000_queries import (
+    MCP200AppAdaptersEngine
+)
+from sovereign_infrastructure.nextgen_systems.virtual_computer_cloud_instance import (
+    VirtualComputerCloudInstance,
+    AgentVMInstance,
+    VirtualTerminal,
+    VirtualDisk,
+    TelemetryEngine,
+    StorageQuotaExceededError,
+    VMStateError
+)
+
 __all__ = [
     "XFINEngine",
     "AURAEngine",
@@ -58,7 +71,18 @@ __all__ = [
     "SovereignMailModule",
     "SovereignDriveModule",
     "SovereignFormsModule",
-    "SovereignCalendarModule"
+    "SovereignCalendarModule",
+    "MCP200AppAdapterEngine",
+    "AppAdapter",
+    "MCPAction",
+    "MCPExecutionResult",
+    "VirtualComputerCloudInstance",
+    "AgentVMInstance",
+    "VirtualTerminal",
+    "VirtualDisk",
+    "TelemetryEngine",
+    "StorageQuotaExceededError",
+    "VMStateError"
 ]
 
 

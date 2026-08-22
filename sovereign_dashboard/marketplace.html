@@ -86,9 +86,10 @@
     <!-- VIEW MODE SWITCHER TABS -->
     <div class="view-mode-tabs">
       <button class="view-tab-btn active" id="view-btn-apps" onclick="switchCommandCenterView('apps')">🛍️ Ecosystem Apps (200)</button>
+      <button class="view-tab-btn" id="view-btn-mcp" onclick="switchCommandCenterView('mcp')">🛠️ 200 Apps MCP Inspector</button>
+      <button class="view-tab-btn" id="view-btn-cloudstudio" onclick="switchCommandCenterView('cloudstudio')">💻 Virtual Computer Cloud Studio</button>
+      <button class="view-tab-btn" id="view-btn-omnichannel" onclick="switchCommandCenterView('omnichannel')">🏪 Multi-Store Control Center</button>
       <button class="view-tab-btn" id="view-btn-az" onclick="switchCommandCenterView('az')">⚡ 26 A-to-Z Workflows Studio</button>
-      <button class="view-tab-btn" id="view-btn-mcp" onclick="switchCommandCenterView('mcp')">🛠️ MCP Tool Console</button>
-      <button class="view-tab-btn" id="view-btn-radar" onclick="switchCommandCenterView('radar')">📡 Ingestion Telemetry Radar</button>
       <button class="view-tab-btn" id="view-btn-sandbox" onclick="switchCommandCenterView('sandbox')">🧪 Container Sandboxes</button>
       <button class="view-tab-btn" id="view-btn-autonomic" onclick="switchCommandCenterView('autonomic')">🤖 Alpha Autonomic Work Studio</button>
     </div>
@@ -178,61 +179,343 @@
       </div>
     </div>
 
-    <!-- VIEW 2: INTERACTIVE MCP TOOL CONSOLE -->
-    <div id="sec-mcp-view" style="display: none;" class="glass-panel">
-      <div class="panel-header">
+    <!-- VIEW 2: 200 APPS MCP TOOL INSPECTOR -->
+    <div id="sec-mcp-view" style="display: none;">
+      <!-- MCP INSPECTOR HERO BAR -->
+      <div class="glass-panel" style="padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <div>
-          <h3 class="panel-title">🛠️ Interactive Model Context Protocol (MCP) Tool Console</h3>
-          <div style="font-size: 0.8rem; color: var(--text-muted);">Inspect tool schemas, construct JSON-RPC 2.0 payloads, execute tools, and measure real-time substrate latency</div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: #fff; display: flex; align-items: center; gap: 0.6rem;">
+            <span>🛠️ 200 Apps MCP Tool Inspector</span>
+            <span class="status-pill cyan">1,000+ Live Query Capacity</span>
+          </h2>
+          <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Inspect, query, and trigger Model Context Protocol (MCP) tool endpoints across all 200 Sovereign OS apps with live sub-millisecond execution.
+          </div>
         </div>
-        <span class="status-pill cyan">MCP Protocol v1.0 Active</span>
+        <div class="mcp-preset-chips">
+          <span style="font-size: 0.78rem; color: var(--text-dim);">Presets:</span>
+          <button class="preset-query-chip" onclick="selectMCPPreset('sql_audit')">⚡ SQL Ledger Audit</button>
+          <button class="preset-query-chip" onclick="selectMCPPreset('omni_sync')">📦 Inventory Sync</button>
+          <button class="preset-query-chip" onclick="selectMCPPreset('vm_benchmark')">💻 VM Benchmark</button>
+          <button class="preset-query-chip" onclick="selectMCPPreset('paywall_mutate')">💳 Paywall Mutate</button>
+          <button class="preset-query-chip" onclick="selectMCPPreset('ai_copilot')">🤖 Gemini Copilot</button>
+        </div>
       </div>
 
-      <div class="mcp-console-grid">
-        <!-- LEFT: TOOL SELECTOR -->
-        <div>
-          <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.6rem;">Available Substrate MCP Tools</div>
-          <div class="mcp-tool-list" id="mcp-tool-list-container">
-            <!-- Rendered by JS -->
+      <!-- STAGE LAYOUT -->
+      <div class="mcp-inspector-stage">
+        <!-- TOOL SEARCH & SIDEBAR LIST -->
+        <div class="mcp-tools-sidebar">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 0.9rem; color: #fff;">Tool Registry</span>
+            <span class="status-pill cyan" style="font-size: 0.65rem;">200 Apps</span>
+          </div>
+
+          <input 
+            type="text" 
+            class="mcp-search-box" 
+            placeholder="Filter 1,000+ query tools..." 
+            oninput="filterMCPInspectorTools(this.value)" 
+          />
+
+          <div class="mcp-tool-scroll-list" id="mcp-inspector-tool-list">
+            <!-- Rendered by app.js -->
           </div>
         </div>
 
-        <!-- RIGHT: EXECUTION PANEL -->
-        <div class="mcp-execution-panel">
-          <div style="background: rgba(10, 15, 26, 0.8); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-              <div>
-                <h4 id="mcp-selected-name" style="font-family: var(--font-mono); color: var(--accent-cyan); font-size: 1.1rem; margin: 0;">tools/query_ledger</h4>
-                <div id="mcp-selected-desc" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">Query double-entry financial ledger accounts and balances</div>
-              </div>
-              <button class="btn-primary" onclick="executeMCPTool()">▶ Execute MCP Tool</button>
+        <!-- WORKSPACE RUNNER & RESPONSE VIEWER -->
+        <div class="mcp-runner-workspace">
+          <!-- SELECTED TOOL HEADER -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;">
+            <div>
+              <h3 id="mcp-inspector-selected-name" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent-cyan);">sovereign.marketplace.query_catalog</h3>
+              <div id="mcp-inspector-selected-desc" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Query 200 ecosystem apps by tier, tags, and revenue cat entitlements</div>
             </div>
-
-            <div class="mcp-form-row">
-              <label class="mcp-label">Tool Input Parameters (JSON Schema)</label>
-              <textarea id="mcp-params-json" class="mcp-input" rows="5" style="width: 100%; resize: vertical;"></textarea>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span id="mcp-inspector-status-badge" class="status-pill cyan" style="font-size: 0.75rem;">🟢 Ready</span>
+              <span id="mcp-inspector-latency-badge" class="status-pill violet" style="font-size: 0.75rem;">⚡ 0 ms</span>
             </div>
           </div>
 
-          <!-- RESPONSE OUTPUT TERMINAL -->
-          <div style="background: #04060c; border: 1px solid var(--border-glass-bright); border-radius: 14px; padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
-              <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <span style="font-family: var(--font-heading); font-size: 0.9rem; color: #fff; font-weight: 700;">JSON-RPC 2.0 Response Payload</span>
-                <span id="mcp-status-badge" style="font-size: 0.75rem; color: var(--accent-green); font-weight: 600;">● READY</span>
-              </div>
-              <span id="mcp-latency-badge" class="badge-revenuecat" style="background: rgba(0, 242, 254, 0.1); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.3);">⚡ 0 ms</span>
-            </div>
-            <pre id="mcp-json-output" class="mcp-json-output">{ "jsonrpc": "2.0", "result": "Ready for MCP tool execution." }</pre>
-          </div>
-
-          <!-- RECENT HISTORY -->
+          <!-- JSON INPUT EDITOR -->
           <div>
-            <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Recent Execution Log</div>
-            <div id="mcp-history-list" style="display: flex; flex-direction: column; gap: 0.4rem;">
-              <!-- History rendered by JS -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #fff; font-family: var(--font-heading);">JSON Request Arguments</label>
+              <span style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);">Endpoint: http://localhost:8090/mcp/v1/call</span>
+            </div>
+            <textarea id="mcp-inspector-json-editor" class="mcp-json-editor-pane" rows="6"></textarea>
+          </div>
+
+          <!-- RUN BUTTON -->
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button class="btn-primary" onclick="runMCPQueryLive()" style="padding: 0.6rem 1.5rem; font-size: 0.88rem;">
+              🚀 Run Live MCP Tool Query
+            </button>
+          </div>
+
+          <!-- RESPONSE OUTPUT VIEWER -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #fff; font-family: var(--font-heading);">MCP Live JSON Response</label>
+              <button class="sheet-btn" onclick="navigator.clipboard.writeText(document.getElementById('mcp-inspector-response-output').innerText); showToast('Copied JSON Response!');" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">📋 Copy JSON</button>
+            </div>
+            <div id="mcp-inspector-response-output" class="mcp-response-viewer">{
+  "status": "ready",
+  "message": "Select an MCP tool and click 'Run Live MCP Tool Query' to execute 1,000+ queries across 200 apps."
+}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: VIRTUAL COMPUTER CLOUD STUDIO -->
+    <div id="sec-cloudstudio-view" style="display: none;">
+      <!-- CLOUD STUDIO METRICS BAR -->
+      <section class="metrics-bar" style="margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Active Sovereign VM Clusters</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">3 Clusters (76 vCPUs)</div>
+          <div class="metric-change positive">▲ US-East, EU-West, AP-East</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Aggregated Memory Pool</div>
+          <div class="metric-value" id="cloud-ram-overall-val">99.4 GB / 784.0 GB</div>
+          <div class="metric-change positive">▲ 12.6% Allocated RAM</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Overall CPU Utilization</div>
+          <div class="metric-value" id="cloud-cpu-overall-val" style="color: var(--accent-violet);">38%</div>
+          <div class="metric-change positive">▲ Real-Time Autonomic Balancing</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Cluster Bandwidth I/O</div>
+          <div class="metric-value" id="cloud-net-overall-val" style="font-size: 1.1rem; color: #34d399;">⬇️ 42.5 MB/s | ⬆️ 18.2 MB/s</div>
+          <div class="metric-change positive">▲ ZK Encrypted Enclave Socket</div>
+        </div>
+      </section>
+
+      <!-- MAIN CLOUD STUDIO LAYOUT -->
+      <div class="grid-2">
+        <!-- AGENT VM INTERACTIVE TERMINAL -->
+        <div class="agent-terminal-window">
+          <div class="terminal-header-bar">
+            <div class="terminal-dots">
+              <div class="terminal-dot dot-red"></div>
+              <div class="terminal-dot dot-yellow"></div>
+              <div class="terminal-dot dot-green"></div>
+            </div>
+            <div class="terminal-title-text">
+              <span>💻 SOVEREIGN OS AGENT VM TERMINAL</span>
+              <span class="status-pill cyan" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">🟢 CLUSTER ONLINE</span>
+            </div>
+            <button class="sheet-btn" onclick="executeAgentVMCommand('clear')" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">Clear</button>
+          </div>
+
+          <div class="terminal-output-stream" id="cloud-vm-terminal-output">
+            <!-- Output dynamically populated by app.js -->
+          </div>
+
+          <div class="terminal-quick-cmds">
+            <span style="font-size: 0.72rem; color: var(--text-dim); align-self: center; margin-right: 0.25rem;">Quick Run:</span>
+            <button class="quick-cmd-chip" onclick="executeAgentVMCommand('status')">⚡ status</button>
+            <button class="quick-cmd-chip" onclick="executeAgentVMCommand('vm list')">💻 vm list</button>
+            <button class="quick-cmd-chip" onclick="executeAgentVMCommand('docker ps')">🐳 docker ps</button>
+            <button class="quick-cmd-chip" onclick="executeAgentVMCommand('agent logs')">📜 agent logs</button>
+            <button class="quick-cmd-chip" onclick="executeAgentVMCommand('top')">📊 top</button>
+            <button class="quick-cmd-chip" onclick="executeAgentVMCommand('sysinfo')">⚙️ sysinfo</button>
+          </div>
+
+          <div class="terminal-prompt-row">
+            <span class="terminal-prompt-label">agent@sovereign-os:~$</span>
+            <input type="text" id="cloud-vm-terminal-input" class="terminal-cmd-input" placeholder="Type command (e.g. status, vm list, docker ps, top)..." onkeydown="if(event.key === 'Enter') executeAgentVMCommand()" />
+            <button class="btn-primary" onclick="executeAgentVMCommand()" style="padding: 0.3rem 0.75rem; font-size: 0.76rem;">Execute</button>
+          </div>
+        </div>
+
+        <!-- CPU & RAM METERS & REALTIME TELEMETRY -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div class="meter-card">
+            <div class="meter-header">
+              <div class="meter-title">
+                <span>⚡ Multi-Core CPU Utilization</span>
+                <span class="status-pill cyan" style="font-size: 0.65rem;">8 Cores Active</span>
+              </div>
+              <button class="sheet-btn" onclick="startCloudTelemetryLoop()" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">🔄 Sync Telemetry</button>
+            </div>
+
+            <div class="multi-core-list">
+              <div class="core-row">
+                <span id="core-txt-0">Core 0: 24%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-0" style="width: 24%;"></div></div>
+              </div>
+              <div class="core-row">
+                <span id="core-txt-1">Core 1: 58%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-1" style="width: 58%;"></div></div>
+              </div>
+              <div class="core-row">
+                <span id="core-txt-2">Core 2: 32%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-2" style="width: 32%;"></div></div>
+              </div>
+              <div class="core-row">
+                <span id="core-txt-3">Core 3: 79%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-3" style="width: 79%;"></div></div>
+              </div>
+              <div class="core-row">
+                <span id="core-txt-4">Core 4: 20%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-4" style="width: 20%;"></div></div>
+              </div>
+              <div class="core-row">
+                <span id="core-txt-5">Core 5: 62%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-5" style="width: 62%;"></div></div>
+              </div>
+              <div class="core-row">
+                <span id="core-txt-6">Core 6: 18%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-6" style="width: 18%;"></div></div>
+              </div>
+              <div class="core-row">
+                <span id="core-txt-7">Core 7: 41%</span>
+                <div class="core-progress-track"><div class="core-progress-fill" id="core-fill-7" style="width: 41%;"></div></div>
+              </div>
             </div>
           </div>
+
+          <!-- CLOUD INSTANCE PROVISIONER FORM -->
+          <div class="cloud-provisioner-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-family: var(--font-heading); font-size: 1rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🚀 Cloud Node Provisioner Wizard</span>
+              </h3>
+              <span class="status-pill magenta" style="font-size: 0.68rem;">1-Click Deploy</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Deployment Region</label>
+                <select id="cloud-provision-region" class="select-custom" style="width: 100%; font-size: 0.8rem;">
+                  <option value="US-East (N. Virginia)">US-East (N. Virginia)</option>
+                  <option value="EU-West (Frankfurt)">EU-West (Frankfurt)</option>
+                  <option value="AP-East (Tokyo)">AP-East (Tokyo)</option>
+                  <option value="LatAm (São Paulo)">LatAm (São Paulo)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Instance Spec Tier</label>
+                <select id="cloud-provision-spec" class="select-custom" style="width: 100%; font-size: 0.8rem;">
+                  <option value="sovereign-agent-xl">sovereign-agent-xl (64 vCPU | 256GB RAM)</option>
+                  <option value="sovereign-gpu-h100">sovereign-gpu-h100 (8x H100 | 512GB RAM)</option>
+                  <option value="sovereign-edge-micro">sovereign-edge-micro (4 vCPU | 16GB RAM)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Workload Profile Tag</label>
+              <input type="text" id="cloud-provision-tag" class="search-input" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;" placeholder="e.g. LLM Autonomous Agent Mesh, Omnichannel Sync Node..." />
+            </div>
+
+            <button class="btn-primary" onclick="provisionCloudInstance()" style="width: 100%; padding: 0.65rem; font-size: 0.85rem;">
+              🚀 Provision Sovereign Cloud Node Now
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE CLOUD INSTANCES TABLE -->
+      <div class="glass-panel" style="margin-top: 1.5rem; padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 class="panel-title" style="font-size: 1.05rem;">🌐 Active Sovereign Cloud Virtual Instances</h3>
+          <span class="status-pill cyan">Live Telemetry Synchronized</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="sovereign-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th>Instance Name & ID</th>
+                <th>Region</th>
+                <th>Specifications</th>
+                <th>IP Address</th>
+                <th>Status</th>
+                <th>Telemetry Load</th>
+                <th>Lifecycle Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cloud-instances-tbody">
+              <!-- Populated dynamically by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: MULTI-STORE OMNICHANNEL CONTROL CENTER -->
+    <div id="sec-omnichannel-view" style="display: none;">
+      <!-- OMNICHANNEL CHANNEL SWITCHER BAR -->
+      <div class="omnichannel-channel-bar">
+        <button class="store-pill-btn active" onclick="filterOmnichannelStore('all')">🌐 All Channels (Unified Omnichannel Hub)</button>
+        <button class="store-pill-btn" onclick="filterOmnichannelStore('store-shopify')">🛍️ Shopify Flagship</button>
+        <button class="store-pill-btn" onclick="filterOmnichannelStore('store-amazon')">📦 Amazon FBA US & EU</button>
+        <button class="store-pill-btn" onclick="filterOmnichannelStore('store-woo')">🏬 WooCommerce Global</button>
+        <button class="store-pill-btn" onclick="filterOmnichannelStore('store-ebay')">🛒 eBay Enterprise</button>
+        <button class="store-pill-btn" onclick="filterOmnichannelStore('store-custom')">⚡ Sovereign Custom Storefront</button>
+      </div>
+
+      <!-- UNIFIED OMNICHANNEL KPI METRICS BAR -->
+      <section class="metrics-bar" style="margin-top: 1rem; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">Aggregated Gross Revenue</div>
+          <div class="metric-value" style="color: var(--accent-cyan);">$482,910.00</div>
+          <div class="metric-change positive">▲ +24.8% Across 5 Connected Channels</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Omnichannel Orders Today</div>
+          <div class="metric-value">1,842 Orders</div>
+          <div class="metric-change positive">▲ +15.2% vs Yesterday</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Inventory Sync Coherence Rate</div>
+          <div class="metric-value" style="color: var(--accent-green);">99.94%</div>
+          <div class="metric-change positive">▲ Real-Time Webhooks Active</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Fulfillment Accuracy Rate</div>
+          <div class="metric-value">99.8%</div>
+          <div class="metric-change positive">▲ Intelligent Routing Enabled</div>
+        </div>
+      </section>
+
+      <!-- OMNICHANNEL CONTROL SUITE ACTION TOOLBAR -->
+      <div class="omnichannel-action-toolbar" style="margin-bottom: 1.5rem;">
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🏪 Omnichannel Control Suite</span>
+          </h3>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Execute global pricing, stock syncs, and intelligent order routing across connected stores.</div>
+        </div>
+        <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+          <button class="btn-primary" onclick="triggerOmnichannelSyncAll()" style="padding: 0.5rem 1rem; font-size: 0.82rem;">🔄 Sync All Store Inventory</button>
+          <button class="btn-card-action" onclick="openBroadcastPriceModal()" style="padding: 0.5rem 1rem; font-size: 0.82rem;">📢 Broadcast Global Price Update</button>
+          <button class="btn-card-action" onclick="triggerIntelligentOrderRouting()" style="padding: 0.5rem 1rem; font-size: 0.82rem;">🎯 Intelligent Order Routing</button>
+          <button class="btn-card-action" onclick="deployCrossChannelPromo()" style="padding: 0.5rem 1rem; font-size: 0.82rem;">🎁 Cross-Channel Promo</button>
+        </div>
+      </div>
+
+      <!-- STORE BREAKDOWN CARDS GRID -->
+      <div class="channel-grid" id="omnichannel-cards-container" style="margin-bottom: 1.5rem;">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- LIVE OMNICHANNEL ACTIVITY STREAM -->
+      <div class="omnichannel-activity-feed">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-family: var(--font-heading); font-size: 1rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📡 Live Omnichannel Activity Stream</span>
+          </h3>
+          <span class="status-pill cyan">Real-Time Event Feed</span>
+        </div>
+
+        <div class="activity-feed-list" id="omnichannel-activity-stream-list">
+          <!-- Rendered dynamically by app.js -->
         </div>
       </div>
     </div>

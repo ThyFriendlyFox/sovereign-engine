@@ -7,8 +7,12 @@ Powered by RevenueCat, Gemini AI, 11 Platform Master Suite, 6 Next-Gen Fintech C
 import os
 import sys
 import json
+import time
+import math
 import logging
+import hashlib
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from urllib.parse import parse_qs, urlparse
 
 # Import 6 Next-Gen Fintech Cores, SaaS Accounting Suite, Gemini AI & Complete SaaS Ecosystem
 sys.path.insert(0, os.path.dirname(__file__))
@@ -252,20 +256,36 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             audit = office_suite.run_full_office_audit()
             audit["tools"] = [
                 {"name": "SovereignDocs", "endpoint": "/api/v1/office/docs"},
-                {"name": "SovereignSheets", "endpoint": "/api/v1/office/sheets/solve"},
-                {"name": "SovereignSlides", "endpoint": "/api/v1/office/slides"},
-                {"name": "SovereignSign", "endpoint": "/api/v1/office/sign"},
-                {"name": "SovereignMail", "endpoint": "/api/v1/office/mail"},
+                {"name": "SovereignSheetsSolve", "endpoint": "/api/v1/office/sheets/solve"},
+                {"name": "SovereignSheetsModel", "endpoint": "/api/v1/office/sheets/model"},
+                {"name": "SovereignSlidesPitch", "endpoint": "/api/v1/office/slides"},
+                {"name": "SovereignSlidesBoard", "endpoint": "/api/v1/office/slides/board"},
+                {"name": "SovereignSignExecute", "endpoint": "/api/v1/office/sign"},
+                {"name": "SovereignSignVerify", "endpoint": "/api/v1/office/sign/verify"},
+                {"name": "SovereignMailCadence", "endpoint": "/api/v1/office/mail"},
+                {"name": "SovereignMailBilling", "endpoint": "/api/v1/office/mail/billing"},
                 {"name": "SovereignDrive", "endpoint": "/api/v1/office/drive"},
+                {"name": "SovereignForms", "endpoint": "/api/v1/office/forms"},
+                {"name": "SovereignCalendar", "endpoint": "/api/v1/office/calendar"},
+                {"name": "SovereignBusinessPackage", "endpoint": "/api/v1/office/package"},
                 {"name": "AgenticMultiArtifactGenerator", "endpoint": "/api/v1/office/generate_artifact"}
             ]
-            audit["supported_artifact_types"] = office_suite.artifact_generator.supported_artifact_types
+            audit["supported_artifact_types"] = office_suite.artifact_generator.supported_artifact_types if office_suite.artifact_generator else []
             self.send_json_response(audit)
         elif path == "/api/v1/office/generate_artifact":
             params = self.parse_query_params()
             art_type = params.get("artifact_type", params.get("type", "SPREADSHEET"))
             title = params.get("title", "Q1 Executive Financial Model")
             self.send_json_response(office_suite.artifact_generator.generate_artifact(art_type, title, params))
+        elif path in ["/api/v1/office/docs", "/api/v1/office/docs/create"]:
+            params = self.parse_query_params()
+            title = params.get("title", "SOVEREIGN OS Executive Report")
+            author = params.get("author", "SOVEREIGN OS AI")
+            body_txt = params.get("body")
+            doc = office_suite.docs.create_document(title=title, author=author, body=body_txt)
+            if params.get("export_md") == "true":
+                doc["markdown"] = office_suite.docs.export_markdown(doc)
+            self.send_json_response(doc)
         elif path == "/api/v1/office/sheets/solve":
             params = self.parse_query_params()
             sheet_data = {}
@@ -274,6 +294,112 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             if "expense_rows" in params:
                 sheet_data["expense_rows"] = [float(x) for x in params["expense_rows"].split(",") if x.strip()]
             self.send_json_response(office_suite.sheets.solve_formulas(sheet_data))
+        elif path == "/api/v1/office/sheets/model":
+            params = self.parse_query_params()
+            company = params.get("company_name", params.get("company", "Apex Enterprise"))
+            base_mrr = float(params.get("base_mrr", params.get("mrr", 100000.0)))
+            opex_ratio = float(params.get("opex_ratio", 0.4))
+            self.send_json_response(office_suite.sheets.create_financial_model(company, base_mrr, opex_ratio))
+        elif path in ["/api/v1/office/slides", "/api/v1/office/slides/pitch"]:
+            params = self.parse_query_params()
+            company = params.get("company_name", params.get("company", "Apex Global"))
+            topic = params.get("topic", "Enterprise Autonomous OS")
+            template = params.get("template", "SERIES_A_GROWTH")
+            self.send_json_response(office_suite.slides.generate_pitch_deck(company, topic, template))
+        elif path == "/api/v1/office/slides/board":
+            params = self.parse_query_params()
+            quarter = params.get("quarter", "Q1 2026")
+            arr = float(params.get("arr", 1787040.0))
+            net_margin = float(params.get("net_margin", 74.2))
+            self.send_json_response(office_suite.slides.generate_board_deck(quarter, arr, net_margin))
+        elif path == "/api/v1/office/slides/export_svg":
+            params = self.parse_query_params()
+            company = params.get("company_name", params.get("company", "Apex Global"))
+            topic = params.get("topic", "Enterprise Autonomous OS")
+            template = params.get("template", "SERIES_A_GROWTH")
+            deck = office_suite.slides.generate_pitch_deck(company, topic, template)
+            self.send_json_response(office_suite.slides.export_deck_to_svg(deck))
+        elif path == "/api/v1/office/slides/export_html":
+            params = self.parse_query_params()
+            company = params.get("company_name", params.get("company", "Apex Global"))
+            topic = params.get("topic", "Enterprise Autonomous OS")
+            template = params.get("template", "SERIES_A_GROWTH")
+            deck = office_suite.slides.generate_pitch_deck(company, topic, template)
+            html_content = office_suite.slides.export_presentation_html(deck)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_content.encode("utf-8"))))
+            self.end_headers()
+            self.wfile.write(html_content.encode("utf-8"))
+            return
+        elif path in ["/api/v1/office/sign", "/api/v1/office/sign/execute"]:
+            params = self.parse_query_params()
+            doc_name = params.get("document_name", params.get("doc", "Master SLA Contract"))
+            email = params.get("signer_email", params.get("email", "cfo@apex.com"))
+            role = params.get("signer_role", params.get("role", "CFO"))
+            self.send_json_response(office_suite.sign.execute_signature(doc_name, email, role))
+        elif path == "/api/v1/office/sign/verify":
+            params = self.parse_query_params()
+            sig_id = params.get("signature_id", "sign_101")
+            zk_proof = params.get("zk_proof", params.get("zk_proof_signature", "zk_sig_dilithium_101"))
+            self.send_json_response(office_suite.sign.verify_zk_proof(sig_id, zk_proof))
+        elif path in ["/api/v1/office/mail", "/api/v1/office/mail/send"]:
+            params = self.parse_query_params()
+            recipient = params.get("recipient", "exec@apex.com")
+            template = params.get("template", "Enterprise Onboarding")
+            subject = params.get("subject", "SOVEREIGN OS Update")
+            self.send_json_response(office_suite.mail.send_ai_cadence(recipient, template, subject))
+        elif path == "/api/v1/office/mail/billing":
+            params = self.parse_query_params()
+            recipient = params.get("recipient", "billing@apex.com")
+            invoice_id = params.get("invoice_id", "INV-2026-001")
+            amount_due = float(params.get("amount_due", 15000.0))
+            self.send_json_response(office_suite.mail.send_billing_notice(recipient, invoice_id, amount_due))
+        elif path in ["/api/v1/office/drive", "/api/v1/office/drive/files", "/api/v1/office/drive/upload", "/api/v1/office/drive/search"]:
+            params = self.parse_query_params()
+            action = params.get("action", "")
+            query = params.get("query", params.get("q", ""))
+            if action == "upload" or path.endswith("/upload") or "name" in params:
+                name = params.get("name", "Document.pdf")
+                file_type = params.get("file_type", params.get("type", "DOCUMENT"))
+                size_kb = int(params.get("size_kb", 500))
+                self.send_json_response(office_suite.drive.upload_file(name, file_type, size_kb))
+            elif query or action == "search" or path.endswith("/search"):
+                self.send_json_response({"files": office_suite.drive.search_files(query), "query": query})
+            else:
+                self.send_json_response({"files": office_suite.drive.list_files(), "total_files": len(office_suite.drive.files)})
+        elif path in ["/api/v1/office/forms", "/api/v1/office/forms/create", "/api/v1/office/forms/submit", "/api/v1/office/forms/analytics"]:
+            params = self.parse_query_params()
+            action = params.get("action", "")
+            form_id = params.get("form_id", "")
+            if action == "submit" or path.endswith("/submit"):
+                responses = json.loads(params.get("responses", "{}")) if "responses" in params else {"feedback": "Excellent"}
+                self.send_json_response(office_suite.forms.submit_response(form_id or "form_101", responses))
+            elif action == "analytics" or path.endswith("/analytics"):
+                self.send_json_response(office_suite.forms.get_form_analytics(form_id or "form_101"))
+            else:
+                title = params.get("title", "Customer Intake")
+                self.send_json_response(office_suite.forms.create_form(title))
+        elif path in ["/api/v1/office/calendar", "/api/v1/office/calendar/schedule", "/api/v1/office/calendar/list", "/api/v1/office/calendar/resolve"]:
+            params = self.parse_query_params()
+            action = params.get("action", "")
+            event_id = params.get("event_id", "")
+            if action == "list" or path.endswith("/list"):
+                self.send_json_response({"events": office_suite.calendar.list_upcoming_events(), "total": len(office_suite.calendar.events)})
+            elif action == "resolve" or path.endswith("/resolve"):
+                self.send_json_response(office_suite.calendar.resolve_conflict(event_id or "evt_101"))
+            else:
+                title = params.get("title", "Quarterly Executive Sync")
+                start_time = params.get("start_time", "2026-09-01T10:00:00Z")
+                duration = int(params.get("duration_minutes", 30))
+                self.send_json_response(office_suite.calendar.schedule_event(title, start_time, duration))
+        elif path in ["/api/v1/office/package", "/api/v1/office/package/create", "/api/v1/office/business_package"]:
+            params = self.parse_query_params()
+            company = params.get("company_name", params.get("company", "Apex Enterprise"))
+            client = params.get("client_name", params.get("client", "Acme Inc"))
+            val = float(params.get("annual_contract_val", 150000.0))
+            self.send_json_response(office_suite.create_business_package(company, client, val))
+
 
         # ---------------------------------------------------------------------
         # 11 Platform Master Suite GET Endpoints
@@ -286,10 +412,31 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(mega11.stripe.process_payment(100.0, "USD"))
         elif path == "/api/v1/stripe/coupon":
             self.send_json_response(mega11.stripe.create_coupon("PRO20", 20.0))
+        elif path == "/api/v1/revenuecat/webhook":
+            params = self.parse_query_params()
+            event_type = params.get("event_type", "INITIAL_PURCHASE")
+            subscriber_id = params.get("subscriber_id", "sub_101")
+            product_id = params.get("product_id", "sovereign_pro_annual")
+            self.send_json_response(mega11.rc.process_webhooks(event_type, subscriber_id, product_id))
         elif path == "/api/v1/revenuecat/entitlements":
-            self.send_json_response(mega11.rc.get_entitlements("sub_101"))
+            params = self.parse_query_params()
+            subscriber_id = params.get("subscriber_id", params.get("user_id", "sub_101"))
+            self.send_json_response(mega11.rc.get_entitlements(subscriber_id))
+        elif path == "/api/v1/revenuecat/paywall":
+            params = self.parse_query_params()
+            offering_id = params.get("offering_id", "default")
+            subscriber_id = params.get("subscriber_id", "sub_101")
+            experiment_id = params.get("experiment_id")
+            self.send_json_response(mega11.rc.get_paywall(offering_id, subscriber_id, experiment_id))
+        elif path in ["/api/v1/revenuecat/usage", "/api/v1/revenuecat/longterm_usage"]:
+            params = self.parse_query_params()
+            subscriber_id = params.get("subscriber_id", "sub_101")
+            period = params.get("period", "longterm")
+            self.send_json_response(mega11.rc.get_usage(subscriber_id, period))
         elif path == "/api/v1/revenuecat/experiment":
-            self.send_json_response(mega11.rc.trigger_paywall_experiment("exp_paywall_v2"))
+            params = self.parse_query_params()
+            experiment_id = params.get("experiment_id", "exp_paywall_v2")
+            self.send_json_response(mega11.rc.trigger_paywall_experiment(experiment_id))
         elif path == "/api/v1/netsuite/asc606":
             self.send_json_response(mega11.netsuite.execute_asc606_revenue_recognition(120000.0))
         elif path == "/api/v1/xero/forecast":
@@ -398,6 +545,53 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 }
                 exec_res["revenuecat_integration"] = mega11.rc.get_entitlements(params.get("subscriber_id", "sub_101"))
                 self.send_json_response(exec_res)
+        # ---------------------------------------------------------------------
+        # MCP 200 Apps Adapters, 1000 Queries & VM Cloud GET Endpoints
+        # ---------------------------------------------------------------------
+        elif path == "/api/v1/mcp/200apps/adapters":
+            params = self.parse_query_params()
+            cat = params.get("category")
+            search = params.get("search", params.get("q"))
+            app_id = params.get("app_id")
+            if app_id:
+                self.send_json_response(mcp_server.adapters_engine.get_adapter(app_id))
+            else:
+                adapters = mcp_server.adapters_engine.list_adapters(category=cat, search=search)
+                self.send_json_response({
+                    "adapters": adapters,
+                    "total": len(adapters),
+                    "category_filter": cat,
+                    "search_query": search,
+                    "status": "200_APPS_ADAPTERS_RETRIEVED"
+                })
+        elif path == "/api/v1/mcp/200apps/execute_1000":
+            params = self.parse_query_params()
+            q_cnt = int(params.get("queries", 1000))
+            b_size = int(params.get("batch_size", 100))
+            self.send_json_response(mcp_server.adapters_engine.execute_1000_queries(queries=q_cnt, batch_size=b_size))
+        elif path == "/api/v1/vm/instances":
+            params = self.parse_query_params()
+            inst_id = params.get("instance_id")
+            action = params.get("action")
+            if inst_id and action == "status":
+                self.send_json_response(mcp_server.vm_engine.get_instance_status(inst_id))
+            else:
+                tenant_id = params.get("tenant_id")
+                status = params.get("status")
+                instances = mcp_server.vm_engine.list_instances(tenant_id=tenant_id, status=status)
+                self.send_json_response({
+                    "instances": instances,
+                    "total": len(instances),
+                    "status": "VM_INSTANCES_RETRIEVED"
+                })
+        elif path == "/api/v1/vm/execute_command":
+            params = self.parse_query_params()
+            inst_id = params.get("instance_id")
+            cmd = params.get("command", "uname -a")
+            if not inst_id:
+                default_vm = mcp_server.vm_engine.provision_instance(instance_name="auto_vm", instance_type="vc.standard")
+                inst_id = default_vm["instance_id"]
+            self.send_json_response(mcp_server.vm_engine.execute_command(instance_id=inst_id, command=cmd))
         else:
             super().do_GET()
 
@@ -577,23 +771,138 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             audit = office_suite.run_full_office_audit()
             audit["tools"] = [
                 {"name": "SovereignDocs", "endpoint": "/api/v1/office/docs"},
-                {"name": "SovereignSheets", "endpoint": "/api/v1/office/sheets/solve"},
-                {"name": "SovereignSlides", "endpoint": "/api/v1/office/slides"},
-                {"name": "SovereignSign", "endpoint": "/api/v1/office/sign"},
-                {"name": "SovereignMail", "endpoint": "/api/v1/office/mail"},
+                {"name": "SovereignSheetsSolve", "endpoint": "/api/v1/office/sheets/solve"},
+                {"name": "SovereignSheetsModel", "endpoint": "/api/v1/office/sheets/model"},
+                {"name": "SovereignSlidesPitch", "endpoint": "/api/v1/office/slides"},
+                {"name": "SovereignSlidesBoard", "endpoint": "/api/v1/office/slides/board"},
+                {"name": "SovereignSignExecute", "endpoint": "/api/v1/office/sign"},
+                {"name": "SovereignSignVerify", "endpoint": "/api/v1/office/sign/verify"},
+                {"name": "SovereignMailCadence", "endpoint": "/api/v1/office/mail"},
+                {"name": "SovereignMailBilling", "endpoint": "/api/v1/office/mail/billing"},
                 {"name": "SovereignDrive", "endpoint": "/api/v1/office/drive"},
+                {"name": "SovereignForms", "endpoint": "/api/v1/office/forms"},
+                {"name": "SovereignCalendar", "endpoint": "/api/v1/office/calendar"},
+                {"name": "SovereignBusinessPackage", "endpoint": "/api/v1/office/package"},
                 {"name": "AgenticMultiArtifactGenerator", "endpoint": "/api/v1/office/generate_artifact"}
             ]
-            audit["supported_artifact_types"] = office_suite.artifact_generator.supported_artifact_types
+            audit["supported_artifact_types"] = office_suite.artifact_generator.supported_artifact_types if office_suite.artifact_generator else []
             self.send_json_response(audit)
         elif path == "/api/v1/office/generate_artifact":
             art_type = body.get("artifact_type", body.get("type", "SPREADSHEET"))
             title = body.get("title", "Q1 Executive Financial Model")
             params = body.get("parameters", body)
             self.send_json_response(office_suite.artifact_generator.generate_artifact(art_type, title, params if isinstance(params, dict) else {}))
+        elif path in ["/api/v1/office/docs", "/api/v1/office/docs/create"]:
+            title = body.get("title", "SOVEREIGN OS Executive Report")
+            author = body.get("author", "SOVEREIGN OS AI")
+            body_txt = body.get("body")
+            sections = body.get("sections")
+            doc = office_suite.docs.create_document(title=title, author=author, body=body_txt, sections=sections)
+            if body.get("export_md"):
+                doc["markdown"] = office_suite.docs.export_markdown(doc)
+            self.send_json_response(doc)
         elif path == "/api/v1/office/sheets/solve":
             sheet_data = body.get("sheet_data", body) if isinstance(body, dict) else {}
             self.send_json_response(office_suite.sheets.solve_formulas(sheet_data))
+        elif path == "/api/v1/office/sheets/model":
+            company = body.get("company_name", body.get("company", "Apex Enterprise"))
+            base_mrr = float(body.get("base_mrr", body.get("mrr", 100000.0)))
+            opex_ratio = float(body.get("opex_ratio", 0.4))
+            self.send_json_response(office_suite.sheets.create_financial_model(company, base_mrr, opex_ratio))
+        elif path in ["/api/v1/office/slides", "/api/v1/office/slides/pitch"]:
+            company = body.get("company_name", body.get("company", "Apex Global"))
+            topic = body.get("topic", "Enterprise Autonomous OS")
+            template = body.get("template", "SERIES_A_GROWTH")
+            self.send_json_response(office_suite.slides.generate_pitch_deck(company, topic, template))
+        elif path == "/api/v1/office/slides/board":
+            quarter = body.get("quarter", "Q1 2026")
+            arr = float(body.get("arr", 1787040.0))
+            net_margin = float(body.get("net_margin", 74.2))
+            self.send_json_response(office_suite.slides.generate_board_deck(quarter, arr, net_margin))
+        elif path == "/api/v1/office/slides/export_svg":
+            deck = body.get("deck")
+            if not deck or not isinstance(deck, dict):
+                company = body.get("company_name", body.get("company", "Apex Global"))
+                topic = body.get("topic", "Enterprise Autonomous OS")
+                template = body.get("template", "SERIES_A_GROWTH")
+                deck = office_suite.slides.generate_pitch_deck(company, topic, template)
+            self.send_json_response(office_suite.slides.export_deck_to_svg(deck))
+        elif path == "/api/v1/office/slides/export_html":
+            deck = body.get("deck")
+            if not deck or not isinstance(deck, dict):
+                company = body.get("company_name", body.get("company", "Apex Global"))
+                topic = body.get("topic", "Enterprise Autonomous OS")
+                template = body.get("template", "SERIES_A_GROWTH")
+                deck = office_suite.slides.generate_pitch_deck(company, topic, template)
+            html_content = office_suite.slides.export_presentation_html(deck)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_content.encode("utf-8"))))
+            self.end_headers()
+            self.wfile.write(html_content.encode("utf-8"))
+            return
+        elif path in ["/api/v1/office/sign", "/api/v1/office/sign/execute"]:
+            doc_name = body.get("document_name", body.get("doc", "Master SLA Contract"))
+            email = body.get("signer_email", body.get("email", "cfo@apex.com"))
+            role = body.get("signer_role", body.get("role", "CFO"))
+            self.send_json_response(office_suite.sign.execute_signature(doc_name, email, role))
+        elif path == "/api/v1/office/sign/verify":
+            sig_id = body.get("signature_id", "sign_101")
+            zk_proof = body.get("zk_proof", body.get("zk_proof_signature", "zk_sig_dilithium_101"))
+            self.send_json_response(office_suite.sign.verify_zk_proof(sig_id, zk_proof))
+        elif path in ["/api/v1/office/mail", "/api/v1/office/mail/send"]:
+            recipient = body.get("recipient", "exec@apex.com")
+            template = body.get("template", "Enterprise Onboarding")
+            subject = body.get("subject", "SOVEREIGN OS Update")
+            self.send_json_response(office_suite.mail.send_ai_cadence(recipient, template, subject))
+        elif path == "/api/v1/office/mail/billing":
+            recipient = body.get("recipient", "billing@apex.com")
+            invoice_id = body.get("invoice_id", "INV-2026-001")
+            amount_due = float(body.get("amount_due", 15000.0))
+            self.send_json_response(office_suite.mail.send_billing_notice(recipient, invoice_id, amount_due))
+        elif path in ["/api/v1/office/drive", "/api/v1/office/drive/files", "/api/v1/office/drive/upload", "/api/v1/office/drive/search"]:
+            action = body.get("action", "")
+            query = body.get("query", body.get("q", ""))
+            if action == "upload" or path.endswith("/upload") or "name" in body:
+                name = body.get("name", "Document.pdf")
+                file_type = body.get("file_type", body.get("type", "DOCUMENT"))
+                size_kb = int(body.get("size_kb", 500))
+                self.send_json_response(office_suite.drive.upload_file(name, file_type, size_kb))
+            elif query or action == "search" or path.endswith("/search"):
+                self.send_json_response({"files": office_suite.drive.search_files(query), "query": query})
+            else:
+                self.send_json_response({"files": office_suite.drive.list_files(), "total_files": len(office_suite.drive.files)})
+        elif path in ["/api/v1/office/forms", "/api/v1/office/forms/create", "/api/v1/office/forms/submit", "/api/v1/office/forms/analytics"]:
+            action = body.get("action", "")
+            form_id = body.get("form_id", "")
+            if action == "submit" or path.endswith("/submit") or "responses" in body:
+                responses = body.get("responses", {"feedback": "Excellent"})
+                self.send_json_response(office_suite.forms.submit_response(form_id or "form_101", responses))
+            elif action == "analytics" or path.endswith("/analytics"):
+                self.send_json_response(office_suite.forms.get_form_analytics(form_id or "form_101"))
+            else:
+                title = body.get("title", "Customer Intake")
+                fields = body.get("fields")
+                self.send_json_response(office_suite.forms.create_form(title, fields))
+        elif path in ["/api/v1/office/calendar", "/api/v1/office/calendar/schedule", "/api/v1/office/calendar/list", "/api/v1/office/calendar/resolve"]:
+            action = body.get("action", "")
+            event_id = body.get("event_id", "")
+            if action == "list" or path.endswith("/list"):
+                self.send_json_response({"events": office_suite.calendar.list_upcoming_events(), "total": len(office_suite.calendar.events)})
+            elif action == "resolve" or path.endswith("/resolve"):
+                self.send_json_response(office_suite.calendar.resolve_conflict(event_id or "evt_101"))
+            else:
+                title = body.get("title", "Quarterly Executive Sync")
+                start_time = body.get("start_time", "2026-09-01T10:00:00Z")
+                duration = int(body.get("duration_minutes", 30))
+                participants = body.get("participants")
+                self.send_json_response(office_suite.calendar.schedule_event(title, start_time, duration, participants))
+        elif path in ["/api/v1/office/package", "/api/v1/office/package/create", "/api/v1/office/business_package"]:
+            company = body.get("company_name", body.get("company", "Apex Enterprise"))
+            client = body.get("client_name", body.get("client", "Acme Inc"))
+            val = float(body.get("annual_contract_val", 150000.0))
+            self.send_json_response(office_suite.create_business_package(company, client, val))
+
 
         # ---------------------------------------------------------------------
         # 11 Platform Master Suite POST Endpoints
@@ -612,9 +921,27 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             code = body.get("code", "PRO20")
             percent_off = float(body.get("percent_off", 20.0))
             self.send_json_response(mega11.stripe.create_coupon(code, percent_off))
-        elif path == "/api/v1/revenuecat/entitlements":
+        elif path == "/api/v1/revenuecat/webhook":
+            event_type = body.get("event_type", "INITIAL_PURCHASE")
             subscriber_id = body.get("subscriber_id", "sub_101")
+            product_id = body.get("product_id", "sovereign_pro_annual")
+            self.send_json_response(mega11.rc.process_webhooks(event_type, subscriber_id, product_id))
+        elif path == "/api/v1/revenuecat/entitlements":
+            subscriber_id = body.get("subscriber_id", body.get("user_id", "sub_101"))
             self.send_json_response(mega11.rc.get_entitlements(subscriber_id))
+        elif path == "/api/v1/revenuecat/paywall":
+            offering_id = body.get("offering_id", "default")
+            subscriber_id = body.get("subscriber_id", "sub_101")
+            experiment_id = body.get("experiment_id")
+            self.send_json_response(mega11.rc.get_paywall(offering_id, subscriber_id, experiment_id))
+        elif path in ["/api/v1/revenuecat/usage", "/api/v1/revenuecat/longterm_usage"]:
+            subscriber_id = body.get("subscriber_id", "sub_101")
+            if "units" in body or body.get("action") == "record" or "feature_id" in body:
+                feature_id = body.get("feature_id", "api_calls")
+                units = int(body.get("units", 1))
+                mega11.rc.record_usage(subscriber_id, feature_id, units)
+            period = body.get("period", "longterm")
+            self.send_json_response(mega11.rc.get_usage(subscriber_id, period))
         elif path == "/api/v1/revenuecat/experiment":
             experiment_id = body.get("experiment_id", "exp_paywall_v2")
             self.send_json_response(mega11.rc.trigger_paywall_experiment(experiment_id))
@@ -748,6 +1075,79 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 }
                 exec_res["revenuecat_integration"] = mega11.rc.get_entitlements(body.get("subscriber_id", "sub_101"))
                 self.send_json_response(exec_res)
+
+        # ---------------------------------------------------------------------
+        # MCP 200 Apps Adapters, 1000 Queries & VM Cloud POST Endpoints
+        # ---------------------------------------------------------------------
+        elif path == "/api/v1/mcp/200apps/adapters":
+            action = body.get("action", "list")
+            if action == "register" or ("name" in body and "app_id" in body and "category" in body):
+                res = mcp_server.adapters_engine.register_adapter(
+                    app_id=body.get("app_id", f"app_custom_{int(time.time())}"),
+                    name=body.get("name", "Custom SaaS Adapter"),
+                    category=body.get("category", "Analytics & AI"),
+                    protocol=body.get("protocol", "REST_API"),
+                    version=body.get("version", "v1")
+                )
+                self.send_json_response(res)
+            elif action == "get" or ("app_id" in body and len(body) == 1):
+                self.send_json_response(mcp_server.adapters_engine.get_adapter(body.get("app_id")))
+            else:
+                cat = body.get("category")
+                search = body.get("search", body.get("q"))
+                adapters = mcp_server.adapters_engine.list_adapters(category=cat, search=search)
+                self.send_json_response({
+                    "adapters": adapters,
+                    "total": len(adapters),
+                    "category_filter": cat,
+                    "search_query": search,
+                    "status": "200_APPS_ADAPTERS_RETRIEVED"
+                })
+        elif path == "/api/v1/mcp/200apps/execute_1000":
+            queries = body.get("queries")
+            b_size = int(body.get("batch_size", 100))
+            self.send_json_response(mcp_server.adapters_engine.execute_1000_queries(queries=queries, batch_size=b_size))
+        elif path == "/api/v1/vm/instances":
+            action = body.get("action", "list")
+            inst_id = body.get("instance_id")
+            if action == "provision" or ("instance_name" in body or "instance_type" in body or "os_image" in body):
+                res = mcp_server.vm_engine.provision_instance(
+                    instance_name=body.get("instance_name", "vc_instance_01"),
+                    instance_type=body.get("instance_type", "vc.standard"),
+                    os_image=body.get("os_image", "Sovereign-Linux-2026"),
+                    cpu_cores=body.get("cpu_cores"),
+                    ram_gb=body.get("ram_gb"),
+                    storage_gb=body.get("storage_gb"),
+                    tenant_id=body.get("tenant_id", "tenant_default")
+                )
+                self.send_json_response(res)
+            elif action == "start" and inst_id:
+                self.send_json_response(mcp_server.vm_engine.start_instance(inst_id))
+            elif action == "stop" and inst_id:
+                self.send_json_response(mcp_server.vm_engine.stop_instance(inst_id))
+            elif action == "pause" and inst_id:
+                self.send_json_response(mcp_server.vm_engine.pause_instance(inst_id))
+            elif action == "terminate" and inst_id:
+                self.send_json_response(mcp_server.vm_engine.terminate_instance(inst_id))
+            elif action == "status" and inst_id:
+                self.send_json_response(mcp_server.vm_engine.get_instance_status(inst_id))
+            else:
+                tenant_id = body.get("tenant_id")
+                status = body.get("status")
+                instances = mcp_server.vm_engine.list_instances(tenant_id=tenant_id, status=status)
+                self.send_json_response({
+                    "instances": instances,
+                    "total": len(instances),
+                    "status": "VM_INSTANCES_RETRIEVED"
+                })
+        elif path == "/api/v1/vm/execute_command":
+            inst_id = body.get("instance_id")
+            cmd = body.get("command", "uname -a")
+            env_vars = body.get("env_vars")
+            if not inst_id:
+                default_vm = mcp_server.vm_engine.provision_instance(instance_name="auto_vm", instance_type="vc.standard")
+                inst_id = default_vm["instance_id"]
+            self.send_json_response(mcp_server.vm_engine.execute_command(instance_id=inst_id, command=cmd, env_vars=env_vars))
 
         # Legacy / Existing Endpoints
         elif path == "/api/v1/invoices/create":

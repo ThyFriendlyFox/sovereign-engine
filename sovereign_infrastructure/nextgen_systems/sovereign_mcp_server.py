@@ -49,6 +49,8 @@ try:
         DeflationaryTokenomicsEngine
     )
     from sovereign_infrastructure.nextgen_systems.mega_11_platform_master_suite import Mega11PlatformOrchestrator
+    from sovereign_infrastructure.nextgen_systems.mcp_200_app_adapters_1000_queries import MCP200AppAdaptersEngine
+    from sovereign_infrastructure.nextgen_systems.virtual_computer_cloud_instance import VirtualComputerCloudEngine
 except ImportError as e:
     logger.warning(f"Relative import fallbacks engaged: {e}")
     # Local imports fallback
@@ -78,6 +80,8 @@ except ImportError as e:
         DeflationaryTokenomicsEngine
     )
     from mega_11_platform_master_suite import Mega11PlatformOrchestrator
+    from mcp_200_app_adapters_1000_queries import MCP200AppAdaptersEngine
+    from virtual_computer_cloud_instance import VirtualComputerCloudEngine
 
 
 # =============================================================================
@@ -811,9 +815,11 @@ class SovereignMCPServer:
         self.ingestion_engine = DataIngestionEngine(master_orchestrator=self.nextgen_orch)
         self.workflow_orchestrator = SovereignAtoZWorkflowOrchestrator(mcp_server=self)
 
-        # 3. Unified Orchestrator & Mesh Executor
+        # 3. Unified Orchestrator, Mesh Executor, Adapters & VM Cloud Engines
         self.sandbox_orchestrator = UnifiedSandboxOrchestrator(sandbox_engine=self.sandbox_engine)
         self.mesh_executor = WorkflowMeshExecutor()
+        self.adapters_engine = MCP200AppAdaptersEngine(gl_engine=self.nextgen_orch.gl)
+        self.vm_engine = VirtualComputerCloudEngine()
 
         # 4. Additional Matrix Sub-engines for direct workflow dispatch
         self.depreciation = FixedAssetDepreciationEngine()
@@ -952,6 +958,49 @@ class SovereignMCPServer:
                 device_id=arguments.get("device_id", "dev_mesh_001"),
                 node_signatures=arguments.get("node_signatures", ["sig_node_1", "sig_node_2", "sig_node_3"]),
                 required_quorum=int(arguments.get("required_quorum", 3))
+            )
+        elif tool_name in ["mcp_200apps_adapters", "200apps_adapters"]:
+            action = arguments.get("action", "list")
+            if action == "get":
+                return self.adapters_engine.get_adapter(arguments.get("app_id", arguments.get("app_name", "app_001")))
+            elif action == "register":
+                return self.adapters_engine.register_adapter(
+                    app_id=arguments.get("app_id", "app_custom_01"),
+                    name=arguments.get("name", "Custom SaaS"),
+                    category=arguments.get("category", "Analytics & AI"),
+                    protocol=arguments.get("protocol", "REST_API")
+                )
+            return {"adapters": self.adapters_engine.list_adapters(category=arguments.get("category"), search=arguments.get("search"))}
+        elif tool_name in ["mcp_200apps_execute_1000", "200apps_execute_1000"]:
+            return self.adapters_engine.execute_1000_queries(
+                queries=arguments.get("queries"),
+                batch_size=int(arguments.get("batch_size", 100))
+            )
+        elif tool_name in ["mcp_vm_instances", "vm_instances"]:
+            action = arguments.get("action", "list")
+            if action == "provision":
+                return self.vm_engine.provision_instance(
+                    instance_name=arguments.get("instance_name", "vc_instance_01"),
+                    instance_type=arguments.get("instance_type", "vc.standard"),
+                    os_image=arguments.get("os_image", "Sovereign-Linux-2026"),
+                    cpu_cores=arguments.get("cpu_cores"),
+                    ram_gb=arguments.get("ram_gb"),
+                    tenant_id=arguments.get("tenant_id", "tenant_default")
+                )
+            elif action == "status":
+                return self.vm_engine.get_instance_status(arguments.get("instance_id", ""))
+            elif action == "start":
+                return self.vm_engine.start_instance(arguments.get("instance_id", ""))
+            elif action == "stop":
+                return self.vm_engine.stop_instance(arguments.get("instance_id", ""))
+            elif action == "terminate":
+                return self.vm_engine.terminate_instance(arguments.get("instance_id", ""))
+            return {"instances": self.vm_engine.list_instances(tenant_id=arguments.get("tenant_id"), status=arguments.get("status"))}
+        elif tool_name in ["mcp_vm_execute_command", "vm_execute_command"]:
+            return self.vm_engine.execute_command(
+                instance_id=arguments.get("instance_id", ""),
+                command=arguments.get("command", "uname -a"),
+                env_vars=arguments.get("env_vars")
             )
         else:
             return self.call_tool(tool_name, arguments)
@@ -1559,6 +1608,57 @@ class SovereignMCPServer:
                     "required": ["device_id"]
                 }
             },
+            {
+                "name": "mcp_200apps_adapters",
+                "description": "Lists, retrieves, or registers third-party SaaS app adapters across 200 integrated apps.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "default": "list"},
+                        "category": {"type": "string"},
+                        "search": {"type": "string"},
+                        "app_id": {"type": "string"}
+                    }
+                }
+            },
+            {
+                "name": "mcp_200apps_execute_1000",
+                "description": "Executes batch of up to 1000 MCP queries across 200 app adapters with performance metrics.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "queries": {"type": "integer", "default": 1000},
+                        "batch_size": {"type": "integer", "default": 100}
+                    }
+                }
+            },
+            {
+                "name": "mcp_vm_instances",
+                "description": "Provisions, lists, inspects, or manages Virtual Computer Cloud instances.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "default": "list"},
+                        "instance_id": {"type": "string"},
+                        "instance_name": {"type": "string", "default": "vc_instance_01"},
+                        "instance_type": {"type": "string", "default": "vc.standard"},
+                        "os_image": {"type": "string", "default": "Sovereign-Linux-2026"}
+                    }
+                }
+            },
+            {
+                "name": "mcp_vm_execute_command",
+                "description": "Executes bash/CLI command inside an active Virtual Computer Cloud instance.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "instance_id": {"type": "string"},
+                        "command": {"type": "string", "default": "uname -a"},
+                        "env_vars": {"type": "object"}
+                    },
+                    "required": ["instance_id", "command"]
+                }
+            },
 
             # -----------------------------------------------------------------
             # CATEGORY E: MCP SERVER MANAGEMENT & DIAGNOSTICS
@@ -1974,6 +2074,53 @@ class SovereignMCPServer:
                     required_quorum=int(arguments.get("required_quorum", 3))
                 )
 
+            elif name in ["mcp_200apps_adapters", "200apps_adapters"]:
+                action = arguments.get("action", "list")
+                if action == "get":
+                    return self.adapters_engine.get_adapter(arguments.get("app_id", arguments.get("app_name", "app_001")))
+                elif action == "register":
+                    return self.adapters_engine.register_adapter(
+                        app_id=arguments.get("app_id", "app_custom_01"),
+                        name=arguments.get("name", "Custom SaaS"),
+                        category=arguments.get("category", "Analytics & AI"),
+                        protocol=arguments.get("protocol", "REST_API")
+                    )
+                return {"adapters": self.adapters_engine.list_adapters(category=arguments.get("category"), search=arguments.get("search"))}
+
+            elif name in ["mcp_200apps_execute_1000", "200apps_execute_1000"]:
+                return self.adapters_engine.execute_1000_queries(
+                    queries=arguments.get("queries"),
+                    batch_size=int(arguments.get("batch_size", 100))
+                )
+
+            elif name in ["mcp_vm_instances", "vm_instances"]:
+                action = arguments.get("action", "list")
+                if action == "provision":
+                    return self.vm_engine.provision_instance(
+                        instance_name=arguments.get("instance_name", "vc_instance_01"),
+                        instance_type=arguments.get("instance_type", "vc.standard"),
+                        os_image=arguments.get("os_image", "Sovereign-Linux-2026"),
+                        cpu_cores=arguments.get("cpu_cores"),
+                        ram_gb=arguments.get("ram_gb"),
+                        tenant_id=arguments.get("tenant_id", "tenant_default")
+                    )
+                elif action == "status":
+                    return self.vm_engine.get_instance_status(arguments.get("instance_id", ""))
+                elif action == "start":
+                    return self.vm_engine.start_instance(arguments.get("instance_id", ""))
+                elif action == "stop":
+                    return self.vm_engine.stop_instance(arguments.get("instance_id", ""))
+                elif action == "terminate":
+                    return self.vm_engine.terminate_instance(arguments.get("instance_id", ""))
+                return {"instances": self.vm_engine.list_instances(tenant_id=arguments.get("tenant_id"), status=arguments.get("status"))}
+
+            elif name in ["mcp_vm_execute_command", "vm_execute_command"]:
+                return self.vm_engine.execute_command(
+                    instance_id=arguments.get("instance_id", ""),
+                    command=arguments.get("command", "uname -a"),
+                    env_vars=arguments.get("env_vars")
+                )
+
             elif name == "server_system_diagnostics":
                 return self.run_self_diagnostics()
 
@@ -2019,6 +2166,8 @@ class SovereignMCPServer:
         usbx = self.sandbox_orchestrator.provision_unified_sandbox("app_diag_unified", "tenant_diag")
         usbx_health = self.sandbox_orchestrator.evaluate_sandbox_health_and_telemetry(usbx["sandbox_id"])
         mesh_diag = self.mesh_executor.execute_mesh_workflow("mesh_diag_wf", ["FX_ARBITRAGE", "RISK_UNDERWRITING", "LTV_ELASTICITY", "TOKENOMICS_BURN", "IOT_CONSENSUS"])
+        adapters_audit = self.adapters_engine.run_adapters_audit()
+        vm_audit = self.vm_engine.run_vm_audit()
 
         return {
             "integrations_hub": {"total_apps_registered": integrations_count, "status": "HEALTHY"},
@@ -2028,6 +2177,8 @@ class SovereignMCPServer:
             "mega_11_platform_audit": audit_11,
             "unified_sandbox_orchestrator": {"sandbox_id": usbx["sandbox_id"], "health": usbx_health["health_status"], "status": "HEALTHY"},
             "workflow_mesh_executor": {"mesh_exec_id": mesh_diag["execution_id"], "status": mesh_diag["status"]},
+            "mcp_200_app_adapters_audit": adapters_audit,
+            "virtual_computer_cloud_audit": vm_audit,
             "overall_status": "SOVEREIGN_MCP_SERVER_OPERATIONAL"
         }
 

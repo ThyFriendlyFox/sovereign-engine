@@ -2502,7 +2502,7 @@ let selectedAppId = null;
 
 // UNIFIED COMMAND CENTER VIEW SWITCHER
 function switchCommandCenterView(viewName) {
-  const views = ['telemetry', 'apps', 'az', 'mcp', 'sandbox', 'radar', 'autonomic', 'office'];
+  const views = ['telemetry', 'apps', 'az', 'mcp', 'sandbox', 'radar', 'autonomic', 'office', 'analytics', 'cloudstudio', 'omnichannel'];
   views.forEach(v => {
     const sec = document.getElementById(`sec-${v}-view`);
     const btn = document.getElementById(`view-btn-${v}`);
@@ -2514,8 +2514,13 @@ function switchCommandCenterView(viewName) {
     }
   });
 
+  if (viewName === 'cloudstudio' && typeof initVirtualCloudStudio === 'function') initVirtualCloudStudio();
+  if (viewName === 'omnichannel' && typeof initOmnichannelControlCenter === 'function') initOmnichannelControlCenter();
   if (viewName === 'apps' && typeof renderAppGrid === 'function') renderAppGrid();
-  if (viewName === 'mcp' && typeof renderMCPConsole === 'function') renderMCPConsole();
+  if (viewName === 'mcp') {
+    if (typeof renderMCPConsole === 'function') renderMCPConsole();
+    if (typeof filterMCPInspectorTools === 'function') filterMCPInspectorTools('');
+  }
   if ((viewName === 'telemetry' || viewName === 'radar') && typeof initTelemetryRadar === 'function') initTelemetryRadar();
   if (viewName === 'az' || viewName === 'autonomic') {
     if (typeof renderAZWorkflowsCatalog === 'function') renderAZWorkflowsCatalog();
@@ -2523,6 +2528,7 @@ function switchCommandCenterView(viewName) {
   }
   if (viewName === 'sandbox' && typeof updateSandboxGauges === 'function') updateSandboxGauges();
   if (viewName === 'office' && typeof renderOfficeWorkspace === 'function') renderOfficeWorkspace();
+  if (viewName === 'analytics' && typeof renderAnalyticsDashboard === 'function') renderAnalyticsDashboard();
 }
 
 function switchMarketplaceView(viewName) {
@@ -3498,7 +3504,7 @@ function clearAutonomicTaskQueue() {
 // ==========================================================================
 
 // --------------------------------------------------------------------------
-// 1. LIVE SPREADSHEET GRID ENGINE
+// 1. LIVE SPREADSHEET GRID & INTERACTIVE FORMULA SOLVER ENGINE
 // --------------------------------------------------------------------------
 let gridState = {
   cols: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
@@ -3513,9 +3519,30 @@ let gridState = {
     'A6': 'Total Gross MRR', 'B6': '=SUM(B2:B5)', 'C6': '=SUM(C2:C5)', 'D6': '=SUM(D2:D5)', 'E6': '=SUM(E2:E5)', 'F6': '=SUM(F2:F5)',
     'A7': 'AI Compute COGS (20%)', 'B7': '=B6*0.2', 'C7': '=C6*0.2', 'D7': '=D6*0.2', 'E7': '=E6*0.2', 'F7': '=F6*0.2',
     'A8': 'Autonomic Net Profit', 'B8': '=B6-B7', 'C8': '=C6-C7', 'D8': '=D6-D7', 'E8': '=E6-E7', 'F8': '=F6-F7',
-    'A9': 'Growth Rate YoY', 'B9': '14.2%', 'C9': '18.1%', 'D9': '22.4%', 'E9': '28.5%', 'F9': 'AVG: 20.8%'
+    'A9': 'Growth Tier Status', 'B9': '=IF(B6>90000, "PRIME TIER", "GROWTH")', 'C9': '=IF(C6>90000, "PRIME TIER", "GROWTH")', 'D9': '=IF(D6>90000, "PRIME TIER", "GROWTH")', 'E9': '=IF(E6>90000, "PRIME TIER", "GROWTH")', 'F9': '=IF(F6>500000, "ENTERPRISE MAX", "STANDARD")',
+    'A10': 'Quarterly Average', 'B10': '=AVG(B2:B5)', 'C10': '=AVG(C2:C5)', 'D10': '=AVG(D2:D5)', 'E10': '=AVG(E2:E5)', 'F10': '=AVG(F2:F5)',
+    'A11': 'Peak Single Stream', 'B11': '=MAX(B2:B5)', 'C11': '=MAX(C2:C5)', 'D11': '=MAX(D2:D5)', 'E11': '=MAX(E2:E5)', 'F11': '=MAX(F2:F5)',
+    'A12': 'Min Stream Floor', 'B12': '=MIN(B2:B5)', 'C12': '=MIN(C2:C5)', 'D12': '=MIN(D2:D5)', 'E12': '=MIN(E2:E5)', 'F12': '=MIN(F2:F5)'
   }
 };
+
+const FORMULA_DEFINITIONS = [
+  { name: 'SUM', syntax: '=SUM(start:end)', desc: 'Calculates the sum of numbers in a cell range (e.g. SUM(B2:B5))' },
+  { name: 'AVG', syntax: '=AVG(start:end)', desc: 'Calculates the average of numbers in a cell range (e.g. AVG(B2:B5))' },
+  { name: 'AVERAGE', syntax: '=AVERAGE(start:end)', desc: 'Alias for AVG function' },
+  { name: 'MIN', syntax: '=MIN(start:end)', desc: 'Finds the minimum value in a cell range (e.g. MIN(B2:B5))' },
+  { name: 'MAX', syntax: '=MAX(start:end)', desc: 'Finds the maximum value in a cell range (e.g. MAX(B2:B5))' },
+  { name: 'COUNT', syntax: '=COUNT(start:end)', desc: 'Counts the number of numeric cells in a range' },
+  { name: 'PRODUCT', syntax: '=PRODUCT(start:end)', desc: 'Multiplies all numbers in a range together' },
+  { name: 'IF', syntax: '=IF(condition, val_true, val_false)', desc: 'Returns true value if condition is met, else false value' },
+  { name: 'ROUND', syntax: '=ROUND(number, decimals)', desc: 'Rounds a number to specified decimal places' },
+  { name: 'ABS', syntax: '=ABS(number)', desc: 'Returns the absolute value of a number' },
+  { name: 'SQRT', syntax: '=SQRT(number)', desc: 'Returns the square root of a number' },
+  { name: 'POWER', syntax: '=POWER(base, exponent)', desc: 'Returns base raised to the exponent power' },
+  { name: 'NPV', syntax: '=NPV(rate, val1, val2, ...)', desc: 'Calculates Net Present Value for a series of cash flows' },
+  { name: 'IRR', syntax: '=IRR(val1, val2, ...)', desc: 'Calculates Internal Rate of Return for cash flows' },
+  { name: 'PMT', syntax: '=PMT(rate, nper, pv)', desc: 'Calculates periodic payment for a loan' }
+];
 
 function initSpreadsheetGrid(containerId = 'spreadsheet-table-container') {
   const container = document.getElementById(containerId);
@@ -3557,7 +3584,7 @@ function initSpreadsheetGrid(containerId = 'spreadsheet-table-container') {
 
 function evaluateCellDisplay(cellId, rawVal) {
   if (typeof rawVal === 'string' && rawVal.startsWith('=')) {
-    return evaluateFormula(rawVal);
+    return evaluateFormula(rawVal, cellId);
   }
   if (typeof rawVal === 'number') {
     return rawVal.toLocaleString('en-US');
@@ -3565,56 +3592,117 @@ function evaluateCellDisplay(cellId, rawVal) {
   return rawVal;
 }
 
-function evaluateFormula(expr) {
+// ADVANCED JS FORMULA PARSER & SOLVER ENGINE
+function evaluateFormula(expr, currentCell = null, depth = 0) {
+  if (depth > 10) return '#CIRCULAR!';
   try {
-    const formula = expr.substring(1).toUpperCase().trim();
-    
-    // SUM range support e.g. SUM(B2:B5)
-    const sumMatch = formula.match(/^SUM\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    const rawFormula = expr.substring(1).trim();
+    const formulaUpper = rawFormula.toUpperCase();
+
+    // 1. IF Function: IF(cond, valTrue, valFalse)
+    const ifMatch = rawFormula.match(/^IF\s*\((.*?)\s*,\s*(.*?)\s*,\s*(.*?)\)$/i);
+    if (ifMatch) {
+      const condStr = ifMatch[1];
+      const valTrue = ifMatch[2].replace(/^["']|["']$/g, '');
+      const valFalse = ifMatch[3].replace(/^["']|["']$/g, '');
+      
+      const isTrue = evalFormulaCondition(condStr);
+      return isTrue ? valTrue : valFalse;
+    }
+
+    // 2. SUM Range Function e.g. SUM(B2:B5)
+    const sumMatch = formulaUpper.match(/^SUM\s*\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
     if (sumMatch) {
-      const colStart = sumMatch[1], rowStart = parseInt(sumMatch[2]);
-      const colEnd = sumMatch[3], rowEnd = parseInt(sumMatch[4]);
-      let total = 0;
-      for (let r = rowStart; r <= rowEnd; r++) {
-        const val = gridState.data[`${colStart}${r}`];
-        const num = parseFloat(val);
-        if (!isNaN(num)) total += num;
-      }
+      const vals = getCellRangeValues(sumMatch[1], parseInt(sumMatch[2]), sumMatch[3], parseInt(sumMatch[4]), depth);
+      const total = vals.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
       return total.toLocaleString('en-US');
     }
 
-    // AVG range support e.g. AVG(B2:B5)
-    const avgMatch = formula.match(/^AVG\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    // 3. AVG / AVERAGE Range Function e.g. AVG(B2:B5)
+    const avgMatch = formulaUpper.match(/^(?:AVG|AVERAGE)\s*\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
     if (avgMatch) {
-      const colStart = avgMatch[1], rowStart = parseInt(avgMatch[2]);
-      const colEnd = avgMatch[3], rowEnd = parseInt(avgMatch[4]);
-      let total = 0, count = 0;
-      for (let r = rowStart; r <= rowEnd; r++) {
-        const val = gridState.data[`${colStart}${r}`];
-        const num = parseFloat(val);
-        if (!isNaN(num)) { total += num; count++; }
-      }
-      return count > 0 ? (total / count).toFixed(2) : 0;
+      const vals = getCellRangeValues(avgMatch[1], parseInt(avgMatch[2]), avgMatch[3], parseInt(avgMatch[4]), depth);
+      const numVals = vals.map(v => parseFloat(v)).filter(v => !isNaN(v));
+      const total = numVals.reduce((acc, v) => acc + v, 0);
+      return numVals.length > 0 ? (total / numVals.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0;
     }
 
-    // Simple arithmetic cell references e.g. B6-B7 or B6*0.2
-    const cellOpMatch = formula.match(/^([A-Z]\d+)\s*([\+\-\*\/])\s*([A-Z]\d+|\d+(?:\.\d+)?)$/);
+    // 4. MIN Range Function
+    const minMatch = formulaUpper.match(/^MIN\s*\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    if (minMatch) {
+      const vals = getCellRangeValues(minMatch[1], parseInt(minMatch[2]), minMatch[3], parseInt(minMatch[4]), depth).map(v => parseFloat(v)).filter(v => !isNaN(v));
+      return vals.length > 0 ? Math.min(...vals).toLocaleString('en-US') : 0;
+    }
+
+    // 5. MAX Range Function
+    const maxMatch = formulaUpper.match(/^MAX\s*\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    if (maxMatch) {
+      const vals = getCellRangeValues(maxMatch[1], parseInt(maxMatch[2]), maxMatch[3], parseInt(maxMatch[4]), depth).map(v => parseFloat(v)).filter(v => !isNaN(v));
+      return vals.length > 0 ? Math.max(...vals).toLocaleString('en-US') : 0;
+    }
+
+    // 6. COUNT Range Function
+    const countMatch = formulaUpper.match(/^COUNT\s*\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    if (countMatch) {
+      const vals = getCellRangeValues(countMatch[1], parseInt(countMatch[2]), countMatch[3], parseInt(countMatch[4]), depth).map(v => parseFloat(v)).filter(v => !isNaN(v));
+      return vals.length;
+    }
+
+    // 7. PRODUCT Range Function
+    const prodMatch = formulaUpper.match(/^PRODUCT\s*\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    if (prodMatch) {
+      const vals = getCellRangeValues(prodMatch[1], parseInt(prodMatch[2]), prodMatch[3], parseInt(prodMatch[4]), depth).map(v => parseFloat(v)).filter(v => !isNaN(v));
+      const prod = vals.reduce((acc, v) => acc * v, 1);
+      return prod.toLocaleString('en-US');
+    }
+
+    // 8. ROUND Function e.g. ROUND(B6*0.19, 2)
+    const roundMatch = formulaUpper.match(/^ROUND\s*\((.*?)\s*,\s*(\d+)\)$/);
+    if (roundMatch) {
+      const innerVal = parseFloat(resolveFormulaOperand(roundMatch[1], depth));
+      const dec = parseInt(roundMatch[2]);
+      return !isNaN(innerVal) ? innerVal.toFixed(dec) : '#VALUE!';
+    }
+
+    // 9. ABS / SQRT / POWER Functions
+    const absMatch = formulaUpper.match(/^ABS\s*\((.*?)\)$/);
+    if (absMatch) {
+      const val = parseFloat(resolveFormulaOperand(absMatch[1], depth));
+      return !isNaN(val) ? Math.abs(val).toLocaleString('en-US') : '#VALUE!';
+    }
+
+    const sqrtMatch = formulaUpper.match(/^SQRT\s*\((.*?)\)$/);
+    if (sqrtMatch) {
+      const val = parseFloat(resolveFormulaOperand(sqrtMatch[1], depth));
+      return (!isNaN(val) && val >= 0) ? Math.sqrt(val).toFixed(2) : '#NUM!';
+    }
+
+    const powerMatch = formulaUpper.match(/^POWER\s*\((.*?)\s*,\s*(.*?)\)$/);
+    if (powerMatch) {
+      const base = parseFloat(resolveFormulaOperand(powerMatch[1], depth));
+      const exp = parseFloat(resolveFormulaOperand(powerMatch[2], depth));
+      return (!isNaN(base) && !isNaN(exp)) ? Math.pow(base, exp).toLocaleString('en-US') : '#VALUE!';
+    }
+
+    // 10. Financial: NPV(rate, v1, v2, v3)
+    const npvMatch = formulaUpper.match(/^NPV\s*\((.*?)\s*,\s*(.*)\)$/);
+    if (npvMatch) {
+      const rate = parseFloat(resolveFormulaOperand(npvMatch[1], depth));
+      const argsStr = npvMatch[2];
+      const cashFlows = argsStr.split(',').map(a => parseFloat(resolveFormulaOperand(a.trim(), depth))).filter(v => !isNaN(v));
+      let npv = 0;
+      cashFlows.forEach((cf, t) => {
+        npv += cf / Math.pow(1 + rate, t + 1);
+      });
+      return `$${npv.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    // 11. Simple Binary Arithmetic e.g. B6-B7 or B6*0.2
+    const cellOpMatch = formulaUpper.match(/^([A-Z]\d+|\d+(?:\.\d+)?)\s*([\+\-\*\/\^])\s*([A-Z]\d+|\d+(?:\.\d+)?)$/);
     if (cellOpMatch) {
-      const cellA = cellOpMatch[1];
+      const valA = parseFloat(resolveFormulaOperand(cellOpMatch[1], depth));
       const op = cellOpMatch[2];
-      const rightOperand = cellOpMatch[3];
-      
-      let valA = parseFloat(gridState.data[cellA]);
-      if (typeof gridState.data[cellA] === 'string' && gridState.data[cellA].startsWith('=')) {
-        valA = parseFloat(evaluateFormula(gridState.data[cellA]).replace(/,/g, ''));
-      }
-      let valB = parseFloat(rightOperand);
-      if (isNaN(valB) && gridState.data[rightOperand] !== undefined) {
-        valB = parseFloat(gridState.data[rightOperand]);
-        if (typeof gridState.data[rightOperand] === 'string' && gridState.data[rightOperand].startsWith('=')) {
-          valB = parseFloat(evaluateFormula(gridState.data[rightOperand]).replace(/,/g, ''));
-        }
-      }
+      const valB = parseFloat(resolveFormulaOperand(cellOpMatch[3], depth));
 
       if (isNaN(valA) || isNaN(valB)) return expr;
 
@@ -3622,14 +3710,69 @@ function evaluateFormula(expr) {
       if (op === '+') res = valA + valB;
       else if (op === '-') res = valA - valB;
       else if (op === '*') res = valA * valB;
-      else if (op === '/') res = valB !== 0 ? valA / valB : 0;
-      return res.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      else if (op === '/') res = valB !== 0 ? valA / valB : '#DIV/0!';
+      else if (op === '^') res = Math.pow(valA, valB);
+      
+      return typeof res === 'number' ? res.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : res;
     }
 
     return expr;
   } catch (err) {
-    return '#VALUE!';
+    return '#ERROR!';
   }
+}
+
+function getCellRangeValues(colStart, rowStart, colEnd, rowEnd, depth) {
+  let values = [];
+  const startColCode = colStart.charCodeAt(0);
+  const endColCode = colEnd.charCodeAt(0);
+
+  for (let c = startColCode; c <= endColCode; c++) {
+    const colStr = String.fromCharCode(c);
+    for (let r = rowStart; r <= rowEnd; r++) {
+      const cellId = `${colStr}${r}`;
+      let val = gridState.data[cellId];
+      if (typeof val === 'string' && val.startsWith('=')) {
+        val = evaluateFormula(val, cellId, depth + 1);
+      }
+      if (typeof val === 'string') val = val.replace(/,/g, '');
+      values.push(val !== undefined ? val : 0);
+    }
+  }
+  return values;
+}
+
+function resolveFormulaOperand(opStr, depth) {
+  opStr = opStr.trim();
+  const num = parseFloat(opStr);
+  if (!isNaN(num) && !/^[A-Z]\d+$/.test(opStr)) return num;
+
+  if (gridState.data[opStr] !== undefined) {
+    let val = gridState.data[opStr];
+    if (typeof val === 'string' && val.startsWith('=')) {
+      val = evaluateFormula(val, opStr, depth + 1);
+    }
+    if (typeof val === 'string') val = val.replace(/[$,]/g, '');
+    return val;
+  }
+  return opStr;
+}
+
+function evalFormulaCondition(condStr) {
+  const match = condStr.match(/^([A-Z]\d+|\d+(?:\.\d+)?)\s*(>=|<=|>|<|==|=)\s*([A-Z]\d+|\d+(?:\.\d+)?)$/i);
+  if (!match) return false;
+  const left = parseFloat(resolveFormulaOperand(match[1], 0));
+  const op = match[2];
+  const right = parseFloat(resolveFormulaOperand(match[3], 0));
+
+  if (isNaN(left) || isNaN(right)) return false;
+
+  if (op === '>' || op === '>') return left > right;
+  if (op === '<') return left < right;
+  if (op === '>=') return left >= right;
+  if (op === '<=') return left <= right;
+  if (op === '==' || op === '=') return left === right;
+  return false;
 }
 
 function selectSheetCell(cellId) {
@@ -3689,6 +3832,53 @@ function applyFormulaBarInput() {
   }
 }
 
+function onFormulaInputChange(val) {
+  const dropdown = document.getElementById('formula-autocomplete-list');
+  if (!dropdown) return;
+
+  if (val.startsWith('=')) {
+    const query = val.substring(1).toUpperCase();
+    const matches = FORMULA_DEFINITIONS.filter(f => f.name.startsWith(query) || f.syntax.startsWith(val.toUpperCase()));
+    if (matches.length > 0) {
+      dropdown.innerHTML = matches.map(m => `
+        <div class="formula-suggest-item" onclick="selectFormulaSuggestion('${m.syntax}')">
+          <span class="formula-suggest-syntax">${m.syntax}</span>
+          <span class="formula-suggest-desc">${m.desc}</span>
+        </div>
+      `).join('');
+      dropdown.style.display = 'block';
+      return;
+    }
+  }
+  dropdown.style.display = 'none';
+}
+
+function selectFormulaSuggestion(syntax) {
+  const input = document.getElementById('sheet-formula-input');
+  const dropdown = document.getElementById('formula-autocomplete-list');
+  if (input) {
+    input.value = syntax;
+    input.focus();
+  }
+  if (dropdown) dropdown.style.display = 'none';
+}
+
+function insertFormulaTemplate(template) {
+  const input = document.getElementById('sheet-formula-input');
+  if (input) {
+    input.value = template;
+    input.focus();
+    onFormulaInputChange(template);
+  }
+}
+
+function toggleFormulaHelperModal() {
+  const modal = document.getElementById('formula-reference-modal');
+  if (modal) {
+    modal.style.display = (modal.style.display === 'none' || !modal.style.display) ? 'flex' : 'none';
+  }
+}
+
 function addGridRow() {
   gridState.rowCount++;
   initSpreadsheetGrid();
@@ -3727,25 +3917,25 @@ function exportGridCSV() {
 }
 
 function loadSampleFinancialModel() {
-  gridState.data['A10'] = 'Enterprise SaaS Clients'; gridState.data['B10'] = 142; gridState.data['C10'] = 188; gridState.data['D10'] = 245; gridState.data['E10'] = 310; gridState.data['F10'] = '=SUM(B10:E10)';
-  gridState.data['A11'] = 'ARPU (Monthly Avg)'; gridState.data['B11'] = 980; gridState.data['C11'] = 1050; gridState.data['D11'] = 1180; gridState.data['E11'] = 1250; gridState.data['F11'] = '=AVG(B11:E11)';
+  gridState.data['A10'] = 'Quarterly Average'; gridState.data['B10'] = '=AVG(B2:B5)'; gridState.data['C10'] = '=AVG(C2:C5)'; gridState.data['D10'] = '=AVG(D2:D5)'; gridState.data['E10'] = '=AVG(E2:E5)'; gridState.data['F10'] = '=AVG(F2:F5)';
+  gridState.data['A13'] = 'Enterprise SaaS Clients'; gridState.data['B13'] = 142; gridState.data['C13'] = 188; gridState.data['D13'] = 245; gridState.data['E13'] = 310; gridState.data['F13'] = '=SUM(B13:E13)';
   initSpreadsheetGrid();
   showToast('Loaded Enterprise Financial Model into Sovereign Grid.');
 }
 
 function aiAutofillGrid() {
-  gridState.data['A12'] = 'AI Autonomous Workflows'; gridState.data['B12'] = 12500; gridState.data['C12'] = 18900; gridState.data['D12'] = 27400; gridState.data['E12'] = 38000; gridState.data['F12'] = '=SUM(B12:E12)';
+  gridState.data['A14'] = 'AI Autonomous Workflows'; gridState.data['B14'] = 12500; gridState.data['C14'] = 18900; gridState.data['D14'] = 27400; gridState.data['E14'] = 38000; gridState.data['F14'] = '=SUM(B14:E14)';
   initSpreadsheetGrid();
   showToast('✨ Gemini AI populated projected AI Autonomous Workflows line item.');
 }
 
 
 // --------------------------------------------------------------------------
-// 2. LIVE DOCUMENT EDITOR ENGINE
+// 2. LIVE DOCUMENT EDITOR & RICH WYSIWYG ENGINE
 // --------------------------------------------------------------------------
 let docState = {
   title: 'Sovereign Engine Series A Executive Memo.md',
-  viewMode: 'split',
+  viewMode: 'wysiwyg',
   content: `# ⚡ Sovereign Engine OS — Executive Memorandum (Q3 2026)
 
 > **CONFIDENTIAL** — Prepared for Quantum Enterprise Partners & Sovereign Board of Directors
@@ -3781,30 +3971,62 @@ contract SovereignTreasuryVault is Initializable {
 `
 };
 
-function initDocEditor(textareaId = 'doc-textarea-input', previewId = 'doc-preview-pane-container') {
-  const textarea = document.getElementById(textareaId);
+function initDocEditor() {
+  const textarea = document.getElementById('doc-textarea-input');
   const titleInput = document.getElementById('doc-title-input');
-  if (titleInput) titleInput.value = docState.title;
-  if (textarea) {
-    textarea.value = docState.content;
-    renderDocPreview(previewId);
-    updateDocStats();
-  }
-}
+  const wysiwygCanvas = document.getElementById('doc-wysiwyg-canvas');
 
-function updateDocContent(newVal, previewId = 'doc-preview-pane-container') {
-  docState.content = newVal;
-  renderDocPreview(previewId);
+  if (titleInput) titleInput.value = docState.title;
+  if (textarea) textarea.value = docState.content;
+
+  if (wysiwygCanvas) {
+    wysiwygCanvas.innerHTML = markdownToHtml(docState.content);
+  }
+
+  renderDocPreview();
   updateDocStats();
 }
 
-function renderDocPreview(previewId = 'doc-preview-pane-container') {
-  const preview = document.getElementById(previewId);
-  if (!preview) return;
+function onWysiwygCanvasInput() {
+  const wysiwygCanvas = document.getElementById('doc-wysiwyg-canvas');
+  if (!wysiwygCanvas) return;
 
-  let md = docState.content;
-  // Simple glassmorphic markdown parser
-  let html = md
+  const html = wysiwygCanvas.innerHTML;
+  docState.content = htmlToMarkdown(html);
+
+  const textarea = document.getElementById('doc-textarea-input');
+  if (textarea) textarea.value = docState.content;
+
+  updateDocStats();
+}
+
+function updateDocContent(newVal) {
+  docState.content = newVal;
+  const wysiwygCanvas = document.getElementById('doc-wysiwyg-canvas');
+  if (wysiwygCanvas) wysiwygCanvas.innerHTML = markdownToHtml(newVal);
+
+  renderDocPreview();
+  updateDocStats();
+}
+
+function execWysiwygCommand(command, value = null) {
+  document.execCommand(command, false, value);
+  onWysiwygCanvasInput();
+}
+
+function promptInsertLink() {
+  const url = prompt("Enter Hyperlink URL:", "https://sovereignengine.io");
+  if (url) execWysiwygCommand('createLink', url);
+}
+
+function promptInsertImage() {
+  const url = prompt("Enter Image URL:", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800");
+  if (url) execWysiwygCommand('insertImage', url);
+}
+
+function markdownToHtml(md) {
+  if (!md) return '';
+  return md
     .replace(/^### (.*$)/gim, '<h3>$1</h3>')
     .replace(/^## (.*$)/gim, '<h2>$1</h2>')
     .replace(/^# (.*$)/gim, '<h1>$1</h1>')
@@ -3817,8 +4039,31 @@ function renderDocPreview(previewId = 'doc-preview-pane-container') {
     .replace(/`([^`]+)`/gim, '<code>$1</code>')
     .replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>')
     .replace(/\n\n/gim, '<br/><br/>');
+}
 
-  preview.innerHTML = html;
+function htmlToMarkdown(html) {
+  if (!html) return '';
+  let md = html
+    .replace(/<h1>(.*?)<\/h1>/gim, '# $1\n\n')
+    .replace(/<h2>(.*?)<\/h2>/gim, '## $1\n\n')
+    .replace(/<h3>(.*?)<\/h3>/gim, '### $1\n\n')
+    .replace(/<blockquote>(.*?)<\/blockquote>/gim, '> $1\n\n')
+    .replace(/<strong>(.*?)<\/strong>/gim, '**$1**')
+    .replace(/<b>(.*?)<\/b>/gim, '**$1**')
+    .replace(/<em>(.*?)<\/em>/gim, '*$1*')
+    .replace(/<i>(.*?)<\/i>/gim, '*$1*')
+    .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/gim, '```\n$1\n```\n\n')
+    .replace(/<code>(.*?)<\/code>/gim, '`$1`')
+    .replace(/<ul><li>(.*?)<\/li><\/ul>/gim, '- $1\n')
+    .replace(/<li>(.*?)<\/li>/gim, '- $1\n')
+    .replace(/<br\s*\/?>/gim, '\n');
+  return md.trim();
+}
+
+function renderDocPreview(previewId = 'doc-preview-pane-container') {
+  const preview = document.getElementById(previewId);
+  if (!preview) return;
+  preview.innerHTML = markdownToHtml(docState.content);
 }
 
 function updateDocStats() {
@@ -3836,49 +4081,31 @@ function updateDocStats() {
   if (readTimeEl) readTimeEl.textContent = `~${readTime} min read`;
 }
 
-function formatDocText(syntaxType) {
-  const textarea = document.getElementById('doc-textarea-input');
-  if (!textarea) return;
-
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const selected = textarea.value.substring(start, end);
-  let replacement = '';
-
-  switch (syntaxType) {
-    case 'bold': replacement = `**${selected || 'bold text'}**`; break;
-    case 'italic': replacement = `*${selected || 'italic text'}*`; break;
-    case 'h1': replacement = `\n# ${selected || 'Heading 1'}\n`; break;
-    case 'h2': replacement = `\n## ${selected || 'Heading 2'}\n`; break;
-    case 'quote': replacement = `\n> ${selected || 'Blockquote text'}\n`; break;
-    case 'code': replacement = `\`\`\`javascript\n${selected || '// Code snippet'}\n\`\`\``; break;
-    case 'bullet': replacement = `\n- ${selected || 'Bullet item'}\n`; break;
-  }
-
-  textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
-  updateDocContent(textarea.value);
-  textarea.focus();
-}
-
 function switchDocViewMode(mode) {
   docState.viewMode = mode;
   const workspace = document.getElementById('doc-workspace-grid');
+  const wysiwygPane = document.getElementById('doc-wysiwyg-pane');
   const editorPane = document.getElementById('doc-editor-pane');
   const previewPane = document.getElementById('doc-preview-pane-container');
 
-  if (!workspace || !editorPane || !previewPane) return;
+  if (!workspace || !wysiwygPane || !editorPane || !previewPane) return;
 
-  if (mode === 'edit') {
+  wysiwygPane.style.display = 'none';
+  editorPane.style.display = 'none';
+  previewPane.style.display = 'none';
+
+  if (mode === 'wysiwyg') {
+    workspace.style.gridTemplateColumns = '1fr';
+    wysiwygPane.style.display = 'block';
+  } else if (mode === 'edit') {
     workspace.style.gridTemplateColumns = '1fr';
     editorPane.style.display = 'block';
-    previewPane.style.display = 'none';
   } else if (mode === 'preview') {
     workspace.style.gridTemplateColumns = '1fr';
-    editorPane.style.display = 'none';
     previewPane.style.display = 'block';
   } else { // split
     workspace.style.gridTemplateColumns = '1fr 1fr';
-    editorPane.style.display = 'block';
+    wysiwygPane.style.display = 'block';
     previewPane.style.display = 'block';
   }
 
@@ -3899,6 +4126,12 @@ function aiSummarizeDoc() {
   showToast('✨ AI generated executive summary section.');
 }
 
+function aiExpandDocSection() {
+  docState.content += `\n\n## 3. Autonomic Financial Scaling & Risk Safeguards\n\nSovereign Engine employs real-time anomaly detection across payment channels. High-tier accounts automatically receive AURA Underwriting verification with instantaneous zero-knowledge settlement receipts.`;
+  initDocEditor();
+  showToast('✨ AI expanded document section.');
+}
+
 function exportDocMD() {
   const blob = new Blob([docState.content], { type: 'text/markdown;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -3911,10 +4144,12 @@ function exportDocMD() {
 
 
 // --------------------------------------------------------------------------
-// 3. LIVE PITCH DECK STUDIO ENGINE
+// 3. LIVE PITCH DECK STUDIO & PRESENTER ENGINE
 // --------------------------------------------------------------------------
 let deckState = {
   currentSlideIndex: 0,
+  presenterTimerInterval: null,
+  presenterElapsedSeconds: 0,
   slides: [
     {
       id: 1,
@@ -3928,7 +4163,8 @@ let deckState = {
         { label: 'Autonomic Profit Margin', val: '74.2%' },
         { label: 'Scalable Apps', val: '200 Apps' }
       ],
-      content: 'Unifying zero-knowledge ledger accounting, app store entitlement routing, and autonomous micro-workers into a single glassmorphic command platform.'
+      content: 'Unifying zero-knowledge ledger accounting, app store entitlement routing, and autonomous micro-workers into a single glassmorphic command platform.',
+      presenterNotes: 'Welcome Board Members & Partners. Highlight the $1.78M ARR milestone right away. Emphasize that our 74.2% net margin is achieved through zero-overhead autonomous AI workers.'
     },
     {
       id: 2,
@@ -3938,10 +4174,12 @@ let deckState = {
       badge: 'Product Architecture',
       bullets: [
         '📊 Sovereign Grid: Real-time financial spreadsheet engine with formula evaluation and CSV sync',
-        '📝 Sovereign Doc: Rich markdown editor with live WYSIWYG rendering & AI co-authoring',
-        '📽️ Sovereign Slides: Dynamic pitch deck builder with interactive live slide presentation mode',
-        '🤖 Multi-Artifact AI Drawer: Seamless workspace for managing, inspecting diffs, and transforming AI artifacts'
-      ]
+        '📝 Sovereign Doc: Rich markdown & WYSIWYG editor with live AI co-authoring',
+        '📽️ Sovereign Slides: Dynamic pitch deck studio with presenter view & speaker cues',
+        '✍️ SovereignSign: SHA-256 ZK-Proof digital signature canvas',
+        '📁 SovereignDrive: Encrypted ZK Vault storage & file manager'
+      ],
+      presenterNotes: 'Focus on replacing Microsoft 365 / Google Workspace for crypto & AI native startups. Every document is bound to zero-knowledge audit trails.'
     },
     {
       id: 3,
@@ -3954,7 +4192,8 @@ let deckState = {
         { label: 'Google Play Billing', val: '$54.2k (36%)' },
         { label: 'Samsung Galaxy Store', val: '$16.4k (11%)' },
         { label: 'Stripe Web Paywalls', val: '$9.8k (7%)' }
-      ]
+      ],
+      presenterNotes: 'StoreKit 2 remains our highest revenue channel. RevenueCat integration handles all cross-platform entitlement routing instantly.'
     },
     {
       id: 4,
@@ -3962,7 +4201,8 @@ let deckState = {
       subtitle: 'Zero-Knowledge Sovereign Ledger',
       type: 'architecture',
       badge: 'Core Protocol',
-      content: 'Autonomous smart contracts manage node staking, automated dividend payouts, and cross-chain treasury reserves with zero reliance on legacy banking rails.'
+      content: 'Autonomous smart contracts manage node staking, automated dividend payouts, and cross-chain treasury reserves with zero reliance on legacy banking rails.',
+      presenterNotes: 'Mention our 15% revenue buyback mechanism that continuously accrues value to FORMA stakers.'
     },
     {
       id: 5,
@@ -3975,18 +4215,21 @@ let deckState = {
         'Q4 2026: Launch Autonomous Swarm Worker Micro-Subscriptions',
         'Q1 2027: Enterprise Hardware Node Entanglement & Wear OS Mesh',
         'Q2 2027: Sovereign Engine Global Autonomous DAO Transition'
-      ]
+      ],
+      presenterNotes: 'Conclude with our expansion timeline. Ask investors for feedback on Q1 2027 hardware node strategy.'
     }
   ]
 };
 
-function initPitchDeck(containerId = 'slide-stage-viewport-container', sidebarId = 'slide-thumbnails-sidebar-container') {
-  renderSlideSidebar(sidebarId);
-  renderActiveSlide(containerId);
+function initPitchDeck() {
+  renderSlideSidebar();
+  renderActiveSlide();
+  updatePresenterNotesUI();
+  setupDeckKeyboardShortcuts();
 }
 
-function renderSlideSidebar(sidebarId = 'slide-thumbnails-sidebar-container') {
-  const sidebar = document.getElementById(sidebarId);
+function renderSlideSidebar() {
+  const sidebar = document.getElementById('slide-thumbnails-sidebar-container');
   if (!sidebar) return;
 
   sidebar.innerHTML = deckState.slides.map((slide, idx) => {
@@ -4052,10 +4295,85 @@ function renderActiveSlide(containerId = 'slide-stage-viewport-container') {
   `;
 }
 
+function updatePresenterNotesUI() {
+  const input = document.getElementById('presenter-notes-input');
+  if (input) {
+    const slide = deckState.slides[deckState.currentSlideIndex];
+    input.value = slide.presenterNotes || '';
+  }
+}
+
+function updateCurrentPresenterNotes(newNotes) {
+  const slide = deckState.slides[deckState.currentSlideIndex];
+  if (slide) slide.presenterNotes = newNotes;
+}
+
+function togglePresenterNotesPane() {
+  const pane = document.getElementById('presenter-notes-container');
+  if (pane) {
+    pane.style.display = (pane.style.display === 'none') ? 'flex' : 'none';
+  }
+}
+
+function aiGeneratePresenterNotes() {
+  const slide = deckState.slides[deckState.currentSlideIndex];
+  slide.presenterNotes = `🎙️ AI Speaker Cue for "${slide.title}":\n- Highlight key quantitative metrics.\n- Address investor questions regarding zero-knowledge compliance.\n- Transition smoothly to slide #${deckState.currentSlideIndex + 2}.`;
+  updatePresenterNotesUI();
+  showToast("✨ AI generated speaker presenter notes!");
+}
+
+function openPresenterModeWindow() {
+  const modal = document.getElementById('presenter-view-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  deckState.presenterElapsedSeconds = 0;
+  clearInterval(deckState.presenterTimerInterval);
+  deckState.presenterTimerInterval = setInterval(() => {
+    deckState.presenterElapsedSeconds++;
+    const mins = Math.floor(deckState.presenterElapsedSeconds / 60).toString().padStart(2, '0');
+    const secs = (deckState.presenterElapsedSeconds % 60).toString().padStart(2, '0');
+    const timerBadge = document.getElementById('presenter-timer-badge');
+    if (timerBadge) timerBadge.textContent = `⏱ Elapsed: ${mins}:${secs}`;
+  }, 1000);
+
+  renderPresenterWindowContent();
+}
+
+function closePresenterModeWindow() {
+  const modal = document.getElementById('presenter-view-modal');
+  if (modal) modal.style.display = 'none';
+  clearInterval(deckState.presenterTimerInterval);
+}
+
+function renderPresenterWindowContent() {
+  renderActiveSlide('presenter-current-slide-viewport');
+
+  const nextBox = document.getElementById('presenter-next-slide-preview');
+  const nextIdx = deckState.currentSlideIndex + 1;
+  if (nextBox) {
+    if (nextIdx < deckState.slides.length) {
+      const nextSlide = deckState.slides[nextIdx];
+      nextBox.innerHTML = `<strong>#0${nextIdx + 1}: ${escapeHtml(nextSlide.title)}</strong><br/><span style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(nextSlide.subtitle)}</span>`;
+    } else {
+      nextBox.innerHTML = `<em>End of presentation slides.</em>`;
+    }
+  }
+
+  const notesBox = document.getElementById('presenter-notes-text-box');
+  if (notesBox) {
+    const curSlide = deckState.slides[deckState.currentSlideIndex];
+    notesBox.textContent = curSlide.presenterNotes || 'No speaker notes written for this slide.';
+  }
+}
+
 function nextSlide() {
   if (deckState.currentSlideIndex < deckState.slides.length - 1) {
     deckState.currentSlideIndex++;
     initPitchDeck();
+    if (document.getElementById('presenter-view-modal')?.style.display === 'flex') {
+      renderPresenterWindowContent();
+    }
   }
 }
 
@@ -4063,6 +4381,9 @@ function prevSlide() {
   if (deckState.currentSlideIndex > 0) {
     deckState.currentSlideIndex--;
     initPitchDeck();
+    if (document.getElementById('presenter-view-modal')?.style.display === 'flex') {
+      renderPresenterWindowContent();
+    }
   }
 }
 
@@ -4070,6 +4391,9 @@ function goToSlide(idx) {
   if (idx >= 0 && idx < deckState.slides.length) {
     deckState.currentSlideIndex = idx;
     initPitchDeck();
+    if (document.getElementById('presenter-view-modal')?.style.display === 'flex') {
+      renderPresenterWindowContent();
+    }
   }
 }
 
@@ -4077,8 +4401,8 @@ function toggleDeckFullscreen() {
   const viewport = document.getElementById('slide-stage-viewport-container');
   if (!viewport) return;
   if (!document.fullscreenElement) {
-    viewport.requestFullscreen().catch(err => {
-      showToast('Fullscreen requested on viewport.');
+    viewport.requestFullscreen().catch(() => {
+      showToast('Fullscreen mode requested.');
     });
   } else {
     document.exitFullscreen();
@@ -4088,25 +4412,464 @@ function toggleDeckFullscreen() {
 function aiGenerateNewSlide() {
   const newSlide = {
     id: deckState.slides.length + 1,
-    title: '✨ AI Generated Market Opportunity',
-    subtitle: 'Autonomic Enterprise TAM Expansion',
+    title: '✨ AI Synthesized Enterprise Expansion',
+    subtitle: 'Autonomic Market TAM Growth Strategy',
     type: 'features',
     badge: 'AI Synthesized',
     bullets: [
-      'Total Addressable Market (TAM): $85B Legacy Accounting & ERP Software',
-      'Serviceable Obtainable Market (SOM): $4.2B Sovereign Crypto & AI Enterprises',
-      'Competitive Advantage: Zero gas fee accounting with native RevenueCat entitlement routing'
-    ]
+      'Total Addressable Market (TAM): $85B Enterprise ERP Infrastructure',
+      'Serviceable Market: $4.2B Sovereign AI Startups',
+      'Competitive Advantage: Zero gas fee ledger with native RevenueCat entitlement routing'
+    ],
+    presenterNotes: 'AI Generated Slide: Emphasize market size and zero-fee blockchain advantage.'
   };
   deckState.slides.push(newSlide);
   deckState.currentSlideIndex = deckState.slides.length - 1;
   initPitchDeck();
-  showToast('✨ AI generated new Market Opportunity slide.');
+  showToast('✨ AI generated new slide with presenter notes!');
+}
+
+function setupDeckKeyboardShortcuts() {
+  document.removeEventListener('keydown', handleDeckHotkey);
+  document.addEventListener('keydown', handleDeckHotkey);
+}
+
+function handleDeckHotkey(e) {
+  const activeSec = document.getElementById('sec-office-slides');
+  if (!activeSec || activeSec.style.display === 'none') return;
+  if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+  if (e.key === 'ArrowRight') nextSlide();
+  if (e.key === 'ArrowLeft') prevSlide();
+  if (e.key.toLowerCase() === 'n') togglePresenterNotesPane();
+  if (e.key.toLowerCase() === 'f') toggleDeckFullscreen();
 }
 
 
 // --------------------------------------------------------------------------
-// 4. MULTI-ARTIFACT AI DRAWER ENGINE
+// 4. SOVEREIGN SIGN (DIGITAL SIGNATURE CANVAS ENGINE)
+// --------------------------------------------------------------------------
+let signatureState = {
+  mode: 'draw', // 'draw' or 'type'
+  penColor: '#00f2fe',
+  penWidth: 3,
+  isDrawing: false,
+  strokes: [],
+  currentStroke: [],
+  typedFont: 'Dancing Script'
+};
+
+function initSignatureCanvas() {
+  const canvas = document.getElementById('sovereign-signature-canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = signatureState.penColor;
+  ctx.lineWidth = signatureState.penWidth;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Event Listeners for drawing
+  canvas.onmousedown = (e) => startSigDrawing(e, canvas, ctx);
+  canvas.onmousemove = (e) => drawSig(e, canvas, ctx);
+  canvas.onmouseup = () => stopSigDrawing(canvas, ctx);
+  canvas.onmouseleave = () => stopSigDrawing(canvas, ctx);
+
+  // Touch support for tablets & Wear/mobile devices
+  canvas.ontouchstart = (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    startSigDrawing({ clientX: touch.clientX, clientY: touch.clientY }, canvas, ctx, rect);
+  };
+  canvas.ontouchmove = (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    drawSig({ clientX: touch.clientX, clientY: touch.clientY }, canvas, ctx, rect);
+  };
+  canvas.ontouchend = () => stopSigDrawing(canvas, ctx);
+
+  recalculateSigCertificate();
+}
+
+function startSigDrawing(e, canvas, ctx, rect = null) {
+  signatureState.isDrawing = true;
+  const bound = rect || canvas.getBoundingClientRect();
+  const x = e.clientX - bound.left;
+  const y = e.clientY - bound.top;
+
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  signatureState.currentStroke = [{ x, y }];
+}
+
+function drawSig(e, canvas, ctx, rect = null) {
+  if (!signatureState.isDrawing) return;
+  const bound = rect || canvas.getBoundingClientRect();
+  const x = e.clientX - bound.left;
+  const y = e.clientY - bound.top;
+
+  ctx.strokeStyle = signatureState.penColor;
+  ctx.lineWidth = signatureState.penWidth;
+  ctx.lineTo(x, y);
+  ctx.stroke();
+
+  signatureState.currentStroke.push({ x, y });
+}
+
+function stopSigDrawing(canvas, ctx) {
+  if (!signatureState.isDrawing) return;
+  signatureState.isDrawing = false;
+  ctx.closePath();
+  if (signatureState.currentStroke.length > 0) {
+    signatureState.strokes.push([...signatureState.currentStroke]);
+    signatureState.currentStroke = [];
+    recalculateSigCertificate();
+  }
+}
+
+function setSignaturePenColor(color, el) {
+  signatureState.penColor = color;
+  document.querySelectorAll('.pen-color-dot').forEach(d => d.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function setSignatureStrokeWidth(val) {
+  signatureState.penWidth = parseInt(val);
+  const label = document.getElementById('sig-stroke-val');
+  if (label) label.textContent = `${val}px`;
+}
+
+function clearSignatureCanvas() {
+  const canvas = document.getElementById('sovereign-signature-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  signatureState.strokes = [];
+  recalculateSigCertificate();
+  showToast("Cleared signature canvas.");
+}
+
+function undoSignatureStroke() {
+  if (signatureState.strokes.length === 0) return;
+  signatureState.strokes.pop();
+  redrawSignatureStrokes();
+  recalculateSigCertificate();
+}
+
+function redrawSignatureStrokes() {
+  const canvas = document.getElementById('sovereign-signature-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  signatureState.strokes.forEach(stroke => {
+    if (stroke.length === 0) return;
+    ctx.beginPath();
+    ctx.strokeStyle = signatureState.penColor;
+    ctx.lineWidth = signatureState.penWidth;
+    ctx.moveTo(stroke[0].x, stroke[0].y);
+    for (let i = 1; i < stroke.length; i++) {
+      ctx.lineTo(stroke[i].x, stroke[i].y);
+    }
+    ctx.stroke();
+    ctx.closePath();
+  });
+}
+
+function switchSignatureMode(mode) {
+  signatureState.mode = mode;
+  const drawBtn = document.getElementById('sign-mode-draw-btn');
+  const typeBtn = document.getElementById('sign-mode-type-btn');
+  const drawCont = document.getElementById('sign-draw-container');
+  const typeCont = document.getElementById('sign-type-container');
+
+  if (mode === 'type') {
+    if (drawBtn) drawBtn.classList.remove('active');
+    if (typeBtn) typeBtn.classList.add('active');
+    if (drawCont) drawCont.style.display = 'none';
+    if (typeCont) typeCont.style.display = 'block';
+  } else {
+    if (drawBtn) drawBtn.classList.add('active');
+    if (typeBtn) typeBtn.classList.remove('active');
+    if (drawCont) drawCont.style.display = 'block';
+    if (typeCont) typeCont.style.display = 'none';
+  }
+}
+
+function updateTypedSignaturePreview(val) {
+  const box = document.getElementById('typed-sig-preview-box');
+  if (box) box.textContent = val || 'Your Name';
+  recalculateSigCertificate();
+}
+
+function setTypedSigFont(fontName, btn) {
+  signatureState.typedFont = fontName;
+  const box = document.getElementById('typed-sig-preview-box');
+  if (box) box.style.fontFamily = `'${fontName}', cursive`;
+}
+
+function convertTypedSignatureToCanvas() {
+  const canvas = document.getElementById('sovereign-signature-canvas');
+  const val = document.getElementById('typed-sig-input')?.value || 'Dr. Medin Sovereign';
+  if (!canvas) return;
+
+  switchSignatureMode('draw');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = `48px '${signatureState.typedFont}', cursive`;
+  ctx.fillStyle = signatureState.penColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(val, canvas.width / 2, canvas.height / 2);
+
+  signatureState.strokes.push([{ x: 100, y: 100 }]);
+  recalculateSigCertificate();
+  showToast("✓ Rendered calligraphic signature to canvas!");
+}
+
+function recalculateSigCertificate() {
+  const nameInput = document.getElementById('signer-name-input');
+  const hashEl = document.getElementById('sig-cert-hash');
+  const timeEl = document.getElementById('sig-cert-time');
+
+  const name = nameInput ? nameInput.value : 'Medin Sovereign';
+  const nowStr = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+  if (timeEl) timeEl.textContent = nowStr;
+
+  // Generate SHA-256 fingerprint simulation
+  const inputStr = `${name}:${nowStr}:${signatureState.strokes.length}:${signatureState.penColor}`;
+  let hash = 0;
+  for (let i = 0; i < inputStr.length; i++) {
+    hash = (hash << 5) - hash + inputStr.charCodeAt(i);
+    hash |= 0;
+  }
+  const hexHash = '0x' + Math.abs(hash).toString(16).padStart(16, 'a') + '7f8a9b0c1d2e3f4a5b6c7d8e9f0a';
+  if (hashEl) hashEl.textContent = hexHash;
+}
+
+function attachSignatureToDoc() {
+  const signerName = document.getElementById('signer-name-input')?.value || 'Medin Sovereign';
+  const certHash = document.getElementById('sig-cert-hash')?.textContent || '0x9f8b7a...';
+  const timeStr = document.getElementById('sig-cert-time')?.textContent || new Date().toISOString();
+
+  const sigBlock = `\n\n---
+### ✍️ SovereignSign Verified Digital Signature
+- **Signed By**: ${signerName}
+- **Timestamp**: ${timeStr}
+- **SHA-256 Certificate Hash**: \`${certHash}\`
+- **ZK-Proof Verification Status**: \`VERIFIED_ON_SOVEREIGN_LEDGER\` ✓
+---`;
+
+  docState.content += sigBlock;
+  initDocEditor();
+  showToast("✓ Cryptographic Signature attached to Sovereign Executive Memo!");
+}
+
+function exportSignaturePNG() {
+  const canvas = document.getElementById('sovereign-signature-canvas');
+  if (!canvas) return;
+  const link = document.createElement('a');
+  link.download = `Sovereign_Signature_${new Date().toISOString().slice(0,10)}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast("Downloaded signature artwork PNG.");
+}
+
+
+// --------------------------------------------------------------------------
+// 5. SOVEREIGN DRIVE (FILE MANAGER & VAULT ENGINE)
+// --------------------------------------------------------------------------
+let driveState = {
+  activeFolder: 'all',
+  searchQuery: '',
+  typeFilter: 'ALL',
+  viewMode: 'grid', // 'grid' or 'list'
+  files: [
+    { id: 'f-1', name: 'Financial Model 2026.xlsx', type: 'sheet', icon: '📊', size: '2.4 MB', date: '2026-08-20', folder: 'models', content: 'Enterprise Financial Grid with live formula solver data.' },
+    { id: 'f-2', name: 'Series A Executive Memo.md', type: 'doc', icon: '📝', size: '420 KB', date: '2026-08-20', folder: 'memos', content: 'Executive memorandum formatted in Markdown and WYSIWYG.' },
+    { id: 'f-3', name: 'Series A Investor Pitch Deck.deck', type: 'deck', icon: '📽️', size: '8.1 MB', date: '2026-08-19', folder: 'decks', content: '5 Widescreen slides with speaker notes for investor meetings.' },
+    { id: 'f-4', name: 'Executive Approval Contract.sig', type: 'sign', icon: '✍️', size: '150 KB', date: '2026-08-18', folder: 'signatures', content: 'Digitally signed cryptographic approval certificate with SHA-256 hash.' },
+    { id: 'f-5', name: 'SovereignTreasuryVault.sol', type: 'code', icon: '⚡', size: '64 KB', date: '2026-08-17', folder: 'contracts', content: 'Solidity smart contract vault managing entangled MRR.' },
+    { id: 'f-6', name: 'Q3 Tax Compliance Return.pdf', type: 'doc', icon: '📑', size: '1.2 MB', date: '2026-08-15', folder: 'memos', content: 'Autonomic tax return filing receipt.' }
+  ]
+};
+
+function initSovereignDrive() {
+  renderSovereignDrive();
+}
+
+function renderSovereignDrive() {
+  const container = document.getElementById('drive-files-container');
+  if (!container) return;
+
+  let filtered = driveState.files.filter(f => {
+    const matchesFolder = (driveState.activeFolder === 'all') || (f.folder === driveState.activeFolder);
+    const matchesSearch = f.name.toLowerCase().includes(driveState.searchQuery.toLowerCase());
+    const matchesType = (driveState.typeFilter === 'ALL') || (f.type === driveState.typeFilter);
+    return matchesFolder && matchesSearch && matchesType;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="padding: 3rem; text-align: center; color: var(--text-muted);">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📂</div>
+      <div>No files found in SovereignDrive folder matching filters.</div>
+    </div>`;
+    return;
+  }
+
+  if (driveState.viewMode === 'grid') {
+    container.innerHTML = `<div class="drive-grid-layout">
+      ${filtered.map(f => `
+        <div class="drive-file-card">
+          <div>
+            <div class="drive-file-icon">${f.icon}</div>
+            <div class="drive-file-title" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
+            <div class="drive-file-meta">${f.size} • ${f.date}</div>
+          </div>
+          <div class="drive-file-actions">
+            <button class="sheet-btn" onclick="previewDriveFile('${f.id}')" style="padding:0.2rem 0.5rem; font-size:0.75rem;">👁 Preview</button>
+            <button class="sheet-btn" onclick="downloadDriveFile('${f.id}')" style="padding:0.2rem 0.5rem; font-size:0.75rem;">📥 Export</button>
+            <button class="sheet-btn" onclick="deleteDriveFile('${f.id}')" style="padding:0.2rem 0.5rem; font-size:0.75rem; color:var(--accent-rose);">🗑</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  } else {
+    container.innerHTML = `<div class="drive-list-layout">
+      ${filtered.map(f => `
+        <div class="drive-list-row">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem;">${f.icon}</span>
+            <div>
+              <div class="drive-file-title">${escapeHtml(f.name)}</div>
+              <div class="drive-file-meta" style="margin:0;">Folder: ${f.folder} • ${f.size}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">${f.date}</span>
+            <div class="drive-file-actions">
+              <button class="sheet-btn" onclick="previewDriveFile('${f.id}')">👁 Preview</button>
+              <button class="sheet-btn" onclick="downloadDriveFile('${f.id}')">📥 Export</button>
+              <button class="sheet-btn" onclick="deleteDriveFile('${f.id}')" style="color:var(--accent-rose);">🗑 Delete</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+}
+
+function selectDriveFolder(folderKey, el) {
+  driveState.activeFolder = folderKey;
+  document.querySelectorAll('.drive-folder-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderSovereignDrive();
+}
+
+function filterDriveFiles(query = null) {
+  if (query !== null) driveState.searchQuery = query;
+  const select = document.getElementById('drive-type-filter');
+  if (select) driveState.typeFilter = select.value;
+  renderSovereignDrive();
+}
+
+function setDriveViewMode(mode) {
+  driveState.viewMode = mode;
+  const gridBtn = document.getElementById('drive-view-grid-btn');
+  const listBtn = document.getElementById('drive-view-list-btn');
+
+  if (mode === 'grid') {
+    if (gridBtn) gridBtn.classList.add('active');
+    if (listBtn) listBtn.classList.remove('active');
+  } else {
+    if (gridBtn) gridBtn.classList.remove('active');
+    if (listBtn) listBtn.classList.add('active');
+  }
+  renderSovereignDrive();
+}
+
+function previewDriveFile(fileId) {
+  const file = driveState.files.find(f => f.id === fileId);
+  if (!file) return;
+
+  const modal = document.getElementById('drive-file-preview-modal');
+  const title = document.getElementById('drive-preview-modal-title');
+  const body = document.getElementById('drive-preview-modal-body');
+
+  if (title) title.textContent = `${file.icon} ${file.name}`;
+  if (body) {
+    body.innerHTML = `
+      <div style="margin-bottom: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+        Type: <strong>${file.type.toUpperCase()}</strong> • Size: <strong>${file.size}</strong> • Created: <strong>${file.date}</strong>
+      </div>
+      <div style="background: rgba(4,7,14,0.9); border: 1px solid var(--border-glass); border-radius: 10px; padding: 1.25rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-cyan); white-space: pre-wrap;">
+${escapeHtml(file.content)}
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.25rem;">
+        <button class="sheet-btn" onclick="downloadDriveFile('${file.id}')">📥 Export File</button>
+        <button class="sheet-btn sheet-btn-primary" onclick="closeDriveFilePreview()">Close</button>
+      </div>
+    `;
+  }
+
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeDriveFilePreview() {
+  const modal = document.getElementById('drive-file-preview-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function downloadDriveFile(fileId) {
+  const file = driveState.files.find(f => f.id === fileId);
+  if (file) {
+    const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    showToast(`Exported ${file.name} from SovereignDrive.`);
+  }
+}
+
+function deleteDriveFile(fileId) {
+  driveState.files = driveState.files.filter(f => f.id !== fileId);
+  renderSovereignDrive();
+  showToast("File removed from SovereignDrive Vault.");
+}
+
+function triggerDriveFileUpload() {
+  showToast("⚡ Simulating ZK-Encrypted SovereignDrive file upload...");
+  setTimeout(() => {
+    const newFile = {
+      id: `f-${Date.now()}`,
+      name: `Uploaded_Asset_${Math.floor(100 + Math.random() * 900)}.json`,
+      type: 'code',
+      icon: '📦',
+      size: '512 KB',
+      date: new Date().toISOString().slice(0, 10),
+      folder: 'all',
+      content: '{\n  "status": "ZK_ENCRYPTED_VAULT_UPLOADED",\n  "substrate": "Sovereign Engine OS"\n}'
+    };
+    driveState.files.unshift(newFile);
+    renderSovereignDrive();
+    showToast("✓ File uploaded and encrypted into SovereignDrive Vault!");
+  }, 1000);
+}
+
+function createDriveFolder() {
+  const name = prompt("Enter new folder name:", "Marketing Assets");
+  if (name) {
+    showToast(`Created SovereignDrive folder: ${name}`);
+  }
+}
+
+
+// --------------------------------------------------------------------------
+// 6. MULTI-ARTIFACT AI DRAWER ENGINE
 // --------------------------------------------------------------------------
 let artifactState = {
   activeArtifactId: 'art-1',
@@ -4363,12 +5126,12 @@ function downloadArtifact(artId) {
 
 
 // --------------------------------------------------------------------------
-// 5. OFFICE WORKSPACE SUITE NAVIGATOR
+// 7. OFFICE WORKSPACE SUITE NAVIGATOR
 // --------------------------------------------------------------------------
 function switchOfficeTab(tabName) {
-  const tabs = ['grid', 'doc', 'slides', 'artifacts'];
+  const tabs = ['grid', 'doc', 'slides', 'sign', 'drive', 'artifacts', 'analytics', 'cloudstudio', 'mcp', 'omnichannel'];
   tabs.forEach(t => {
-    const sec = document.getElementById(`sec-office-${t}`);
+    const sec = document.getElementById(`sec-office-${t}`) || document.getElementById(`sec-${t}-view`);
     const btn = document.getElementById(`office-tab-btn-${t}`);
     if (sec) sec.style.display = (t === tabName) ? 'block' : 'none';
     if (btn) {
@@ -4377,18 +5140,378 @@ function switchOfficeTab(tabName) {
     }
   });
 
+  if (tabName === 'cloudstudio' && typeof initVirtualCloudStudio === 'function') initVirtualCloudStudio();
+  if (tabName === 'mcp' && typeof filterMCPInspectorTools === 'function') filterMCPInspectorTools('');
+  if (tabName === 'omnichannel' && typeof initOmnichannelControlCenter === 'function') initOmnichannelControlCenter();
   if (tabName === 'grid') initSpreadsheetGrid();
   if (tabName === 'doc') initDocEditor();
   if (tabName === 'slides') initPitchDeck();
+  if (tabName === 'sign') initSignatureCanvas();
+  if (tabName === 'drive') initSovereignDrive();
   if (tabName === 'artifacts') openMultiArtifactDrawer();
+  if (tabName === 'analytics') renderAnalyticsDashboard();
 }
 
 function renderOfficeWorkspace() {
   initSpreadsheetGrid();
   initDocEditor();
   initPitchDeck();
+  initSignatureCanvas();
+  initSovereignDrive();
 }
 
+// ==========================================================================
+// 8. REVENUECAT PAYWALL, ENTITLEMENT BADGES, QUOTA METER & ANALYTICS MODULE
+// ==========================================================================
+
+let quotaState = {
+  used: 94,
+  max: 100,
+  period: 'Monthly',
+  resetsInDays: 6
+};
+
+let paywallBillingCycle = 'monthly';
+let selectedAnalyticsTimeframe = '12M';
+
+// 1. ENTITLEMENT BADGES MANAGER
+function updateEntitlementBadges() {
+  const tier = revenueCatState.tier || 'pro';
+  
+  const badgeConfig = {
+    free: { text: '⚡ STARTER', class: 'badge-pro', opacity: '0.7', sub: 'Starter Sovereign Tier' },
+    pro: { text: '⚡ PRO', class: 'badge-pro', opacity: '1', sub: 'PRO Substrate Tier' },
+    enterprise: { text: '💎 ENTERPRISE', class: 'badge-enterprise', opacity: '1', sub: 'Enterprise Quantum Tier' },
+    quantum: { text: '💎 ENTERPRISE', class: 'badge-enterprise', opacity: '1', sub: 'Enterprise Quantum Tier' },
+    unlimited: { text: '🚀 UNLIMITED AI', class: 'badge-unlimited', opacity: '1', sub: 'UNLIMITED AI Tier' }
+  };
+
+  const current = badgeConfig[tier] || badgeConfig.pro;
+
+  ['nav-entitlement-badge', 'overview-nav-entitlement-badge'].forEach(id => {
+    const badgeEl = document.getElementById(id);
+    if (badgeEl) {
+      badgeEl.className = `entitlement-badge ${current.class}`;
+      badgeEl.style.opacity = current.opacity;
+      badgeEl.innerHTML = current.text;
+    }
+  });
+
+  ['quota-badge-tier-tag', 'overview-quota-badge-tier-tag'].forEach(id => {
+    const tagEl = document.getElementById(id);
+    if (tagEl) {
+      tagEl.className = `entitlement-badge ${current.class}`;
+      tagEl.style.opacity = current.opacity;
+      tagEl.innerHTML = current.text;
+    }
+  });
+
+  ['rc-modal-active-tier-name', 'rc-modal-active-tier-name-overview'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = current.sub;
+  });
+
+  ['rc-modal-badge-slot', 'rc-modal-badge-slot-overview'].forEach(id => {
+    const slot = document.getElementById(id);
+    if (slot) {
+      slot.innerHTML = `<span class="entitlement-badge ${current.class}">${current.text} ACTIVE</span>`;
+    }
+  });
+}
+
+// 2. QUOTA USAGE METER MANAGER
+function updateQuotaMeterUI() {
+  const tier = revenueCatState.tier || 'pro';
+  
+  if (tier === 'free') quotaState.max = 100;
+  else if (tier === 'pro') quotaState.max = 500;
+  else if (tier === 'enterprise' || tier === 'quantum') quotaState.max = 2500;
+  else if (tier === 'unlimited') quotaState.max = Infinity;
+
+  const isUnlimited = quotaState.max === Infinity;
+  const pct = isUnlimited ? 100 : Math.min(100, Math.round((quotaState.used / quotaState.max) * 100));
+
+  const textStr = isUnlimited 
+    ? `${quotaState.used} / ∞ (UNLIMITED AI)` 
+    : `${quotaState.used} / ${quotaState.max} AI Generations (${pct}%)`;
+
+  ['quota-meter-text', 'overview-quota-meter-text'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = textStr;
+  });
+
+  ['quota-bar-fill-elem', 'overview-quota-bar-fill-elem'].forEach(id => {
+    const fillEl = document.getElementById(id);
+    if (fillEl) {
+      fillEl.style.width = `${pct}%`;
+      if (pct >= 90 && !isUnlimited) fillEl.classList.add('warning');
+      else fillEl.classList.remove('warning');
+    }
+  });
+
+  const remaining = isUnlimited ? '∞' : Math.max(0, quotaState.max - quotaState.used);
+  const subText = isUnlimited
+    ? `🚀 Unlimited AI generations active • No rate limits`
+    : `⚡ ${remaining} AI Generations left in cycle • Resets in ${quotaState.resetsInDays} Days`;
+
+  ['quota-sub-reset-text', 'overview-quota-sub-reset-text'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = subText;
+  });
+
+  ['rc-modal-active-tier-sub', 'rc-modal-active-tier-sub-overview'].forEach(id => {
+    const subEl = document.getElementById(id);
+    if (subEl) subEl.innerText = `Quota: ${textStr} • ZK Security Mesh Active`;
+  });
+}
+
+function testAIGenerationQuota() {
+  const isUnlimited = revenueCatState.tier === 'unlimited';
+  
+  if (isUnlimited) {
+    quotaState.used += 1;
+    updateQuotaMeterUI();
+    showToast('🚀 AI Generation executed! Unlimited AI tier active.');
+    return;
+  }
+
+  if (quotaState.used < quotaState.max) {
+    quotaState.used += 1;
+    updateQuotaMeterUI();
+    showToast(`✨ AI Content generated! (${quotaState.used}/${quotaState.max} used)`);
+  } else {
+    showToast(`⚠️ Quota Limit Exceeded (${quotaState.used}/${quotaState.max})! Please upgrade your plan.`);
+    openRevenueCatPaywallModal();
+  }
+}
+
+function resetQuotaUsage() {
+  quotaState.used = 0;
+  updateQuotaMeterUI();
+  showToast('🔄 AI Quota meter reset to 0');
+}
+
+// 3. REVENUECAT PAYWALL MODAL FUNCTIONS
+function openRevenueCatPaywallModal() {
+  updateEntitlementBadges();
+  updateQuotaMeterUI();
+
+  const modal = document.getElementById('revenuecat-paywall-modal');
+  if (modal) modal.style.display = 'flex';
+  
+  const drawer = document.getElementById('revenuecat-drawer');
+  if (drawer) drawer.classList.add('active');
+}
+
+function closeRevenueCatPaywallModal() {
+  const modal = document.getElementById('revenuecat-paywall-modal');
+  if (modal) modal.style.display = 'none';
+
+  const drawer = document.getElementById('revenuecat-drawer');
+  if (drawer) drawer.classList.remove('active');
+}
+
+function setPaywallBilling(cycle) {
+  paywallBillingCycle = cycle;
+  const isAnnual = cycle === 'annual';
+
+  ['billing-btn-monthly', 'billing-btn-monthly-overview'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.toggle('active', !isAnnual);
+  });
+
+  ['billing-btn-annual', 'billing-btn-annual-overview'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.toggle('active', isAnnual);
+  });
+
+  const proPrice = isAnnual ? '$23.00' : '$29.00';
+  const entPrice = isAnnual ? '$159.00' : '$199.00';
+  const unlPrice = isAnnual ? '$399.00' : '$499.00';
+
+  ['price-pro-val', 'price-pro-val-overview'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `${proPrice} <span style="font-size: 0.75rem; color: var(--text-muted);">${isAnnual ? '/ mo (billed annually)' : '/ mo'}</span>`;
+  });
+
+  ['price-enterprise-val', 'price-enterprise-val-overview'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `${entPrice} <span style="font-size: 0.75rem; color: var(--text-muted);">${isAnnual ? '/ mo (billed annually)' : '/ mo'}</span>`;
+  });
+
+  ['price-unlimited-val', 'price-unlimited-val-overview'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `${unlPrice} <span style="font-size: 0.75rem; color: var(--text-muted);">${isAnnual ? '/ mo (billed annually)' : '/ mo'}</span>`;
+  });
+
+  showToast(`💳 Paywall Billing switched to ${cycle.toUpperCase()}`);
+}
+
+function simulateRevenueCatPurchase(tierKey) {
+  revenueCatState.tier = tierKey;
+
+  const payloadData = {
+    event: "PURCHASE_SUCCESS",
+    offering_id: `sov_${tierKey}_${paywallBillingCycle}`,
+    entitlement: `sov_${tierKey}_tier`,
+    subscriber_id: "user_sov_88492",
+    timestamp: new Date().toISOString(),
+    status: "active",
+    store: "STOREKIT_2",
+    receipt_id: "rc_rec_" + Math.random().toString(36).substring(2, 12).toUpperCase()
+  };
+
+  const payloadJsonStr = JSON.stringify(payloadData, null, 2);
+
+  ['rc-sandbox-payload-json', 'rc-sandbox-payload-json-overview'].forEach(id => {
+    const box = document.getElementById(id);
+    if (box) box.innerText = payloadJsonStr;
+  });
+
+  updateEntitlementBadges();
+  updateQuotaMeterUI();
+
+  const labels = {
+    free: 'Starter Sovereign (Free)',
+    pro: 'PRO Substrate ($29/mo)',
+    enterprise: 'ENTERPRISE Quantum ($199/mo)',
+    quantum: 'ENTERPRISE Quantum ($199/mo)',
+    unlimited: 'UNLIMITED AI ($499/mo)'
+  };
+
+  showToast(`🎉 RevenueCat Entitlement Updated: ${labels[tierKey] || tierKey.toUpperCase()} Activated!`);
+  
+  if (typeof applyFilters === 'function') applyFilters();
+}
+
+// 4. LONG-TERM ANALYTICS DASHBOARD FUNCTIONS
+const analyticsDatasets = {
+  '7D': {
+    mrr: '$148,920.00',
+    tokens: '4.8M Tokens/s',
+    conv: '16.2%',
+    nrr: '128.4%',
+    bars: [
+      { val: '$142k', h: '82%', label: 'Day 1' },
+      { val: '$143k', h: '85%', label: 'Day 2' },
+      { val: '$144k', h: '88%', label: 'Day 3' },
+      { val: '$145k', h: '90%', label: 'Day 4' },
+      { val: '$146k', h: '93%', label: 'Day 5' },
+      { val: '$147k', h: '96%', label: 'Day 6' },
+      { val: '$148k', h: '100%', label: 'Day 7' }
+    ]
+  },
+  '30D': {
+    mrr: '$148,920.00',
+    tokens: '4.5M Tokens/s',
+    conv: '15.4%',
+    nrr: '126.1%',
+    bars: [
+      { val: '$134k', h: '65%', label: 'Wk 1' },
+      { val: '$139k', h: '75%', label: 'Wk 2' },
+      { val: '$144k', h: '88%', label: 'Wk 3' },
+      { val: '$148k', h: '100%', label: 'Wk 4' }
+    ]
+  },
+  '90D': {
+    mrr: '$148,920.00',
+    tokens: '4.2M Tokens/s',
+    conv: '14.8%',
+    nrr: '124.6%',
+    bars: [
+      { val: '$122k', h: '55%', label: 'Jun' },
+      { val: '$135k', h: '72%', label: 'Jul' },
+      { val: '$148k', h: '100%', label: 'Aug' }
+    ]
+  },
+  '12M': {
+    mrr: '$148,920.00',
+    tokens: '4.2M Tokens/s',
+    conv: '14.8%',
+    nrr: '124.6%',
+    bars: [
+      { val: '$68k', h: '35%', label: 'Jan' },
+      { val: '$74k', h: '42%', label: 'Feb' },
+      { val: '$82k', h: '48%', label: 'Mar' },
+      { val: '$91k', h: '55%', label: 'Apr' },
+      { val: '$104k', h: '62%', label: 'May' },
+      { val: '$118k', h: '70%', label: 'Jun' },
+      { val: '$129k', h: '78%', label: 'Jul' },
+      { val: '$138k', h: '85%', label: 'Aug' },
+      { val: '$144k', h: '92%', label: 'Sep' },
+      { val: '$148k', h: '96%', label: 'Oct' },
+      { val: '$156k', h: '98%', label: 'Nov' },
+      { val: '$168k', h: '100%', label: 'Dec' }
+    ]
+  },
+  'ALL': {
+    mrr: '$148,920.00',
+    tokens: '4.2M Tokens/s',
+    conv: '14.8%',
+    nrr: '124.6%',
+    bars: [
+      { val: '$45k', h: '25%', label: 'Q1-25' },
+      { val: '$62k', h: '38%', label: 'Q2-25' },
+      { val: '$88k', h: '52%', label: 'Q3-25' },
+      { val: '$110k', h: '68%', label: 'Q4-25' },
+      { val: '$128k', h: '80%', label: 'Q1-26' },
+      { val: '$148k', h: '100%', label: 'Q2-26' }
+    ]
+  }
+};
+
+function selectAnalyticsTimeframe(period, btnElem) {
+  selectedAnalyticsTimeframe = period;
+
+  document.querySelectorAll('.timeframe-btn').forEach(btn => {
+    if (btn.innerText.trim() === period) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+
+  renderAnalyticsDashboard();
+  showToast(`📊 Analytics Timeframe set to ${period}`);
+}
+
+function refreshAnalyticsData() {
+  renderAnalyticsDashboard();
+  showToast('🔄 Long-Term Analytics telemetry synced in real time');
+}
+
+function renderAnalyticsDashboard() {
+  const data = analyticsDatasets[selectedAnalyticsTimeframe] || analyticsDatasets['12M'];
+
+  ['office-analytics-mrr-val', 'overview-analytics-mrr-val'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = data.mrr;
+  });
+
+  ['office-analytics-tokens-val', 'overview-analytics-tokens-val'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = data.tokens;
+  });
+
+  ['office-analytics-conv-val', 'overview-analytics-conv-val'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = data.conv;
+  });
+
+  ['office-analytics-nrr-val', 'overview-analytics-nrr-val'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = data.nrr;
+  });
+
+  const chartHtml = data.bars.map(b => `
+    <div class="analytics-bar-col">
+      <div class="analytics-bar-fill" style="height: ${b.h};" data-value="${b.val}"></div>
+      <span class="analytics-bar-label">${b.label}</span>
+    </div>
+  `).join('');
+
+  ['office-analytics-chart-container', 'overview-analytics-chart-container'].forEach(id => {
+    const container = document.getElementById(id);
+    if (container) container.innerHTML = chartHtml;
+  });
+}
 
 // --------------------------------------------------------------------------
 // GLOBAL INITIALIZER FOR INTERACTIVE EXTENSIONS
@@ -4402,6 +5525,16 @@ function initSovereignInteractiveExtensions() {
   renderAutonomicStudio();
   renderOfficeWorkspace();
   setupKeyboardShortcuts();
+  
+  // Initialize Cloud Studio, MCP Inspector & Omnichannel Control Center
+  if (typeof initVirtualCloudStudio === 'function') initVirtualCloudStudio();
+  if (typeof filterMCPInspectorTools === 'function') filterMCPInspectorTools('');
+  if (typeof initOmnichannelControlCenter === 'function') initOmnichannelControlCenter();
+
+  // Initialize RevenueCat Entitlements, Quota Meters, and Analytics
+  updateEntitlementBadges();
+  updateQuotaMeterUI();
+  renderAnalyticsDashboard();
 
   // Check URL parameters for view switching
   const urlParams = new URLSearchParams(window.location.search);
@@ -4411,11 +5544,505 @@ function initSovereignInteractiveExtensions() {
   }
 }
 
+// ==========================================================================
+// SOVEREIGN OS — VIRTUAL COMPUTER CLOUD STUDIO LOGIC
+// ==========================================================================
+
+let cloudInstances = [
+  { id: 'inst-sov-01', name: 'sovereign-agent-xl-01', region: 'US-East (N. Virginia)', specs: '64 vCPU | 256 GB RAM', ip: '192.168.10.42', status: 'running', cpu: 38, ram: '84.2 GB / 256 GB', tag: 'LLM Agent Mesh' },
+  { id: 'inst-sov-02', name: 'sovereign-gpu-h100-01', region: 'EU-West (Frankfurt)', specs: '8x H100 SXM5 | 512 GB RAM', ip: '192.168.20.18', status: 'running', cpu: 82, ram: '310.4 GB / 512 GB', tag: 'Neural Synthesizer' },
+  { id: 'inst-sov-03', name: 'sovereign-edge-micro-01', region: 'AP-East (Tokyo)', specs: '4 vCPU | 16 GB RAM', ip: '192.168.30.99', status: 'running', cpu: 14, ram: '4.8 GB / 16 GB', tag: 'Omnichannel Edge Sync' }
+];
+
+let vmTerminalLogs = [
+  "[SOVEREIGN OS CLOUD STUDIO KERNEL 6.8.0-sovereign-os-x86_64]",
+  "[INFO] Virtual Computer Cloud Studio Initialized. Active Cores: 76 vCPUs across 3 Clusters.",
+  "[INFO] Type 'help' or click quick command chips to execute live Agent VM commands.",
+  "agent@sovereign-os:~$ status",
+  "🟢 AGENT VM ACTIVE | Uptime: 14d 08h 32m | Load: 0.42, 0.38, 0.35 | Active Threads: 1,842",
+  "agent@sovereign-os:~$ "
+];
+
+let cloudTelemetryInterval = null;
+
+function initVirtualCloudStudio() {
+  renderCloudInstancesTable();
+  renderVMTerminalStream();
+  startCloudTelemetryLoop();
+}
+
+function startCloudTelemetryLoop() {
+  if (cloudTelemetryInterval) clearInterval(cloudTelemetryInterval);
+  cloudTelemetryInterval = setInterval(() => {
+    const cores = [
+      Math.floor(15 + Math.random() * 40),
+      Math.floor(30 + Math.random() * 50),
+      Math.floor(10 + Math.random() * 35),
+      Math.floor(45 + Math.random() * 45),
+      Math.floor(20 + Math.random() * 30),
+      Math.floor(55 + Math.random() * 35),
+      Math.floor(12 + Math.random() * 25),
+      Math.floor(40 + Math.random() * 40)
+    ];
+
+    cores.forEach((val, idx) => {
+      const bar = document.getElementById(`core-fill-${idx}`);
+      const txt = document.getElementById(`core-txt-${idx}`);
+      if (bar) bar.style.width = `${val}%`;
+      if (txt) txt.innerText = `Core ${idx}: ${val}%`;
+    });
+
+    const avgCpu = Math.round(cores.reduce((a, b) => a + b, 0) / cores.length);
+    const cpuVal = document.getElementById('cloud-cpu-overall-val');
+    if (cpuVal) cpuVal.innerText = `${avgCpu}%`;
+
+    const baseRam = 99.4 + (Math.random() * 2.5 - 1.25);
+    const ramVal = document.getElementById('cloud-ram-overall-val');
+    if (ramVal) ramVal.innerText = `${baseRam.toFixed(1)} GB / 784.0 GB`;
+
+    const netIn = (42.5 + Math.random() * 8.0).toFixed(1);
+    const netOut = (18.2 + Math.random() * 4.0).toFixed(1);
+    const netVal = document.getElementById('cloud-net-overall-val');
+    if (netVal) netVal.innerText = `⬇️ ${netIn} MB/s | ⬆️ ${netOut} MB/s`;
+  }, 2000);
+}
+
+function renderVMTerminalStream() {
+  const terminalOut = document.getElementById('cloud-vm-terminal-output');
+  if (terminalOut) {
+    terminalOut.innerText = vmTerminalLogs.join('\n');
+    terminalOut.scrollTop = terminalOut.scrollHeight;
+  }
+}
+
+function executeAgentVMCommand(customCmd) {
+  const inputEl = document.getElementById('cloud-vm-terminal-input');
+  const cmd = (customCmd || (inputEl ? inputEl.value : '')).trim();
+  if (!cmd) return;
+
+  if (inputEl) inputEl.value = '';
+
+  vmTerminalLogs.push(`agent@sovereign-os:~$ ${cmd}`);
+
+  const lower = cmd.toLowerCase();
+  if (lower === 'clear') {
+    vmTerminalLogs = ["agent@sovereign-os:~$ "];
+  } else if (lower === 'help') {
+    vmTerminalLogs.push(`SOVEREIGN AGENT VM CLI COMMAND REFERENCE:
+  help         - Display command usage menu
+  status       - Inspect agent kernel, uptime, load averages & thread counts
+  vm list      - List active cloud virtual machines and specifications
+  docker ps    - Inspect running zero-knowledge micro-containers
+  node provision - Run automated cluster node provisioner check
+  agent logs   - Output live agent autonomic execution traces
+  top          - Show top active VM agent processes
+  sysinfo      - Display architecture, memory layout & hardware details`);
+  } else if (lower === 'status' || lower === 'sysinfo') {
+    vmTerminalLogs.push(`[SOVEREIGN OS AGENT TELEMETRY ENGINE]
+  OS: Sovereign Engine OS v4.2.0 (Linux x86_64 Enterprise Substrate)
+  Uptime: 14 days, 8 hours, 34 minutes
+  Active Cloud Clusters: 3 (US-East, EU-West, AP-East)
+  Total vCPUs: 76 Cores | Total Allocated RAM: 784 GB
+  Cluster Health: 100% Entangled & Synchronized
+  Security: Zero-Knowledge Cryptographic Enclaves Active`);
+  } else if (lower === 'vm list') {
+    vmTerminalLogs.push(`ID             NAME                     REGION           SPECS                     STATUS
+-----------------------------------------------------------------------------------------
+inst-sov-01    sovereign-agent-xl-01    US-East (VA)     64 vCPU / 256GB RAM       RUNNING
+inst-sov-02    sovereign-gpu-h100-01    EU-West (FRA)    8x H100 / 512GB RAM       RUNNING
+inst-sov-03    sovereign-edge-micro-01  AP-East (NRT)    4 vCPU / 16GB RAM         RUNNING`);
+  } else if (lower === 'docker ps') {
+    vmTerminalLogs.push(`CONTAINER ID   IMAGE                        COMMAND               STATUS         PORTS
+a1f89c02e4     sovereign/mcp-gateway:latest "/bin/mcp-router"    Up 3 days      0.0.0.0:8090->8090/tcp
+b92c44e1d7     sovereign/aura-underwrite    "/entrypoint.sh"      Up 5 days      0.0.0.0:9001->9001/tcp
+c381d09e51     sovereign/omnichannel-sync   "python sync.py"      Up 12 days     0.0.0.0:4000->4000/tcp`);
+  } else if (lower === 'agent logs') {
+    const timestamp = new Date().toLocaleTimeString();
+    vmTerminalLogs.push(`[${timestamp}] [AUTONOMIC_AGENT_THREAD_04] Ingested 1,842 omnichannel order webhooks.
+[${timestamp}] [AURA_FINANCIAL_ENGINE] Verified P&L zero-knowledge statement proof.
+[${timestamp}] [PULSE_RETENTION_CORE] Paywall AST variant A mutated dynamically.
+[${timestamp}] [ZK_ROLLUP_SEQUENCER] Batch #84920 committed to Sovereign Chain.`);
+  } else if (lower === 'top') {
+    vmTerminalLogs.push(`PID   USER     PR  NI  VIRT    RES    SHR  S  %CPU  %MEM  TIME+     COMMAND
+1402  agent    20   0  48.2g   12.4g  1.2g S  48.2  14.2  142:10.4 sovereign-mcp
+2190  aura     20   0  32.1g    8.2g  800m S  24.1   8.4   89:04.1 aura-underwriter
+3044  omni     20   0  16.0g    4.1g  400m S  12.5   4.1   42:18.9 omnichannel-hub`);
+  } else {
+    vmTerminalLogs.push(`Executing command '${cmd}' across Sovereign Cloud Cluster...
+Result: Exit code 0. [Latency: ${Math.floor(Math.random()*12+6)}ms]`);
+  }
+
+  vmTerminalLogs.push("agent@sovereign-os:~$ ");
+  renderVMTerminalStream();
+}
+
+function renderCloudInstancesTable() {
+  const tbody = document.getElementById('cloud-instances-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = cloudInstances.map(inst => `
+    <tr>
+      <td>
+        <strong style="color: #fff; font-family: var(--font-mono);">${inst.name}</strong>
+        <div style="font-size: 0.72rem; color: var(--text-dim);">${inst.id} • ${inst.tag}</div>
+      </td>
+      <td><span class="status-pill cyan">${inst.region}</span></td>
+      <td style="font-family: var(--font-mono); font-size: 0.8rem;">${inst.specs}</td>
+      <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-purple);">${inst.ip}</td>
+      <td>
+        <span class="instance-status-pill ${inst.status}">
+          ${inst.status === 'running' ? '🟢 RUNNING' : inst.status === 'provisioning' ? '🟡 PROVISIONING' : '🔴 STOPPED'}
+        </span>
+      </td>
+      <td style="font-family: var(--font-mono); font-size: 0.8rem;">${inst.cpu}% CPU | ${inst.ram}</td>
+      <td>
+        <div style="display: flex; gap: 0.4rem;">
+          ${inst.status === 'running' 
+            ? `<button class="sheet-btn" onclick="controlCloudInstance('${inst.id}', 'pause')" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">⏸ Pause</button>`
+            : `<button class="sheet-btn sheet-btn-primary" onclick="controlCloudInstance('${inst.id}', 'start')" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">▶ Start</button>`
+          }
+          <button class="sheet-btn" onclick="controlCloudInstance('${inst.id}', 'reboot')" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">🔄 Reboot</button>
+          <button class="sheet-btn" onclick="controlCloudInstance('${inst.id}', 'terminate')" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; color: #f87171;">🛑 Terminate</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function provisionCloudInstance() {
+  const regEl = document.getElementById('cloud-provision-region');
+  const specEl = document.getElementById('cloud-provision-spec');
+  const tagEl = document.getElementById('cloud-provision-tag');
+
+  const region = regEl ? regEl.value : 'US-East (N. Virginia)';
+  const specVal = specEl ? specEl.value : 'sovereign-agent-xl';
+  const tag = (tagEl && tagEl.value.trim()) ? tagEl.value.trim() : 'General Agent VM';
+
+  let specsText = '64 vCPU | 256 GB RAM';
+  let prefix = 'sovereign-agent-xl';
+  if (specVal === 'sovereign-gpu-h100') {
+    specsText = '8x H100 SXM5 | 512 GB RAM';
+    prefix = 'sovereign-gpu-h100';
+  } else if (specVal === 'sovereign-edge-micro') {
+    specsText = '4 vCPU | 16 GB RAM';
+    prefix = 'sovereign-edge-micro';
+  }
+
+  const newId = `inst-sov-0${cloudInstances.length + 1}`;
+  const newInst = {
+    id: newId,
+    name: `${prefix}-0${cloudInstances.length + 1}`,
+    region: region,
+    specs: specsText,
+    ip: `192.168.${Math.floor(Math.random()*80 + 10)}.${Math.floor(Math.random()*200 + 10)}`,
+    status: 'provisioning',
+    cpu: 0,
+    ram: '0 GB / Allocated',
+    tag: tag
+  };
+
+  cloudInstances.push(newInst);
+  renderCloudInstancesTable();
+  if (typeof showToast === 'function') showToast(`🚀 Provisioning ${newInst.name} in ${region}...`);
+
+  setTimeout(() => {
+    newInst.status = 'running';
+    newInst.cpu = Math.floor(15 + Math.random()*25);
+    newInst.ram = '12.4 GB / Allocated';
+    renderCloudInstancesTable();
+    if (typeof showToast === 'function') showToast(`🟢 ${newInst.name} is now RUNNING!`);
+  }, 2500);
+}
+
+function controlCloudInstance(id, action) {
+  const inst = cloudInstances.find(i => i.id === id);
+  if (!inst) return;
+
+  if (action === 'pause' || action === 'terminate') {
+    inst.status = 'stopped';
+    inst.cpu = 0;
+    if (typeof showToast === 'function') showToast(`🛑 Instance ${inst.name} stopped.`);
+  } else if (action === 'start') {
+    inst.status = 'running';
+    inst.cpu = 28;
+    if (typeof showToast === 'function') showToast(`▶ Instance ${inst.name} started.`);
+  } else if (action === 'reboot') {
+    inst.status = 'provisioning';
+    renderCloudInstancesTable();
+    if (typeof showToast === 'function') showToast(`🔄 Rebooting ${inst.name}...`);
+    setTimeout(() => {
+      inst.status = 'running';
+      renderCloudInstancesTable();
+      if (typeof showToast === 'function') showToast(`🟢 ${inst.name} reboot completed.`);
+    }, 2000);
+  }
+  renderCloudInstancesTable();
+}
+
+// ==========================================================================
+// SOVEREIGN OS — 200 APPS MCP TOOL INSPECTOR LOGIC
+// ==========================================================================
+
+const ALL_200_MCP_TOOLS = [
+  { id: 'mcp-01', name: 'sovereign.marketplace.query_catalog', category: 'App Marketplace', desc: 'Query 200 ecosystem apps by tier, tags, and revenue cat entitlements', params: { search: "*", limit: 200, category: "all" } },
+  { id: 'mcp-02', name: 'sovereign.cloud.exec_terminal', category: 'Cloud Studio', desc: 'Execute live agent VM terminal command across cloud clusters', params: { command: "status", vm_node: "sovereign-agent-xl-01" } },
+  { id: 'mcp-03', name: 'sovereign.omnichannel.sync_inventory', category: 'Omnichannel', desc: 'Broadcast real-time stock sync across Shopify, Amazon, WooCommerce, eBay', params: { channels: ["shopify", "amazon", "woocommerce", "ebay"], SKU: "SOV-QUANTUM-NODE" } },
+  { id: 'mcp-04', name: 'sovereign.finance.post_journal_entry', category: 'QuickBooks Replacement', desc: 'Post autonomic double-entry ledger journal via AURA credit core', params: { debit_acct: "1000-CASH", credit_acct: "4000-MRR-REVENUE", amount_usd: 148920.00 } },
+  { id: 'mcp-05', name: 'sovereign.stripe.mutate_paywall_ast', category: 'Stripe Replacement', desc: 'Mutate RevenueCat Paywall AST design template dynamically', params: { variant_id: "var_NEON_CYAN", theme: "NEON_CYAN", cta_text: "Unlock Sovereign Pro" } },
+  { id: 'mcp-06', name: 'sovereign.ai.gemini_copilot_execute', category: 'AI Neural Synthesizer', desc: 'Run multi-agent reasoning chain using Gemini Copilot core', params: { prompt: "Audit quarterly profit margins and optimize cloud compute allocation", max_tokens: 2048 } },
+  { id: 'mcp-07', name: 'sovereign.iot.ping_mesh_nodes', category: 'Wear OS & IoT Mesh', desc: 'Send bi-directional sync ping to Wear OS smartwatches and edge sensors', params: { mesh_id: "mesh-alpha-09", ping_interval_ms: 100 } },
+  { id: 'mcp-08', name: 'sovereign.treasury.distribute_yield', category: 'Tokenomics & Treasury', desc: 'Execute autonomic ZK smart contract yield distribution to stakers', params: { pool_id: "SOV-USDC-VAULT", yield_percentage: 14.8 } }
+];
+
+let selectedMcpInspectorId = 'mcp-01';
+
+function filterMCPInspectorTools(query) {
+  const container = document.getElementById('mcp-inspector-tool-list');
+  if (!container) return;
+
+  const filtered = ALL_200_MCP_TOOLS.filter(t => 
+    t.name.toLowerCase().includes(query.toLowerCase()) || 
+    t.category.toLowerCase().includes(query.toLowerCase()) ||
+    t.desc.toLowerCase().includes(query.toLowerCase())
+  );
+
+  container.innerHTML = filtered.map(tool => `
+    <div class="mcp-tool-card-item ${tool.id === selectedMcpInspectorId ? 'active' : ''}" onclick="selectMCPInspectorTool('${tool.id}')">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan);">${tool.name}</span>
+        <span class="status-pill cyan" style="font-size: 0.68rem; padding: 0.15rem 0.4rem;">${tool.category}</span>
+      </div>
+      <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 0.35rem;">${tool.desc}</div>
+    </div>
+  `).join('');
+}
+
+function selectMCPInspectorTool(toolId) {
+  selectedMcpInspectorId = toolId;
+  const tool = ALL_200_MCP_TOOLS.find(t => t.id === toolId);
+  if (!tool) return;
+
+  filterMCPInspectorTools('');
+
+  const nameEl = document.getElementById('mcp-inspector-selected-name');
+  const descEl = document.getElementById('mcp-inspector-selected-desc');
+  const jsonEl = document.getElementById('mcp-inspector-json-editor');
+
+  if (nameEl) nameEl.innerText = tool.name;
+  if (descEl) descEl.innerText = tool.desc;
+  if (jsonEl) jsonEl.value = JSON.stringify(tool.params, null, 2);
+}
+
+function selectMCPPreset(presetKey) {
+  if (presetKey === 'sql_audit') {
+    selectMCPInspectorTool('mcp-04');
+  } else if (presetKey === 'omni_sync') {
+    selectMCPInspectorTool('mcp-03');
+  } else if (presetKey === 'vm_benchmark') {
+    selectMCPInspectorTool('mcp-02');
+  } else if (presetKey === 'paywall_mutate') {
+    selectMCPInspectorTool('mcp-05');
+  } else if (presetKey === 'ai_copilot') {
+    selectMCPInspectorTool('mcp-06');
+  }
+}
+
+function runMCPQueryLive() {
+  const tool = ALL_200_MCP_TOOLS.find(t => t.id === selectedMcpInspectorId) || ALL_200_MCP_TOOLS[0];
+  const jsonEl = document.getElementById('mcp-inspector-json-editor');
+  const outEl = document.getElementById('mcp-inspector-response-output');
+  const latEl = document.getElementById('mcp-inspector-latency-badge');
+  const statusEl = document.getElementById('mcp-inspector-status-badge');
+
+  let paramsObj = tool.params;
+  try {
+    if (jsonEl && jsonEl.value.trim()) {
+      paramsObj = JSON.parse(jsonEl.value);
+    }
+  } catch (err) {
+    if (outEl) outEl.innerText = `JSON Syntax Error: ${err.message}`;
+    return;
+  }
+
+  const latency = Math.floor(10 + Math.random() * 18);
+  const responsePayload = {
+    jsonrpc: "2.0",
+    id: Math.floor(Math.random() * 900000 + 100000),
+    mcp_version: "2026.1.0",
+    endpoint: `tools/${tool.name}`,
+    status: 200,
+    status_text: "OK (SUCCESS)",
+    roundtrip_latency_ms: latency,
+    timestamp: new Date().toISOString(),
+    response: {
+      result_status: "SUCCESS",
+      query_executed: tool.name,
+      parameters_passed: paramsObj,
+      sovereign_substrate_hash: "0x" + Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join(''),
+      telemetry_sync: true
+    }
+  };
+
+  if (outEl) outEl.innerText = JSON.stringify(responsePayload, null, 2);
+  if (latEl) latEl.innerText = `⚡ ${latency} ms`;
+  if (statusEl) statusEl.innerText = '🟢 200 OK';
+
+  if (typeof showToast === 'function') showToast(`🛠️ MCP Tool '${tool.name}' executed successfully in ${latency}ms!`);
+}
+
+// ==========================================================================
+// SOVEREIGN OS — MULTI-STORE OMNICHANNEL CONTROL CENTER LOGIC
+// ==========================================================================
+
+let omnichannelStores = [
+  { id: 'store-shopify', name: 'Shopify Flagship', domain: 'shopify.sovereign.os', revenue: '$184,200.00', orders: 420, skus: 1250, status: 'online', syncLatency: '0.2s', icon: '🛍️' },
+  { id: 'store-amazon', name: 'Amazon FBA US & EU', domain: 'amazon.sovereign.os', revenue: '$142,500.00', orders: 610, skus: 890, status: 'online', syncLatency: '0.5s', icon: '📦' },
+  { id: 'store-woo', name: 'WooCommerce Global', domain: 'woocommerce.sovereign.os', revenue: '$78,400.00', orders: 340, skus: 620, status: 'online', syncLatency: '0.4s', icon: '🏬' },
+  { id: 'store-ebay', name: 'eBay Enterprise Direct', domain: 'ebay.sovereign.os', revenue: '$45,800.00', orders: 280, skus: 410, status: 'online', syncLatency: '0.8s', icon: '🛒' },
+  { id: 'store-custom', name: 'Sovereign Custom Storefront', domain: 'engine.sovereign.os', revenue: '$32,010.00', orders: 192, skus: 1500, status: 'online', syncLatency: '0.05s', icon: '⚡' }
+];
+
+let omnichannelEvents = [
+  { time: new Date().toLocaleTimeString(), channel: 'Shopify', event: 'New Order #SH-9840 ($349.00)', status: 'Fulfilling via Sovereign FBA Node' },
+  { time: new Date().toLocaleTimeString(), channel: 'Amazon FBA', event: 'Inventory Auto-Deducted SKU #SOV-NODE', status: 'Stock Level: 1,420 units' },
+  { time: new Date().toLocaleTimeString(), channel: 'WooCommerce', event: 'Price Margin Broadcast (+5.0%)', status: 'Synced in 0.4s' },
+  { time: new Date().toLocaleTimeString(), channel: 'eBay Enterprise', event: 'Order #EB-1049 Delivered', status: 'Tracking Verified' }
+];
+
+function initOmnichannelControlCenter() {
+  renderOmnichannelStoreCards();
+  renderOmnichannelActivityStream();
+}
+
+function renderOmnichannelStoreCards(filterStoreId = 'all') {
+  const container = document.getElementById('omnichannel-cards-container');
+  if (!container) return;
+
+  const displayStores = filterStoreId === 'all' 
+    ? omnichannelStores 
+    : omnichannelStores.filter(s => s.id === filterStoreId);
+
+  container.innerHTML = displayStores.map(store => `
+    <div class="channel-card">
+      <div>
+        <div class="channel-card-header">
+          <div class="channel-title">
+            <span>${store.icon}</span>
+            <span>${store.name}</span>
+          </div>
+          <span class="instance-status-pill running">🟢 ONLINE</span>
+        </div>
+        <div style="font-size: 0.74rem; color: var(--text-dim); margin-top: 0.25rem;">${store.domain}</div>
+      </div>
+
+      <div class="channel-metrics-row">
+        <div>
+          <div class="channel-sub-stat">Revenue Today</div>
+          <div class="channel-revenue">${store.revenue}</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="channel-sub-stat">Active Orders</div>
+          <div style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${store.orders} Orders</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(5,8,16,0.6); padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.74rem; font-family: var(--font-mono);">
+        <span>Catalog SKUs: <strong>${store.skus}</strong></span>
+        <span style="color: var(--accent-cyan);">Latency: ${store.syncLatency}</span>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="sheet-btn sheet-btn-primary" onclick="triggerChannelStoreSync('${store.name}')" style="flex: 1; padding: 0.35rem; font-size: 0.76rem;">🔄 Sync Channel</button>
+        <button class="sheet-btn" onclick="openChannelAnalytics('${store.name}')" style="padding: 0.35rem 0.6rem; font-size: 0.76rem;">📊 Stats</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterOmnichannelStore(storeId) {
+  document.querySelectorAll('.store-pill-btn').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = Array.from(document.querySelectorAll('.store-pill-btn')).find(b => b.getAttribute('onclick')?.includes(storeId));
+  if (activeBtn) activeBtn.classList.add('active');
+
+  renderOmnichannelStoreCards(storeId);
+}
+
+function renderOmnichannelActivityStream() {
+  const container = document.getElementById('omnichannel-activity-stream-list');
+  if (!container) return;
+
+  container.innerHTML = omnichannelEvents.map(evt => `
+    <div class="activity-feed-item">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span class="status-pill cyan" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">${evt.channel}</span>
+        <span style="color: #fff; font-weight: 500;">${evt.event}</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="color: var(--text-muted); font-size: 0.74rem;">${evt.status}</span>
+        <span style="font-family: var(--font-mono); color: var(--text-dim); font-size: 0.72rem;">${evt.time}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function triggerOmnichannelSyncAll() {
+  if (typeof showToast === 'function') showToast("🔄 Broadcasting real-time inventory & price sync across all 5 omnichannel stores...");
+
+  const timestamp = new Date().toLocaleTimeString();
+  omnichannelEvents.unshift({
+    time: timestamp,
+    channel: 'Omnichannel Hub',
+    event: 'Global 5-Store Inventory & Price Sync Executed',
+    status: '100% Coherence Verified'
+  });
+
+  renderOmnichannelActivityStream();
+}
+
+function triggerChannelStoreSync(channelName) {
+  if (typeof showToast === 'function') showToast(`⚡ Real-time webhook sync completed for ${channelName}!`);
+  
+  const timestamp = new Date().toLocaleTimeString();
+  omnichannelEvents.unshift({
+    time: timestamp,
+    channel: channelName,
+    event: `Manual Channel Sync Triggered for ${channelName}`,
+    status: '200 OK (0.2s)'
+  });
+
+  renderOmnichannelActivityStream();
+}
+
+function openBroadcastPriceModal() {
+  const newMargin = prompt("Enter global margin adjustment percentage (e.g. +3.5% or -2.0%):", "+2.5%");
+  if (newMargin) {
+    if (typeof showToast === 'function') showToast(`📢 Global price adjustment of ${newMargin} broadcasted across Shopify, Amazon, WooCommerce, eBay!`);
+    
+    omnichannelEvents.unshift({
+      time: new Date().toLocaleTimeString(),
+      channel: 'Global Broadcast',
+      event: `Bulk Pricing Adjusted by ${newMargin}`,
+      status: 'Broadcasted to 4,670 active SKUs'
+    });
+    renderOmnichannelActivityStream();
+  }
+}
+
+function triggerIntelligentOrderRouting() {
+  if (typeof showToast === 'function') showToast("🎯 Intelligent Order Routing active: 1,842 orders optimized across 4 global fulfillment nodes!");
+}
+
+function deployCrossChannelPromo() {
+  if (typeof showToast === 'function') showToast("🎁 Promo Code 'SOVEREIGN2026' deployed across Shopify, Amazon, WooCommerce, & eBay!");
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initSovereignInteractiveExtensions);
 } else {
   initSovereignInteractiveExtensions();
 }
+
+
 
 
 
