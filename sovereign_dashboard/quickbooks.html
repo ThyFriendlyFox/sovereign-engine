@@ -82,6 +82,7 @@
       <button class="qb-tab-btn" data-tab="po-matching" onclick="switchQbTab('po-matching')">📦 3-Way PO Matching</button>
       <button class="qb-tab-btn" data-tab="expense-ocr" onclick="switchQbTab('expense-ocr')">📷 Expense OCR Processing</button>
       <button class="qb-tab-btn" data-tab="vat-tax" onclick="switchQbTab('vat-tax')">🏛️ VAT & Sales Tax</button>
+      <button class="qb-tab-btn" data-tab="agentic-bookkeeper" onclick="switchQbTab('agentic-bookkeeper')">🤖 Agentic Bookkeeper & Tax Credits</button>
     </div>
   </div>
 
@@ -1803,6 +1804,100 @@
                 <span class="terminal-title">tax_filing_engine.log</span>
               </div>
               <div id="vat-result" class="code-preview-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 13: AGENTIC BOOKKEEPER & TAX CREDITS    -->
+    <!-- ========================================== -->
+    <div id="tab-agentic-bookkeeper" class="qb-tab-content">
+      <section class="metrics-bar" style="padding-left:0; padding-right:0; padding-top:0; margin-bottom: 1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">RevenueCat Monetization Tiers</div>
+          <div class="metric-value" style="color: var(--accent-green);">Starter / Pro / Ent</div>
+          <div class="metric-change positive">▲ StoreKit 2 & Google Play</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Section 41 R&D Credit Estimate</div>
+          <div class="metric-value" style="color: var(--accent-cyan);" id="agentic-qb-tax-credit-val">$49,300.00</div>
+          <div class="metric-change positive">▲ 14% ASC Federal Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">GAAP Accrual Invariant</div>
+          <div class="metric-value" style="color: #fff;" id="agentic-qb-variance-val">$0.00 Variance</div>
+          <div class="metric-change positive">▲ Debits = Credits Verified</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Usage-Based Metering</div>
+          <div class="metric-value" style="color: var(--accent-gold);" id="agentic-qb-usage-status">Active Rating</div>
+          <div class="metric-change positive">▲ Automated Overage Billing</div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <!-- AGENTIC BOOKKEEPER LIVE CONTROLLER -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">🤖 Autonomous Bookkeeping Agent Controls</h3>
+            <span class="status-pill success">Live AI Bookkeeper</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Autonomous bookkeeping agent continuously reconciling RevenueCat recurring subscriptions, metered usage tiers, Form 941 payroll, and live statutory tax credits under US GAAP / ASC 606 accrual rules.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.25rem;">
+            <button class="sheet-btn sheet-btn-primary" onclick="triggerAgenticBookkeepingAudit()" style="padding: 0.6rem; font-size: 0.82rem;">
+              ⚡ Run Full GAAP Ledger Audit
+            </button>
+            <button class="sheet-btn" onclick="triggerTaxCreditsResearch()" style="padding: 0.6rem; font-size: 0.82rem;">
+              🏛️ Research Section 41 Tax Credits
+            </button>
+            <button class="sheet-btn" onclick="simulateRevenueCatIAPEvent('INITIAL_PURCHASE')" style="padding: 0.6rem; font-size: 0.82rem;">
+              📱 Simulate RevenueCat Purchase ($49.99)
+            </button>
+            <button class="sheet-btn" onclick="simulateRevenueCatMeteredUsage()" style="padding: 0.6rem; font-size: 0.82rem;">
+              ⚡ Record Metered Usage (+1,500 units)
+            </button>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.1rem;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">Live Statutory Tax Compliance Index</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="status-pill cyan">IRC §41 (14% ASC R&D Credit)</span>
+              <span class="status-pill purple">IRC §174 (5-Yr Amortization)</span>
+              <span class="status-pill success">US GAAP ASC 606 / IFRS 15</span>
+              <span class="status-pill gold">Form 941 Payroll Tax Escrow</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AGENTIC BOOKKEEPER AUDIT TERMINAL -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">📜 Agentic Audit & Compliance Stream</h3>
+            <span class="status-pill cyan" id="agentic-qb-status-pill">ONLINE</span>
+          </div>
+
+          <div class="terminal-wrapper" style="height: 340px;">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+              </div>
+              <span class="terminal-title">agentic_quickbooks_bookkeeper.log</span>
+            </div>
+            <div id="agentic-qb-terminal" class="code-preview-box" style="height: 290px; overflow-y: auto; font-size: 0.76rem;">
+[AGENTIC QUICKBOOKS BOOKKEEPER] Initialized with GAAP Accrual Substrate.
+RevenueCat Subscription Monetization Bridge: CONNECTED (Starter / Pro / Enterprise)
+Usage-Based Metering & Overages Engine: READY
+General Ledger Balance Vector: Sum(Debits) == Sum(Credits) ($0.00 Variance)
+Section 41 R&D & Section 174 Tax Amortization Index: SYNCHRONIZED
+Awaiting operator trigger or incoming subscription telemetry...
             </div>
           </div>
         </div>

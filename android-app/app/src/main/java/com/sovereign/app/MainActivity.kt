@@ -63,13 +63,13 @@ fun SovereignAppUI(activity: android.app.Activity) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "SOVEREIGN OS",
+                    text = "AGENTIC QUICKBOOKS",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Android / iOS",
+                    text = "RevenueCat Substrate",
                     color = Color(0xFF00E676),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
@@ -87,16 +87,23 @@ fun SovereignAppUI(activity: android.app.Activity) {
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        text = "Native Mobile Platform",
+                        text = "Autonomous Bookkeeping Agent",
                         color = Color(0xFF94A3B8),
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "RevenueCat In-App Purchases",
+                        text = "GAAP Accrual & Tax Credits",
                         color = Color.White,
-                        fontSize = 24.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "• RevenueCat Subscription Monetization\n• Usage Metering & Overages\n• ASC 606 Ratable Revenue\n• Section 41 R&D Credits",
+                        color = Color(0xFFCBD5E1),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
