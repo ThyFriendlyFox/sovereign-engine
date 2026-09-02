@@ -9,7 +9,6 @@ Exhaustive Automated Test Suite for MCP 200 App Adapters & 1000+ Queries Engine.
 """
 
 import unittest
-import pytest
 from sovereign_infrastructure.nextgen_systems.mcp_200_app_adapters_1000_queries import (
     MCP200AppAdapterEngine,
     AppAdapter,

@@ -48,6 +48,12 @@ from sovereign_infrastructure.nextgen_systems.virtual_computer_cloud_instance im
     VMStateError
 )
 
+from sovereign_infrastructure.nextgen_systems.agentic_quickbooks_engine import (
+    AgenticQuickBooksEngine,
+    RevenueCatSubscriptionTierManager,
+    ComplianceAndTaxCreditsResearchEngine
+)
+
 __all__ = [
     "XFINEngine",
     "AURAEngine",
@@ -82,7 +88,10 @@ __all__ = [
     "VirtualDisk",
     "TelemetryEngine",
     "StorageQuotaExceededError",
-    "VMStateError"
+    "VMStateError",
+    "AgenticQuickBooksEngine",
+    "RevenueCatSubscriptionTierManager",
+    "ComplianceAndTaxCreditsResearchEngine"
 ]
 
 
