@@ -14,6 +14,13 @@ import hashlib
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
+# Load .env before any Plaid / Books imports
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+except ImportError:
+    pass
+
 # Import 6 Next-Gen Fintech Cores, SaaS Accounting Suite, Gemini AI & Complete SaaS Ecosystem
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "sovereign_infrastructure", "nextgen_systems"))
@@ -64,7 +71,12 @@ from sovereign_mcp_server import SovereignMCPServer
 from alpha_unlimited_work_engine import AlphaUnlimitedWorkEngine, AlphaAppWorkGenerator
 from mega_office_business_suite import MegaOfficeBusinessSuite
 
+# Phase 0 MVP — Sovereign Books (persistent bank connect)
+from sovereign_books import BankService
+from sovereign_books import http_api as books_http
+
 office_suite = MegaOfficeBusinessSuite()
+books_bank = BankService()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -176,11 +188,75 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 params[unquote_plus(pair)] = ""
         return params
 
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.end_headers()
+
     def do_GET(self):
         logger.info(f"[GET] {self.path}")
         path = self.get_clean_path()
 
-        if path == "/api/v1/overview":
+        # -----------------------------------------------------------------
+        # Sovereign Books MVP — Connect Bank (Phase 0)
+        # -----------------------------------------------------------------
+        if path in ["/api/v1/books/home", "/api/v1/books/snapshot"]:
+            self.send_json_response(books_bank.home_snapshot())
+        elif path == "/api/v1/books/link_token":
+            self.send_json_response(books_bank.create_link_token())
+        elif path in ["/api/v1/books/connections", "/api/v1/books/bank"]:
+            self.send_json_response(books_bank.list_connections())
+        elif path in ["/api/v1/books/inbox", "/api/v1/books/transactions"]:
+            params = self.parse_query_params()
+            limit = int(params.get("limit", 50))
+            self.send_json_response(books_bank.list_inbox(limit=limit))
+        elif path == "/api/v1/books/cash_series":
+            params = self.parse_query_params()
+            self.send_json_response(
+                books_bank.cash_series(business_id=params.get("business_id") or None)
+            )
+        elif path == "/api/v1/books/categories":
+            self.send_json_response(books_bank.list_categories())
+        elif path == "/api/v1/books/grants":
+            params = self.parse_query_params()
+            from sovereign_books.grants import list_grants
+
+            self.send_json_response(
+                list_grants(fit=params.get("fit") or None, q=params.get("q") or None)
+            )
+        elif path.startswith("/api/v1/books/grants/"):
+            from sovereign_books.grants import get_grant
+
+            grant_id = path.rsplit("/", 1)[-1]
+            self.send_json_response(get_grant(grant_id))
+        elif path in ["/api/v1/books/entitlements", "/api/v1/books/pro"]:
+            params = self.parse_query_params()
+            from sovereign_books.revenuecat import RevenueCatService
+
+            rc = RevenueCatService(books_bank.db_path)
+            self.send_json_response(
+                rc.get_entitlements(app_user_id=params.get("app_user_id") or None)
+            )
+        elif path.startswith("/api/v1/crm/"):
+            self.send_json_response(books_http.handle_crm_get(path, self.parse_query_params()))
+        elif path.startswith("/api/v1/apps/"):
+            self.send_json_response(books_http.handle_apps_get(path, self.parse_query_params()))
+        elif path in (
+            "/api/v1/books/reconcile",
+            "/api/v1/books/reports/pnl",
+            "/api/v1/books/reports/balance_sheet",
+            "/api/v1/books/invoices",
+            "/api/v1/books/bills",
+            "/api/v1/books/runway",
+            "/api/v1/books/tax_bucket",
+            "/api/v1/books/anomalies",
+            "/api/v1/books/businesses",
+            "/api/v1/roadmap/verify",
+        ):
+            self.send_json_response(books_http.handle_books_ext_get(path, self.parse_query_params()))
+        elif path == "/api/v1/overview":
             self.send_json_response({
                 "mrr": 148920.0,
                 "arr": 1787040.0,
@@ -600,8 +676,104 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
         path = self.get_clean_path()
         body = self.parse_body()
 
+        # -----------------------------------------------------------------
+        # Sovereign Books MVP — Connect Bank (Phase 0)
+        # -----------------------------------------------------------------
+        if path in ["/api/v1/books/connect", "/api/v1/books/exchange"]:
+            public_token = body.get("public_token") or body.get("token") or "public-sandbox-mock-chase"
+            institution_name = body.get("institution_name") or body.get("institution")
+            business_id = body.get("business_id")
+            connected = books_bank.exchange_and_connect(
+                public_token=public_token,
+                business_id=business_id,
+                institution_name=institution_name,
+            )
+            # Auto-sync after connect so inbox is immediately useful
+            sync = books_bank.sync_transactions(
+                business_id=connected.get("business_id"),
+                plaid_item_id=connected.get("plaid_item_id"),
+                post_to_ledger=bool(body.get("post_to_ledger", True)),
+            )
+            connected["sync"] = sync
+            self.send_json_response(connected)
+        elif path == "/api/v1/books/sync":
+            self.send_json_response(
+                books_bank.sync_transactions(
+                    business_id=body.get("business_id"),
+                    plaid_item_id=body.get("plaid_item_id"),
+                    post_to_ledger=bool(body.get("post_to_ledger", False)),
+                )
+            )
+        elif path == "/api/v1/books/link_token":
+            self.send_json_response(books_bank.create_link_token(user_id=body.get("user_id")))
+        elif path in ["/api/v1/books/chat", "/api/v1/books/assistant"]:
+            from sovereign_books.chat_engine import BooksChatEngine
+
+            chat = BooksChatEngine(books_bank)
+            self.send_json_response(
+                chat.reply(
+                    body.get("message") or body.get("prompt") or "",
+                    business_id=body.get("business_id"),
+                )
+            )
+        elif path in [
+            "/api/v1/books/transactions/confirm",
+            "/api/v1/books/inbox/confirm",
+        ]:
+            txn_id = body.get("txn_id") or body.get("id") or body.get("transaction_id")
+            if not txn_id:
+                self.send_json_response(
+                    {"status": "ERROR", "error": "txn_id required"}, status_code=400
+                )
+            else:
+                self.send_json_response(
+                    books_bank.confirm_transaction(
+                        txn_id=txn_id,
+                        category=body.get("category"),
+                        business_id=body.get("business_id"),
+                    )
+                )
+        elif path == "/api/v1/books/revenuecat/webhook":
+            from sovereign_books.revenuecat import RevenueCatService
+
+            expected = os.environ.get("REVENUECAT_WEBHOOK_AUTH")
+            if expected:
+                auth = self.headers.get("Authorization") or ""
+                token = auth.replace("Bearer ", "").strip()
+                if token != expected:
+                    self.send_json_response(
+                        {"status": "ERROR", "error": "Unauthorized"}, status_code=401
+                    )
+                    return
+            rc = RevenueCatService(books_bank.db_path)
+            self.send_json_response(rc.handle_webhook(body or {}))
+        elif path == "/api/v1/books/pro/activate":
+            # Dev-only offline Pro (same as scripts/activate_pro.py)
+            from sovereign_books.revenuecat import RevenueCatService
+
+            rc = RevenueCatService(books_bank.db_path)
+            self.send_json_response(
+                rc.activate_local_pro(
+                    app_user_id=body.get("app_user_id"),
+                    product_id=body.get("product_id") or "sovereign_pro_monthly",
+                )
+            )
+        elif path.startswith("/api/v1/crm/"):
+            self.send_json_response(books_http.handle_crm_post(path, body or {}))
+        elif path.startswith("/api/v1/apps/"):
+            self.send_json_response(books_http.handle_apps_post(path, body or {}))
+        elif path in (
+            "/api/v1/books/invoices",
+            "/api/v1/books/invoices/pay",
+            "/api/v1/books/bills",
+            "/api/v1/books/receipts",
+            "/api/v1/books/rules",
+            "/api/v1/books/close_month",
+        ):
+            self.send_json_response(books_http.handle_books_ext_post(path, body or {}))
+
         # 1. Gemini / Copilot Chat Orchestration
-        if path in ["/api/v1/gemini/chat", "/api/v1/copilot/chat"]:
+        elif path in ["/api/v1/gemini/chat", "/api/v1/copilot/chat"]:
             msg = body.get("message", body.get("prompt", "Hello Gemini"))
             res = gemini_chat.process_chat_query(msg)
             self.send_json_response(res)

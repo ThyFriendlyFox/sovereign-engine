@@ -15,17 +15,19 @@ import com.revenuecat.purchases.models.StoreTransaction
 
 object RevenueCatManager {
     private const val TAG = "RevenueCatManager"
-    private const val REVENUECAT_API_KEY = "goog_pub_live_sovereign_android_2026"
+    /** Replace with RevenueCat public Google SDK key (goog_…). Entitlement id: pro_access */
+    private const val REVENUECAT_API_KEY = "goog_REPLACE_WITH_REVENUECAT_PUBLIC_SDK_KEY"
+    private const val ENTITLEMENT_PRO = "pro_access"
 
-    fun initialize(context: Context, appUserId: String = "user_android_sovereign") {
-        Log.i(TAG, "Initializing RevenueCat Android SDK for Google Play & Galaxy Store...")
+    fun initialize(context: Context, appUserId: String = "books_demo_user") {
+        Log.i(TAG, "Initializing RevenueCat Android SDK…")
         
         val configuration = PurchasesConfiguration.Builder(context, REVENUECAT_API_KEY)
             .appUserID(appUserId)
             .build()
 
         Purchases.configure(configuration)
-        Log.i(TAG, "RevenueCat Android SDK configured successfully.")
+        Log.i(TAG, "RevenueCat Android SDK configured. appUserId=$appUserId")
     }
 
     fun fetchOfferings(onSuccess: (Offerings) -> Unit, onError: (PurchasesError) -> Unit) {
@@ -68,7 +70,7 @@ object RevenueCatManager {
     fun checkProEntitlement(onResult: (Boolean) -> Unit) {
         Purchases.sharedInstance.getCustomerInfo(object : ReceiveCustomerInfoCallback {
             override fun onReceived(customerInfo: CustomerInfo) {
-                val isPro = customerInfo.entitlements["pro_access"]?.isActive == true
+                val isPro = customerInfo.entitlements[ENTITLEMENT_PRO]?.isActive == true
                 onResult(isPro)
             }
 
