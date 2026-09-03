@@ -609,6 +609,8 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             params = self.parse_query_params()
             user_id = params.get("user_id", params.get("subscriber_id", "sub_101"))
             self.send_json_response(agentic_qb_engine.subscription_manager.get_subscriber_billing_summary(user_id))
+        elif path in ["/api/v1/agentic_qb/live_integrations", "/api/v1/integrations/status"]:
+            self.send_json_response(agentic_qb_engine.integration_registry.get_all_integration_statuses())
         else:
             super().do_GET()
 
@@ -1253,6 +1255,8 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(res)
         elif path in ["/api/v1/agentic_qb/audit", "/api/v1/bookkeeping/audit"]:
             self.send_json_response(agentic_qb_engine.run_comprehensive_bookkeeping_audit())
+        elif path in ["/api/v1/agentic_qb/live_integrations", "/api/v1/integrations/status"]:
+            self.send_json_response(agentic_qb_engine.integration_registry.get_all_integration_statuses())
         else:
             self.send_error(404, "Endpoint not found")
 

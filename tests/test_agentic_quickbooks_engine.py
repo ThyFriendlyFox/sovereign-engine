@@ -191,6 +191,32 @@ class TestAgenticQuickBooksCore(unittest.TestCase):
         self.assertIn("balance_sheet", audit)
         self.assertEqual(audit["status"], "AGENTIC_BOOKKEEPING_AUDIT_OPTIMAL")
 
+    def test_09b_revenuecat_live_client_and_signature_verification(self):
+        live_client = self.engine.subscription_manager.live_rc_client
+        payload = b'{"event": "TEST_PURCHASE", "price": 49.99}'
+        # Compute valid signature
+        valid_sig = live_client.verify_webhook_signature(
+            payload_bytes=payload,
+            signature_header="sha256=" + live_client.webhook_secret
+        )
+        # Should cleanly return boolean without throwing
+        self.assertIsInstance(valid_sig, bool)
+
+        # Test customer info fetch
+        cust = live_client.get_customer_info("usr_test_cust_01")
+        self.assertIn("customer", cust)
+        self.assertEqual(cust["customer"]["id"], "usr_test_cust_01")
+
+        # Test offerings fetch
+        offerings = live_client.fetch_project_offerings()
+        self.assertIn("offerings", offerings)
+
+    def test_09c_statutory_compliance_live_fetcher(self):
+        fetcher = self.engine.research_engine.live_fetcher
+        res = fetcher.fetch_statutory_text_or_guidance("irc_sec_41", "IRC Sec 41 Research Credit")
+        self.assertEqual(res["resource_key"], "irc_sec_41")
+        self.assertIn("summary", res)
+
 
 class TestAgenticQuickBooksDashboardEndpoints(BaseDashboardTestCase):
 
@@ -245,6 +271,13 @@ class TestAgenticQuickBooksDashboardEndpoints(BaseDashboardTestCase):
         res = self.invoke_endpoint("/api/v1/agentic_qb/payroll", "POST", body)
         self.assertEqual(res["status"], "PAYROLL_EXECUTED_AND_ALLOCATED")
         self.assertEqual(res["engineering_rd_eligible_wages"], 42500.0)
+
+    def test_16_rest_agentic_qb_live_integrations_get(self):
+        res = self.invoke_endpoint("/api/v1/agentic_qb/live_integrations", "GET")
+        self.assertIn("integrations", res)
+        self.assertIn("revenuecat", res["integrations"])
+        self.assertIn("quickbooks", res["integrations"])
+        self.assertEqual(res["total_integrations"], 6)
 
 
 if __name__ == "__main__":

@@ -1864,6 +1864,15 @@
             </button>
           </div>
 
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+            <button class="sheet-btn sheet-btn-gold" onclick="openLiveApiDocsModal()" style="flex: 1; padding: 0.6rem; font-size: 0.82rem; font-weight: 700;">
+              📖 Live API Credentials & Setup Docs
+            </button>
+            <button class="sheet-btn" onclick="checkLiveIntegrationsHealth()" style="padding: 0.6rem 0.9rem; font-size: 0.82rem;">
+              🔌 Check Integrations Status
+            </button>
+          </div>
+
           <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.1rem;">
             <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">Live Statutory Tax Compliance Index</div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -1903,6 +1912,85 @@ Awaiting operator trigger or incoming subscription telemetry...
         </div>
       </div>
     </div>
+
+  <!-- LIVE API CREDENTIALS & DOCUMENTATION MODAL -->
+  <div id="live-api-docs-modal" class="custom-modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="glass-panel" style="max-width: 800px; width: 90%; max-height: 88vh; overflow-y: auto; background: #0c1222; border: 1px solid var(--accent-cyan); box-shadow: 0 0 30px rgba(0,242,254,0.25); border-radius: 18px; padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem;">
+        <div>
+          <h2 style="font-family: var(--font-heading); color: #fff; font-size: 1.3rem; margin: 0;">🔌 Live API Credentials & Integration Docs</h2>
+          <div style="font-size: 0.78rem; color: var(--text-muted);">Step-by-step instructions to connect production APIs & Developer Documentation Links</div>
+        </div>
+        <button onclick="closeLiveApiDocsModal()" class="sheet-btn" style="padding: 0.3rem 0.7rem; font-size: 1rem; border-radius: 50%;">✕</button>
+      </div>
+
+      <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
+        
+        <!-- 1. REVENUECAT -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass-bright); border-radius: 12px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="font-weight: 700; color: var(--accent-green); font-size: 0.95rem;">⚡ 1. RevenueCat REST API v2 & Webhooks</div>
+            <a href="https://www.revenuecat.com/docs/api-v2" target="_blank" class="sheet-btn sheet-btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; text-decoration: none;">
+              📖 Open RevenueCat Docs ↗
+            </a>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.6rem;">
+            Export the following environment variables in your deployment environment or <code>.env</code> file:
+          </p>
+          <pre style="background: rgba(0,0,0,0.5); padding: 0.6rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan); overflow-x: auto;">export REVENUECAT_SECRET_KEY="sk_live_..."
+export REVENUECAT_PROJECT_ID="proj_..."
+export REVENUECAT_WEBHOOK_SECRET="rc_whsec_..."</pre>
+        </div>
+
+        <!-- 2. QUICKBOOKS ONLINE -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass-bright); border-radius: 12px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="font-weight: 700; color: var(--accent-cyan); font-size: 0.95rem;">💼 2. Intuit QuickBooks Online OAuth2 API</div>
+            <a href="https://developer.intuit.com/app/developer/qbo/docs/develop" target="_blank" class="sheet-btn sheet-btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; text-decoration: none;">
+              📖 Open Intuit Developer Portal ↗
+            </a>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.6rem;">
+            Set up OAuth2 app on Intuit Developer Portal with <code>com.intuit.quickbooks.accounting</code> scope:
+          </p>
+          <pre style="background: rgba(0,0,0,0.5); padding: 0.6rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan); overflow-x: auto;">export QUICKBOOKS_CLIENT_ID="AB..."
+export QUICKBOOKS_CLIENT_SECRET="sk_..."
+export QUICKBOOKS_REALM_ID="913035..."</pre>
+        </div>
+
+        <!-- 3. STRIPE -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass-bright); border-radius: 12px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="font-weight: 700; color: var(--accent-gold); font-size: 0.95rem;">💳 3. Stripe Payments & Billing API</div>
+            <a href="https://stripe.com/docs/api" target="_blank" class="sheet-btn sheet-btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; text-decoration: none;">
+              📖 Open Stripe API Docs ↗
+            </a>
+          </div>
+          <pre style="background: rgba(0,0,0,0.5); padding: 0.6rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan); overflow-x: auto;">export STRIPE_SECRET_KEY="sk_live_..."
+export STRIPE_WEBHOOK_SECRET="whsec_..."</pre>
+        </div>
+
+        <!-- 4. GUSTO & PLAID -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass-bright); border-radius: 12px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="font-weight: 700; color: var(--accent-purple); font-size: 0.95rem;">👥 4. Gusto Payroll & Plaid Bank Feeds</div>
+            <div style="display: flex; gap: 0.4rem;">
+              <a href="https://docs.gusto.com/" target="_blank" class="sheet-btn" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; text-decoration: none;">Gusto Docs ↗</a>
+              <a href="https://plaid.com/docs/api/" target="_blank" class="sheet-btn" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; text-decoration: none;">Plaid Docs ↗</a>
+            </div>
+          </div>
+          <pre style="background: rgba(0,0,0,0.5); padding: 0.6rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan); overflow-x: auto;">export GUSTO_API_TOKEN="tok_..."
+export PLAID_CLIENT_ID="..." && export PLAID_SECRET="..."</pre>
+        </div>
+
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="sheet-btn" onclick="checkLiveIntegrationsHealth()">⚡ Test Live Connection Status</button>
+        <button class="sheet-btn sheet-btn-primary" onclick="closeLiveApiDocsModal()">Close</button>
+      </div>
+    </div>
+  </div>
 
   </main>
   <script src="app.js"></script>

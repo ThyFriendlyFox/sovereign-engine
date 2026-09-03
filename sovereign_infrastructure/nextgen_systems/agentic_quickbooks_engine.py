@@ -42,6 +42,11 @@ from mega_11_platform_master_suite import (
     GustoMasterModule,
     QuickBooksMasterModule
 )
+from live_connectors import (
+    RevenueCatLiveClient,
+    LiveStatutoryComplianceFetcher,
+    LiveThirdPartyIntegrationRegistry
+)
 
 
 class ComplianceAndTaxCreditsResearchEngine:
@@ -94,11 +99,12 @@ class ComplianceAndTaxCreditsResearchEngine:
     def __init__(self, allow_live_web_fetch: bool = True):
         self.allow_live_web_fetch = allow_live_web_fetch
         self.research_cache: Dict[str, Dict[str, Any]] = {}
+        self.live_fetcher = LiveStatutoryComplianceFetcher()
 
     def fetch_live_guidance_or_lookup(self, topic: str, jurisdiction: str = "US") -> Dict[str, Any]:
         """
         Retrieves statutory guidance, tax credit eligibility, or compliance rules.
-        Uses structured knowledge and live queries if available.
+        Uses live statutory web fetching and structured fallback indices.
         """
         topic_key = topic.lower().replace(" ", "_")
         if topic_key in self.DEFAULT_TAX_KNOWLEDGE:
@@ -106,6 +112,11 @@ class ComplianceAndTaxCreditsResearchEngine:
             res["source"] = "OFFICIAL_STATUTORY_INDEX_2026"
             res["jurisdiction"] = jurisdiction
             res["timestamp"] = time.time()
+            
+            # Enrich with live web fetch verification if enabled
+            if self.allow_live_web_fetch:
+                fetch_res = self.live_fetcher.fetch_statutory_text_or_guidance(topic_key, res["summary"])
+                res["live_web_verification"] = fetch_res
             return res
 
         # Check state level programs
@@ -213,6 +224,7 @@ class RevenueCatSubscriptionTierManager:
 
     def __init__(self, rc_module: Optional[RevenueCatMasterModule] = None):
         self.rc = rc_module or RevenueCatMasterModule()
+        self.live_rc_client = RevenueCatLiveClient()
         self.subscribers: Dict[str, Dict[str, Any]] = {}
         self.usage_meters: Dict[str, Dict[str, int]] = {}  # user_id -> feature -> count
 
@@ -234,6 +246,9 @@ class RevenueCatSubscriptionTierManager:
         
         # Trigger RC master module webhook synchronization
         self.rc.process_webhooks("INITIAL_PURCHASE", subscriber_id=user_id, product_id=product_id)
+        # Verify with live client if available
+        live_info = self.live_rc_client.get_customer_info(user_id)
+        self.subscribers[user_id]["live_revenuecat_sync"] = live_info
         return self.subscribers[user_id]
 
     def record_metered_usage(self, user_id: str, feature: str = "ai_bookkeeping_queries", units: int = 1) -> Dict[str, Any]:
@@ -328,7 +343,10 @@ class AgenticQuickBooksEngine:
         # 4. Live Compliance & Tax Credit Research Engine
         self.research_engine = ComplianceAndTaxCreditsResearchEngine()
 
-        # 5. Autonomous Bookkeeping Audit Log
+        # 5. Live Third-Party Integration Registry & Connectors
+        self.integration_registry = LiveThirdPartyIntegrationRegistry()
+
+        # 6. Autonomous Bookkeeping Audit Log
         self.bookkeeping_audit_trail: List[Dict[str, Any]] = []
 
         logger.info("[Agentic QuickBooks Engine] Initialized with GAAP Accrual Substrate & RevenueCat Billing Bridge.")
@@ -558,6 +576,7 @@ class AgenticQuickBooksEngine:
 
         is_gl_balanced = tb.get("is_balanced", False)
         debit_credit_variance = round(abs(tb["total_debits"] - tb["total_credits"]), 2)
+        live_integrations = self.integration_registry.get_all_integration_statuses()
 
         return {
             "agent_identity": "Agentic_QuickBooks_Sovereign_Bookkeeper",
@@ -569,5 +588,6 @@ class AgenticQuickBooksEngine:
             "revenuecat_active_subscribers": len(self.subscription_manager.subscribers),
             "tax_credits_potential": tax_summary["total_estimated_tax_credits"],
             "accounting_framework": "US_GAAP_ACCRUAL_BASIS",
+            "live_integrations_status": live_integrations,
             "status": "AGENTIC_BOOKKEEPING_AUDIT_OPTIMAL"
         }
