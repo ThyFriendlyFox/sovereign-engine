@@ -291,6 +291,14 @@ class PlaidClient:
             ("ACH PAYROLL", None, 4200.00, "Uncategorized Expense", 18),
             ("Customer Refund", None, 120.00, "Sales Income", 20),
             ("Verizon Wireless", "Verizon", 89.00, "Utilities", 22),
+            # Tax-classification scenarios: meals that need an attendee answer,
+            # entertainment, equipment over the de minimis limit, a gift, office food, airfare.
+            ("Bistro 42", "Bistro 42", 186.40, "Travel & Meals", 1),
+            ("Topgolf", "Topgolf", 420.00, "Travel & Meals", 9),
+            ("Apple Store", "Apple Store", 3199.00, "Office & Software", 11),
+            ("Harry & David", "Harry & David", 150.00, "Marketing", 13),
+            ("Panera Catering", "Panera", 240.00, "Travel & Meals", 16),
+            ("Delta Air Lines", "Delta", 486.00, "Travel & Meals", 17),
         ]
         txns = []
         for i, (name, merchant, amount, category, day_offset) in enumerate(samples):
@@ -307,7 +315,7 @@ class PlaidClient:
                     "amount": amount,
                     "pending": i == 0,
                     "category": category,
-                    "_prefer_checking": amount < 0 or "AWS" in name or "Uber" in name or "Google" in name or "Shell" in name or "Adobe" in name or "WeWork" in name or "POS" in name or "PAYROLL" in name or "Verizon" in name or "Refund" in name or "Shopify" in name or "Stripe" in name,
+                    "_prefer_checking": amount < 0 or any(k in name for k in ("AWS", "Uber", "Google", "Shell", "Adobe", "WeWork", "POS", "PAYROLL", "Verizon", "Refund", "Shopify", "Stripe", "Bistro", "Topgolf", "Apple", "Harry", "Panera", "Delta")),
                 }
             )
         return txns
