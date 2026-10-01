@@ -284,6 +284,8 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             "/api/v1/books/tax_bucket",
             "/api/v1/books/anomalies",
             "/api/v1/books/businesses",
+            "/api/v1/books/approvals",
+            "/api/v1/books/approvals/summary",
             "/api/v1/roadmap/verify",
         ):
             self.send_json_response(books_http.handle_books_ext_get(path, self.parse_query_params()))
@@ -846,6 +848,7 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             "/api/v1/books/receipts",
             "/api/v1/books/rules",
             "/api/v1/books/close_month",
+            "/api/v1/books/approvals",
         ):
             self.send_json_response(books_http.handle_books_ext_post(path, body or {}))
 

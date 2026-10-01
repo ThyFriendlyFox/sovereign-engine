@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, Optional
 
+from .approvals import ApprovalsLog
 from .apps_manager import AppsManager
 from .books_extended import BooksExtended
 from .crm_store import CRMStore
@@ -13,6 +14,7 @@ from .roadmap_registry import verify_all
 _crm: Optional[CRMStore] = None
 _apps: Optional[AppsManager] = None
 _books_ext: Optional[BooksExtended] = None
+_approvals: Optional[ApprovalsLog] = None
 
 
 def crm() -> CRMStore:
@@ -34,6 +36,13 @@ def books_ext() -> BooksExtended:
     if _books_ext is None:
         _books_ext = BooksExtended()
     return _books_ext
+
+
+def approvals() -> ApprovalsLog:
+    global _approvals
+    if _approvals is None:
+        _approvals = ApprovalsLog()
+    return _approvals
 
 
 def handle_crm_get(path: str, params: Dict[str, str]) -> Dict[str, Any]:
@@ -219,6 +228,10 @@ def handle_books_ext_get(path: str, params: Dict[str, str]) -> Dict[str, Any]:
         return b.flag_anomalies(bid)
     if path == "/api/v1/books/businesses":
         return b.list_businesses()
+    if path == "/api/v1/books/approvals":
+        return approvals().list(bid, limit=int(params.get("limit") or 50))
+    if path == "/api/v1/books/approvals/summary":
+        return approvals().summary(bid)
     if path == "/api/v1/roadmap/verify":
         return verify_all()
     return {"status": "ERROR", "error": f"Unknown books-ext GET {path}"}
@@ -256,4 +269,15 @@ def handle_books_ext_post(path: str, body: Dict[str, Any]) -> Dict[str, Any]:
         )
     if path == "/api/v1/books/close_month":
         return b.close_month_run(body.get("period"), bid)
+    if path == "/api/v1/books/approvals":
+        return approvals().record(
+            kind=body.get("kind") or "other",
+            decision=body.get("decision") or "approved",
+            card_id=body.get("card_id") or "",
+            subject=body.get("subject"),
+            amount=body.get("amount"),
+            payload=body.get("payload") if isinstance(body.get("payload"), dict) else None,
+            business_id=bid,
+            source=body.get("source") or "mobile",
+        )
     return {"status": "ERROR", "error": f"Unknown books-ext POST {path}"}
