@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.roborazzi)
 }
 
 // Secrets and per-machine settings come from android-app/local.properties
@@ -83,6 +84,13 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
+
     bundle {
         language { enableSplit = true }
         density { enableSplit = true }
@@ -117,4 +125,18 @@ dependencies {
     implementation(libs.revenuecat.purchases.ui)
 
     testImplementation(libs.junit)
+    // Screenshot rendering on the JVM (no emulator): Robolectric + Roborazzi.
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Screenshots land in docs/play-store/screenshots so the store listing and the
+// walkthrough use real renders of the app.
+roborazzi {
+    outputDir.set(rootProject.file("../docs/play-store/screenshots"))
 }

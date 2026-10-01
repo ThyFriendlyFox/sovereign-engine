@@ -60,9 +60,10 @@ fun ApprovalsScreen(
     onApprove: (ApprovalCard, String?) -> Boolean,
     onSkip: (ApprovalCard) -> Unit,
     onUpgrade: () -> Unit,
+    initialAnswer: String? = null,
 ) {
     val card = state.cards.firstOrNull()
-    var answer by remember(card?.id) { mutableStateOf<String?>(null) }
+    var answer by remember(card?.id) { mutableStateOf(initialAnswer) }
     val canApprove = card != null && (card !is ApprovalCard.MealQuestion || answer != null)
     Column(modifier.fillMaxSize().padding(ScreenPadding)) {
         val total = state.cards.size + state.decided

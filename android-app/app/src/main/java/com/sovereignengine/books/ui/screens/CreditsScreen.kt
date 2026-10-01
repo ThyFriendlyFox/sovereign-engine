@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -35,7 +36,7 @@ fun CreditsScreen(state: UiState, modifier: Modifier = Modifier, onState: (Strin
     val locked = !state.isPro
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(ScreenPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.credits_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.credits_state_picker), color = Slate, modifier = Modifier.padding(top = 10.dp))
             STATES.forEach { s ->
                 FilterChip(selected = state.creditsState == s, onClick = { onState(s) }, label = { Text(s) })
