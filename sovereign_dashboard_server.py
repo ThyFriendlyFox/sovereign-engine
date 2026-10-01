@@ -119,6 +119,9 @@ gemini_chat = GeminiChatOrchestrator(
     pulse=pulse, aura=aura, xfin=xfin, mint=mint, grid=grid, nexs=nexs
 )
 
+# Initialize Gemini Intelligence Engine (app synthesis + MPC wallet derivation)
+gemini_engine = GeminiIntelligenceEngine()
+
 # Initialize Embedded Marketplace Hub
 marketplace_hub = EmbeddedMarketplaceHub()
 
@@ -159,7 +162,7 @@ WORKFLOW_SHORTHAND_MAP = {
     "wf_25": "workflow_ultimate_25_protocol_suite",
 }
 
-DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "sovereign_dashboard")
+DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "dist")
 
 class SovereignDashboardHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -206,7 +209,31 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
         # -----------------------------------------------------------------
         # Sovereign Books MVP — Connect Bank (Phase 0)
         # -----------------------------------------------------------------
-        if path in ["/api/v1/books/home", "/api/v1/books/snapshot"]:
+        if path in ["/", "/index.html"]:
+            here = os.path.dirname(__file__)
+            target_file = os.path.join(here, "dist", "index.html")
+            if os.path.isfile(target_file):
+                with open(target_file, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(content)
+            else:
+                self.send_json_response({"service": "sovereign-engine", "status": "ok", "docs": "/api/v1/books/home"})
+        elif path in ["/healthz", "/api/v1/healthz", "/health"]:
+            self.send_json_response({"status": "healthy", "probe": "liveness", "timestamp": time.time()})
+        elif path in ("/api/v1/infra", "/api/v1/frontend/infra"):
+            from sovereign_infrastructure.frontend_infra import snapshot as infra_snapshot
+
+            self.send_json_response(infra_snapshot())
+        elif path in ("/api/v1/finance", "/api/v1/frontend/finance"):
+            from sovereign_infrastructure.frontend_infra import financial_snapshot
+
+            self.send_json_response(financial_snapshot())
+        elif path in ["/api/v1/books/home", "/api/v1/books/snapshot"]:
             self.send_json_response(books_bank.home_snapshot())
         elif path == "/api/v1/books/link_token":
             self.send_json_response(books_bank.create_link_token())
@@ -529,6 +556,35 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(mega11.expensify.audit_expense_report("EMP-01", [{"merchant": "AWS", "amount": 250.0, "receipt_ocr": True}]))
         elif path == "/api/v1/plaid/balance":
             self.send_json_response(mega11.plaid.get_realtime_auth_balance("acc_101"))
+        elif path in ["/api/v1/plaid/link_token", "/api/v1/banking/plaid/link_token"]:
+            self.send_json_response(mega11.plaid.create_link_token())
+        elif path in ["/api/v1/plaid/exchange_token", "/api/v1/banking/plaid/exchange_token"]:
+            self.send_json_response(mega11.plaid.exchange_public_token("public-sandbox-token-12345"))
+        elif path in ["/api/v1/gemini/app_generate", "/api/v1/gemini/generate_app"]:
+            params = self.parse_query_params()
+            app_name = params.get("app_name", "Sovereign AI App")
+            self.send_json_response(gemini_engine.app_node.synthesize_app_code(app_name))
+        elif path in ["/api/v1/passport/mpc_derive", "/api/v1/passport/derive"]:
+            params = self.parse_query_params()
+            token = params.get("oauth_token", "apple_oauth_token_12345")
+            provider = params.get("provider", "apple")
+            self.send_json_response(gemini_engine.derive_mpc_wallet(token, provider))
+        elif path in ["/api/v1/monetization_markets/package", "/api/v1/monetization/package_app"]:
+            params = self.parse_query_params()
+            name = params.get("app_name", "PreMonetized AI App")
+            dev = params.get("developer_id", "dev_builder_01")
+            from monetization_markets.monetization_markets_engine import MonetizationMarketsEngine
+            mm_engine = MonetizationMarketsEngine()
+            self.send_json_response(mm_engine.package_monetized_app(name, dev))
+        elif path in ["/api/v1/ai/autonomous_purchase", "/api/v1/agent/purchase"]:
+            params = self.parse_query_params()
+            item = params.get("item", "RunPod GPU Compute 10 Hours")
+            amt = float(params.get("amount", 32.50))
+            vendor = params.get("vendor", "RunPod Inc")
+            usr = params.get("user_id", "builder_101")
+            from monetization_markets.monetization_markets_engine import AutonomousAIPurchasingEngine
+            purchaser = AutonomousAIPurchasingEngine()
+            self.send_json_response(purchaser.execute_autonomous_purchase(item, amt, vendor, usr))
         elif path == "/api/v1/avalara/tax_nexus":
             self.send_json_response(mega11.avalara.calculate_global_tax_nexus(1000.0, "US_CA"))
         elif path == "/api/v1/freshbooks/time_invoice":
