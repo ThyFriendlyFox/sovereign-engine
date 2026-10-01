@@ -28,10 +28,28 @@ Work through this top to bottom. Anything marked **once** only has to happen the
 
 ## 4. Build
 
+Locally:
+
 ```bash
 cd android-app
 ./gradlew :app:bundleRelease
 # -> app/build/outputs/bundle/release/app-release.aab
+```
+
+Or from GitHub Actions (`.github/workflows/android-release.yml`). Add these
+repository secrets once: `ANDROID_KEYSTORE_BASE64` (`base64 -w0 upload-keystore.jks`),
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`,
+`REVENUECAT_GOOGLE_API_KEY`, and optionally `PLAY_SERVICE_ACCOUNT_JSON`; plus the
+repository variable `BOOKS_API_BASE_URL`. Then either push a tag
+(`git tag android-v1.0.0 && git push origin android-v1.0.0`) or run the
+workflow by hand and pick the Play track. The signed bundle is attached to the
+GitHub release and, when the service account secret is set, uploaded to Play.
+
+Store screenshots are real renders of the app produced on the JVM:
+
+```bash
+cd android-app && ./gradlew :app:recordRoborazziDebug
+# -> docs/play-store/screenshots/*.png (1080 x 1920)
 ```
 
 For a quick device check:

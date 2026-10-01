@@ -44,6 +44,26 @@ jobs:
             android-app/app/build/outputs/apk/debug/*.apk
             android-app/app/build/outputs/bundle/release/*.aab
 
+  screenshots:
+    name: Screen renders
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Render every screen with Roborazzi (JVM, no emulator)
+        run: ./gradlew :app:recordRoborazziDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: docs/play-store/screenshots/*.png
+
   web:
     name: Web build
     runs-on: ubuntu-latest
