@@ -119,6 +119,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun skip(card: ApprovalCard) {
         _state.update { it.copy(cards = it.cards.filterNot { c -> c.id == card.id }, decided = it.decided + 1) }
+        viewModelScope.launch { repo.skip(card) }
     }
 
     fun setCreditsState(state: String) {

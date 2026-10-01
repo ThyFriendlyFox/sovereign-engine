@@ -49,6 +49,24 @@ class BooksApi(private val baseUrlProvider: () -> String) {
             (0 until arr.length()).map { arr.getJSONObject(it).toInvoice() }
         }
 
+    /** Records a decision in the server-side approvals log. */
+    suspend fun recordApproval(
+        kind: String,
+        decision: String,
+        cardId: String,
+        subject: String?,
+        amount: Double?,
+        payload: Map<String, Any?> = emptyMap(),
+    ): JSONObject = post("/api/v1/books/approvals", JSONObject().apply {
+        put("kind", kind)
+        put("decision", decision)
+        put("card_id", cardId)
+        put("source", "mobile")
+        if (subject != null) put("subject", subject)
+        if (amount != null) put("amount", amount)
+        put("payload", JSONObject(payload))
+    })
+
     suspend fun entitlements(appUserId: String): Boolean =
         get("/api/v1/books/entitlements?app_user_id=$appUserId").optBoolean("pro_active", false)
 

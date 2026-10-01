@@ -32,16 +32,40 @@ class BooksRepository(private val api: BooksApi, private val settings: AppSettin
         if (settings.demoMode) DemoData.credits
         else runCatching { api.taxCredits(state) }.getOrDefault(DemoData.credits)
 
-    /** Applies an approval. Returns true when the server (or demo mode) accepted it. */
+    /** Applies an approval and logs it. Returns true when the server (or demo mode) accepted it. */
     suspend fun approve(card: ApprovalCard): Boolean {
         if (settings.demoMode) return true
-        return when (card) {
+        val applied = when (card) {
             is ApprovalCard.Categorize -> runCatching {
                 api.confirmTransaction(card.txn.id, card.txn.categorySuggested).optString("status") != "ERROR"
             }.getOrDefault(true)
-            // Claim files and invoice follow-ups are recorded on the device until the
-            // server grows endpoints for them; approving never blocks the user.
             is ApprovalCard.TaxCredit, is ApprovalCard.InvoiceChase -> true
+        }
+        log(card, if (card is ApprovalCard.InvoiceChase) "sent" else "approved")
+        return applied
+    }
+
+    suspend fun skip(card: ApprovalCard) {
+        if (!settings.demoMode) log(card, "skipped")
+    }
+
+    /** Best-effort write to the approvals audit log; never blocks the user. */
+    private suspend fun log(card: ApprovalCard, decision: String) {
+        runCatching {
+            when (card) {
+                is ApprovalCard.Categorize -> api.recordApproval(
+                    "categorize", decision, card.id, card.txn.merchant, card.txn.amount,
+                    mapOf("category" to card.txn.categorySuggested, "txn_id" to card.txn.id, "confidence" to card.confidence),
+                )
+                is ApprovalCard.TaxCredit -> api.recordApproval(
+                    "tax_credit", decision, card.id, card.estimate.jurisdiction, card.estimate.totalCredits,
+                    mapOf("total_qre" to card.estimate.totalQre, "federal" to card.estimate.federalCredit, "state" to card.estimate.stateCredit),
+                )
+                is ApprovalCard.InvoiceChase -> api.recordApproval(
+                    "invoice_chase", decision, card.id, card.invoice.customer, card.invoice.amount,
+                    mapOf("invoice_id" to card.invoice.id, "days_overdue" to card.invoice.daysOverdue),
+                )
+            }
         }
     }
 
