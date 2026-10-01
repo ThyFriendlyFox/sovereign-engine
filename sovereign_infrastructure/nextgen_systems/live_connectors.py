@@ -43,11 +43,14 @@ class RevenueCatLiveClient:
         project_id: Optional[str] = None,
         webhook_secret: Optional[str] = None
     ):
-        self.api_key = api_key or os.environ.get("REVENUECAT_API_KEY", "goog_pub_live_sovereign_android_2026")
-        self.secret_key = os.environ.get("REVENUECAT_SECRET_KEY", "sk_live_rc_sovereign_enterprise_2026")
-        self.project_id = project_id or os.environ.get("REVENUECAT_PROJECT_ID", "proj_sovereign_enterprise_01")
-        self.webhook_secret = webhook_secret or os.environ.get("REVENUECAT_WEBHOOK_SECRET", "rc_whsec_live_sovereign_2026")
-        self.is_live_network_enabled = bool(os.environ.get("REVENUECAT_ENABLE_LIVE_NETWORK", "true").lower() in ("true", "1", "yes"))
+        # Credentials come only from the environment. With none set the client
+        # stays offline and answers from its local fallback schema.
+        self.api_key = api_key or os.environ.get("REVENUECAT_API_KEY", "")
+        self.secret_key = os.environ.get("REVENUECAT_SECRET_KEY", "")
+        self.project_id = project_id or os.environ.get("REVENUECAT_PROJECT_ID", "")
+        self.webhook_secret = webhook_secret or os.environ.get("REVENUECAT_WEBHOOK_SECRET", "")
+        live_flag = os.environ.get("REVENUECAT_ENABLE_LIVE_NETWORK", "true").lower() in ("true", "1", "yes")
+        self.is_live_network_enabled = live_flag and bool(self.secret_key)
         
         logger.info(f"[RevenueCatLiveClient] Initialized (Project: {self.project_id}, Live Network: {self.is_live_network_enabled})")
 
@@ -62,7 +65,7 @@ class RevenueCatLiveClient:
 
     def verify_webhook_signature(self, payload_bytes: bytes, signature_header: str) -> bool:
         """Verifies HMAC-SHA256 signature from RevenueCat Webhooks."""
-        if not signature_header:
+        if not signature_header or not self.webhook_secret:
             return False
         expected_sig = hmac.new(self.webhook_secret.encode(), payload_bytes, hashlib.sha256).hexdigest()
         # Handle 'sha256=' prefix if present
