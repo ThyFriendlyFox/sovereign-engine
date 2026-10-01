@@ -213,3 +213,44 @@ export const fetchGrants = (fit?: string, q?: string) => {
 
 export const sendChat = (message: string, businessId?: string) =>
   apiPost<ChatResponse>("/api/v1/books/chat", { message, business_id: businessId });
+
+// --- tax credits (agentic QuickBooks engine) --------------------------------
+
+export type TaxCredits = {
+  jurisdiction: string;
+  cloud_compute_qre: number;
+  rd_payroll_qre: number;
+  total_qualified_research_expenses: number;
+  federal_section_41_credit: number;
+  state_tax_credit: number;
+  total_estimated_tax_credits: number;
+  sec_174_annual_amortization_deduction: number;
+  statutory_references?: Array<string | Record<string, unknown>>;
+  compliance_status?: string;
+};
+
+export const fetchTaxCredits = (state = "CA") =>
+  apiGet<TaxCredits>(`/api/v1/agentic_qb/tax_credits?state=${encodeURIComponent(state)}`);
+
+export type ApprovalRow = {
+  id: string;
+  card_id: string;
+  kind: string;
+  decision: string;
+  subject: string | null;
+  amount: number | null;
+  source: string;
+  created_at: string;
+};
+
+export const fetchApprovals = (limit = 50) =>
+  apiGet<{ approvals: ApprovalRow[]; count: number; status: string }>(`/api/v1/books/approvals?limit=${limit}`);
+
+export const recordApproval = (body: {
+  kind: "categorize" | "tax_credit" | "invoice_chase" | "other";
+  decision: "approved" | "skipped" | "sent";
+  card_id: string;
+  subject?: string;
+  amount?: number;
+  payload?: Record<string, unknown>;
+}) => apiPost<{ id: string; status: string; error?: string }>("/api/v1/books/approvals", { ...body, source: "web" });

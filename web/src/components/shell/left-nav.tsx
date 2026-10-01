@@ -21,6 +21,7 @@ import {
   Sparkles,
   SquareKanban,
   Store,
+  Receipt,
 } from "lucide-react";
 import { DitherAvatar } from "@/components/dither-kit/avatar";
 import { DitherButton } from "@/components/dither-kit/button";
@@ -39,6 +40,7 @@ const SECTIONS: NavSection[] = [
       { id: "books", label: "Books", hint: "Bank & inbox" },
       { id: "chat", label: "Chat", hint: "Ask the ledger" },
       { id: "grants", label: "Grants", hint: "Non-dilutive capital" },
+      { id: "credits", label: "Tax credits", hint: "Section 41 and state" },
     ],
   },
   {
@@ -77,6 +79,7 @@ const ICONS: Record<ViewId, typeof LayoutDashboard> = {
   books: Banknote,
   chat: MessageSquare,
   grants: Sparkles,
+  credits: Receipt,
   crm_companies: Building2,
   crm_people: Contact,
   crm_opportunities: SquareKanban,

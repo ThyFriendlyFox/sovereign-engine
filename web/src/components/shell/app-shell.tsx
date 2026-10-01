@@ -7,6 +7,7 @@ import { DashboardView } from "@/components/views/dashboard-view";
 import { BooksView } from "@/components/views/books-view";
 import { ChatView } from "@/components/views/chat-view";
 import { GrantsView } from "@/components/views/grants-view";
+import { CreditsView } from "@/components/views/credits-view";
 import { CrmView } from "@/components/views/crm-view";
 import { AppsView } from "@/components/views/apps-view";
 import { SettingsView } from "@/components/views/settings-view";
@@ -24,6 +25,7 @@ export function AppShell() {
         {view === "books" && <BooksView />}
         {view === "chat" && <ChatView />}
         {view === "grants" && <GrantsView />}
+        {view === "credits" && <CreditsView />}
         {isCrm && <CrmView />}
         {isApps && <AppsView />}
         {view === "settings" && <SettingsView />}

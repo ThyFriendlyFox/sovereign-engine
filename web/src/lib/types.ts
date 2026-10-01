@@ -3,6 +3,7 @@ export type ViewId =
   | "books"
   | "chat"
   | "grants"
+  | "credits"
   | "crm_companies"
   | "crm_people"
   | "crm_opportunities"
