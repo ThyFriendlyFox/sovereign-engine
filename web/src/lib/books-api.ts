@@ -254,3 +254,81 @@ export const recordApproval = (body: {
   amount?: number;
   payload?: Record<string, unknown>;
 }) => apiPost<{ id: string; status: string; error?: string }>("/api/v1/books/approvals", { ...body, source: "web" });
+
+// --- tax classification and opportunities ----------------------------------
+
+export type TaxAnswer = { id: string; label: string; tax_class?: string; deductible_pct: number };
+
+export type TaxQuestion = {
+  transaction_id: string;
+  question: string;
+  answers: TaxAnswer[];
+  merchant: string;
+  date: string;
+  amount: number;
+  current_class: string;
+  current_deductible_pct: number;
+};
+
+export type TaxClassTotal = {
+  tax_class: string;
+  label: string;
+  deductible_pct: number;
+  count: number;
+  spent: number;
+  deductible: number;
+  nondeductible: number;
+  irc_reference: string;
+  form_line: string;
+};
+
+export type TaxSummary = {
+  tax_year: number;
+  total_spent: number;
+  total_deductible: number;
+  total_nondeductible: number;
+  open_questions: number;
+  qre_candidate_spend: number;
+  by_class: TaxClassTotal[];
+  status: string;
+};
+
+export type TaxOpportunity = {
+  id: string;
+  title: string;
+  action: string;
+  reference: string;
+  status: "close" | "qualified" | "not_yet" | string;
+  estimated_value: number;
+  value_note: string;
+  gap: string;
+  deadline: string | null;
+  detail?: Record<string, unknown> | null;
+};
+
+export type TaxOpportunities = {
+  tax_year: number;
+  state: string;
+  marginal_rate: number;
+  days_left_in_year: number;
+  summary: { total_spent: number; total_deductible: number; total_nondeductible: number; open_questions: number };
+  next_action: TaxOpportunity | null;
+  opportunities: TaxOpportunity[];
+  disclaimer: string;
+  status: string;
+};
+
+export const fetchTaxQuestions = (limit = 10) =>
+  apiGet<{ questions: TaxQuestion[]; count: number }>(`/api/v1/books/tax/questions?limit=${limit}`);
+
+export const fetchTaxSummary = (year?: number) =>
+  apiGet<TaxSummary>(`/api/v1/books/tax/summary${year ? `?year=${year}` : ""}`);
+
+export const fetchTaxOpportunities = (state = "CA", marginalRate = 0.24) =>
+  apiGet<TaxOpportunities>(`/api/v1/books/tax/opportunities?state=${encodeURIComponent(state)}&marginal_rate=${marginalRate}`);
+
+export const answerTaxQuestion = (txnId: string, attendees: string) =>
+  apiPost<{ status: string; tax_class?: string; deductible_pct?: number; deductible_amount?: number; error?: string }>(
+    "/api/v1/books/tax/classify",
+    { txn_id: txnId, attendees },
+  );
