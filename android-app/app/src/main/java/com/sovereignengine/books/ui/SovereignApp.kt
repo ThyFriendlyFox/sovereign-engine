@@ -75,7 +75,7 @@ fun SovereignApp(viewModel: MainViewModel, activity: Activity) {
             Tab.Approvals -> ApprovalsScreen(
                 state = state,
                 modifier = modifier,
-                onApprove = { viewModel.approve(it) },
+                onApprove = { card, answer -> viewModel.approve(card, answer) },
                 onSkip = viewModel::skip,
                 onUpgrade = { viewModel.showPaywall(true) },
             )

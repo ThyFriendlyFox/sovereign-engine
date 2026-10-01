@@ -16,6 +16,8 @@ import com.sovereignengine.books.data.BooksRepository
 import com.sovereignengine.books.data.HomeSnapshot
 import com.sovereignengine.books.data.Runway
 import com.sovereignengine.books.data.TaxCreditEstimate
+import com.sovereignengine.books.data.TaxOpportunity
+import com.sovereignengine.books.data.TaxSummary
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -30,6 +32,8 @@ data class UiState(
     val decided: Int = 0,
     val credits: TaxCreditEstimate? = null,
     val creditsState: String = "CA",
+    val taxSummary: TaxSummary? = null,
+    val opportunities: List<TaxOpportunity> = emptyList(),
     val activity: List<AgentActivity> = emptyList(),
     val isPro: Boolean = false,
     val billingConfigured: Boolean = false,
@@ -80,6 +84,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     cards = data.cards,
                     decided = 0,
                     credits = data.credits,
+                    taxSummary = data.taxSummary,
+                    opportunities = data.opportunities,
                     activity = data.activity,
                     message = if (data.offline && !settings.demoMode) "Could not reach the books API. Showing sample data." else null,
                 )
@@ -96,25 +102,31 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Approve the top card. Returns false when the free limit blocks it. */
-    fun approve(card: ApprovalCard): Boolean {
+    fun approve(card: ApprovalCard, answer: String? = null): Boolean {
         val s = _state.value
         if (s.freeLimitReached) {
             _state.update { it.copy(showPaywall = true) }
             return false
         }
         viewModelScope.launch {
-            repo.approve(card)
+            repo.approve(card, answer)
             if (!s.isPro) settings.recordApproval()
             _state.update {
                 it.copy(
                     cards = it.cards.filterNot { c -> c.id == card.id },
                     decided = it.decided + 1,
                     approvalsUsedToday = settings.approvalsUsedToday(),
-                    activity = listOf(AgentActivity("Now", describeApproval(card))) + it.activity,
+                    activity = listOf(AgentActivity("Now", describeApproval(card, answer))) + it.activity,
                 )
             }
+            if (card is ApprovalCard.MealQuestion) refreshTax()
         }
         return true
+    }
+
+    private suspend fun refreshTax() {
+        val opps = repo.opportunities(_state.value.creditsState)
+        _state.update { it.copy(opportunities = opps) }
     }
 
     fun skip(card: ApprovalCard) {
@@ -126,7 +138,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(creditsState = state) }
         viewModelScope.launch {
             val est = repo.taxCredits(state)
-            _state.update { it.copy(credits = est) }
+            val opps = repo.opportunities(state)
+            _state.update { it.copy(credits = est, opportunities = opps) }
         }
     }
 
@@ -161,8 +174,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearMessage() = _state.update { it.copy(message = null) }
 
-    private fun describeApproval(card: ApprovalCard): String = when (card) {
+    private fun describeApproval(card: ApprovalCard, answer: String?): String = when (card) {
         is ApprovalCard.Categorize -> "Confirmed ${card.txn.merchant} as ${card.txn.categorySuggested ?: "uncategorized"}; rule learned"
+        is ApprovalCard.MealQuestion -> {
+            val pct = card.q.answers.firstOrNull { it.id == answer }?.deductiblePct ?: 0.5
+            "${card.q.merchant}: ${(pct * 100).toInt()}% deductible"
+        }
         is ApprovalCard.TaxCredit -> "Approved the ${card.estimate.jurisdiction.removePrefix("US_")} research credit claim file"
         is ApprovalCard.InvoiceChase -> "Sent follow-up to ${card.invoice.customer}"
     }

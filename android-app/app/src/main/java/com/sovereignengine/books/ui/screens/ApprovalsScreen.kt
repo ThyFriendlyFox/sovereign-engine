@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,11 +57,13 @@ private const val SWIPE_THRESHOLD_PX = 220f
 fun ApprovalsScreen(
     state: UiState,
     modifier: Modifier = Modifier,
-    onApprove: (ApprovalCard) -> Boolean,
+    onApprove: (ApprovalCard, String?) -> Boolean,
     onSkip: (ApprovalCard) -> Unit,
     onUpgrade: () -> Unit,
 ) {
     val card = state.cards.firstOrNull()
+    var answer by remember(card?.id) { mutableStateOf<String?>(null) }
+    val canApprove = card != null && (card !is ApprovalCard.MealQuestion || answer != null)
     Column(modifier.fillMaxSize().padding(ScreenPadding)) {
         val total = state.cards.size + state.decided
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -91,9 +96,9 @@ fun ApprovalsScreen(
             } else {
                 SwipeableCard(
                     key = current.id,
-                    onApprove = { onApprove(current) },
+                    onApprove = { if (current is ApprovalCard.MealQuestion && answer == null) false else onApprove(current, answer) },
                     onSkip = { onSkip(current) },
-                ) { CardBody(current) }
+                ) { CardBody(current, answer) { answer = it } }
             }
         }
 
@@ -102,7 +107,8 @@ fun ApprovalsScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = { onSkip(card) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.skip)) }
                 Button(
-                    onClick = { onApprove(card) },
+                    onClick = { onApprove(card, answer) },
+                    enabled = canApprove,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = if (card is ApprovalCard.InvoiceChase) Violet else Emerald, contentColor = MaterialTheme.colorScheme.onSecondary),
                 ) {
@@ -154,10 +160,45 @@ private fun AllClear() {
 }
 
 @Composable
-private fun CardBody(card: ApprovalCard) {
+private fun CardBody(card: ApprovalCard, answer: String?, onAnswer: (String) -> Unit) {
     when (card) {
+        is ApprovalCard.MealQuestion -> {
+            Pill(stringResource(R.string.tax_question), Amber)
+            Gap(12)
+            Text(card.q.merchant, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(card.q.date, color = Slate, style = MaterialTheme.typography.bodySmall)
+            Gap(12)
+            BigNumber(Money.formatCents(card.q.amount))
+            Gap(16)
+            Text(card.q.question, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Gap(4)
+            Text(stringResource(R.string.tax_pick_answer), color = Slate, style = MaterialTheme.typography.bodySmall)
+            Gap(8)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                card.q.answers.forEach { a ->
+                    FilterChip(
+                        selected = answer == a.id,
+                        onClick = { onAnswer(a.id) },
+                        label = { Text("${a.label} · ${(a.deductiblePct * 100).toInt()}%") },
+                    )
+                }
+            }
+            val chosen = card.q.answers.firstOrNull { it.id == answer }
+            if (chosen != null) {
+                Gap(12)
+                Text(
+                    stringResource(R.string.tax_result, Money.formatCents(card.q.amount * chosen.deductiblePct), Money.formatCents(card.q.amount)),
+                    color = if (chosen.deductiblePct > 0) Emerald else MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
         is ApprovalCard.Categorize -> {
-            Pill(stringResource(R.string.confirm_category), Violet)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Pill(stringResource(R.string.confirm_category), Violet)
+                card.deductiblePct?.let { Pill(stringResource(R.string.tax_deductible_pct, (it * 100).toInt()), if (it > 0) Emerald else Slate) }
+            }
             Gap(12)
             Text(card.txn.merchant, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text("${card.txn.date}  •  ${card.txn.accountName} ••${card.txn.mask}", color = Slate, style = MaterialTheme.typography.bodySmall)
@@ -166,6 +207,7 @@ private fun CardBody(card: ApprovalCard) {
             Gap(16)
             Label(stringResource(R.string.agent_confidence))
             Text("${card.confidence}%  →  ${card.txn.categorySuggested ?: "Needs a category"}", style = MaterialTheme.typography.titleMedium)
+            card.taxLabel?.let { Text(it, color = Slate, style = MaterialTheme.typography.bodySmall) }
             if (card.similar.isNotEmpty()) {
                 Gap(16)
                 Label(stringResource(R.string.similar_charges))

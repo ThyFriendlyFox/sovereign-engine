@@ -18,6 +18,9 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.sovereignengine.books.data.TaxOpportunity
+import com.sovereignengine.books.ui.theme.Amber
+import com.sovereignengine.books.ui.theme.Violet
 import com.sovereignengine.books.R
 import com.sovereignengine.books.data.Money
 import com.sovereignengine.books.ui.UiState
@@ -38,6 +41,35 @@ fun CreditsScreen(state: UiState, modifier: Modifier = Modifier, onState: (Strin
                 FilterChip(selected = state.creditsState == s, onClick = { onState(s) }, label = { Text(s) })
             }
         }
+        val next = state.opportunities.firstOrNull()
+        if (next != null) {
+            SectionCard {
+                Label(stringResource(R.string.credits_next))
+                Gap(6)
+                OpportunityRow(next, highlight = true)
+            }
+        }
+        state.taxSummary?.let { ts ->
+            SectionCard {
+                Label(stringResource(R.string.credits_deductions))
+                Gap(6)
+                StatRow(stringResource(R.string.credits_deductible), Money.format(ts.totalDeductible), bold = true)
+                StatRow(stringResource(R.string.credits_nondeductible), Money.format(ts.totalNondeductible))
+                StatRow(stringResource(R.string.credits_open), ts.openQuestions.toString())
+            }
+        }
+        if (state.opportunities.size > 1) {
+            SectionCard {
+                Label(stringResource(R.string.credits_opportunities))
+                Gap(6)
+                val visible = if (locked) state.opportunities.drop(1).take(2) else state.opportunities.drop(1)
+                visible.forEach { OpportunityRow(it) }
+                if (locked && state.opportunities.size > 3) {
+                    Gap(8)
+                    Text(stringResource(R.string.credits_more_locked, state.opportunities.size - 3), color = Slate, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
         if (locked) {
             SectionCard {
                 Text(stringResource(R.string.credits_locked), style = MaterialTheme.typography.bodyMedium)
@@ -46,6 +78,7 @@ fun CreditsScreen(state: UiState, modifier: Modifier = Modifier, onState: (Strin
             }
         }
         val blur = if (locked) Modifier.blur(10.dp) else Modifier
+        Text(stringResource(R.string.credits_research), style = MaterialTheme.typography.titleSmall, color = Slate)
         SectionCard(blur) {
             Label(stringResource(R.string.credits_total))
             Gap(6)
@@ -62,6 +95,15 @@ fun CreditsScreen(state: UiState, modifier: Modifier = Modifier, onState: (Strin
             StatRow("Cloud compute", Money.format(est?.cloudQre ?: 0.0))
             StatRow("Total", Money.format(est?.totalQre ?: 0.0), bold = true)
         }
+        state.taxSummary?.byClass?.takeIf { it.isNotEmpty() && !locked }?.let { classes ->
+            SectionCard {
+                Label(stringResource(R.string.credits_by_class))
+                Gap(6)
+                classes.take(8).forEach { c ->
+                    StatRow("${c.label} · ${(c.deductiblePct * 100).toInt()}%", Money.format(c.deductible))
+                }
+            }
+        }
         val refs = est?.references.orEmpty()
         if (!locked && refs.isNotEmpty()) {
             SectionCard {
@@ -75,6 +117,27 @@ fun CreditsScreen(state: UiState, modifier: Modifier = Modifier, onState: (Strin
             color = Slate,
             style = MaterialTheme.typography.bodySmall,
         )
+    }
+}
+
+@Composable
+private fun OpportunityRow(o: TaxOpportunity, highlight: Boolean = false) {
+    val (statusText, statusColor) = when (o.status) {
+        "qualified" -> stringResource(R.string.credits_status_qualified) to Emerald
+        "not_yet" -> stringResource(R.string.credits_status_not_yet) to Slate
+        else -> stringResource(R.string.credits_status_close) to Amber
+    }
+    Column(Modifier.padding(vertical = 6.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(o.title, style = if (highlight) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text(Money.format(o.estimatedValue), color = if (highlight) Emerald else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
+            Pill(statusText, statusColor)
+            o.deadline?.let { Pill("by $it", Violet) }
+        }
+        Text(o.action, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 6.dp))
+        Text(o.reference, style = MaterialTheme.typography.labelSmall, color = Slate, modifier = Modifier.padding(top = 2.dp))
     }
 }
 

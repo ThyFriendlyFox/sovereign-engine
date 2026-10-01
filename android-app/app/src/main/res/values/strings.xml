@@ -56,6 +56,23 @@
     <string name="settings_version">Version %1$s</string>
     <string name="settings_demo_mode">Use offline sample data</string>
 
+    <string name="tax_question">Tax question</string>
+    <string name="tax_deductible_pct">%1$d%% deductible</string>
+    <string name="tax_pick_answer">Pick who was there to set the deduction</string>
+    <string name="tax_result">%1$s of %2$s deductible</string>
+    <string name="credits_next">Go do this next</string>
+    <string name="credits_deductions">Deductions this year</string>
+    <string name="credits_deductible">Deductible</string>
+    <string name="credits_nondeductible">Not deductible</string>
+    <string name="credits_open">Open questions</string>
+    <string name="credits_opportunities">Opportunities, nearest first</string>
+    <string name="credits_status_close">Close</string>
+    <string name="credits_status_qualified">Qualified</string>
+    <string name="credits_status_not_yet">Not yet</string>
+    <string name="credits_by_class">By tax class</string>
+    <string name="credits_research">Research credit estimate</string>
+    <string name="credits_more_locked">%1$d more opportunities with Pro</string>
+
     <string name="error_network">Could not reach the books API. Showing sample data.</string>
     <string name="retry">Retry</string>
 </resources>

@@ -67,6 +67,83 @@ class BooksApi(private val baseUrlProvider: () -> String) {
         put("payload", JSONObject(payload))
     })
 
+    // --- tax ---------------------------------------------------------------
+
+    suspend fun taxQuestions(limit: Int = 10): List<TaxQuestion> =
+        get("/api/v1/books/tax/questions?limit=$limit").optJSONArray("questions").let { arr ->
+            if (arr == null) return emptyList()
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                val answers = o.optJSONArray("answers")?.let { a ->
+                    (0 until a.length()).map { j ->
+                        val x = a.getJSONObject(j)
+                        TaxAnswer(x.optString("id"), x.optString("label"), x.optDouble("deductible_pct", 0.0))
+                    }
+                } ?: emptyList()
+                TaxQuestion(
+                    transactionId = o.optString("transaction_id"),
+                    question = o.optString("question", "Who was this meal with?"),
+                    answers = answers,
+                    merchant = o.optString("merchant"),
+                    date = o.optString("date"),
+                    amount = o.optDouble("amount", 0.0),
+                    currentDeductiblePct = o.optDouble("current_deductible_pct", 0.5),
+                )
+            }
+        }
+
+    suspend fun taxClassify(txnId: String, attendees: String): JSONObject =
+        post("/api/v1/books/tax/classify", JSONObject().apply {
+            put("txn_id", txnId)
+            put("attendees", attendees)
+        })
+
+    /** Map of transaction id to (label, deductible pct) for chips on categorize cards. */
+    suspend fun taxClassifications(): Map<String, Pair<String, Double>> =
+        get("/api/v1/books/tax/classifications?limit=200").optJSONArray("classifications").let { arr ->
+            if (arr == null) return emptyMap()
+            (0 until arr.length()).associate { i ->
+                val o = arr.getJSONObject(i)
+                o.optString("transaction_id") to (o.optString("label") to o.optDouble("deductible_pct", 0.0))
+            }
+        }
+
+    suspend fun taxSummary(): TaxSummary = get("/api/v1/books/tax/summary").let { o ->
+        val arr = o.optJSONArray("by_class")
+        TaxSummary(
+            taxYear = o.optInt("tax_year"),
+            totalSpent = o.optDouble("total_spent", 0.0),
+            totalDeductible = o.optDouble("total_deductible", 0.0),
+            totalNondeductible = o.optDouble("total_nondeductible", 0.0),
+            openQuestions = o.optInt("open_questions", 0),
+            byClass = arr?.let { a ->
+                (0 until a.length()).map { i ->
+                    val c = a.getJSONObject(i)
+                    TaxClassTotal(c.optString("tax_class"), c.optString("label"), c.optDouble("deductible_pct", 0.0), c.optInt("count"), c.optDouble("spent", 0.0), c.optDouble("deductible", 0.0))
+                }
+            } ?: emptyList(),
+        )
+    }
+
+    suspend fun taxOpportunities(state: String): List<TaxOpportunity> =
+        get("/api/v1/books/tax/opportunities?state=$state").optJSONArray("opportunities").let { arr ->
+            if (arr == null) return emptyList()
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                TaxOpportunity(
+                    id = o.optString("id"),
+                    title = o.optString("title"),
+                    action = o.optString("action"),
+                    reference = o.optString("reference"),
+                    status = o.optString("status", "close"),
+                    estimatedValue = o.optDouble("estimated_value", 0.0),
+                    valueNote = o.optString("value_note"),
+                    gap = o.optString("gap"),
+                    deadline = o.optString("deadline").takeIf { it.isNotBlank() && it != "null" },
+                )
+            }
+        }
+
     suspend fun entitlements(appUserId: String): Boolean =
         get("/api/v1/books/entitlements?app_user_id=$appUserId").optBoolean("pro_active", false)
 
