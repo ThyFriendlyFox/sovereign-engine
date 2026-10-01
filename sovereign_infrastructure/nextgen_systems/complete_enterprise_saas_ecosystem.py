@@ -24,6 +24,7 @@ Matrix Features:
 import time
 import math
 import logging
+import os
 import hmac
 import hashlib
 import json
@@ -133,12 +134,13 @@ class InventoryFIFOEngine:
             "status": "BATCH_ADDED"
         }
 
-    def calculate_fifo_cogs(self, units_sold: int) -> Dict[str, Any]:
+    def calculate_fifo_cogs(self, units_sold: int, commit: bool = True) -> Dict[str, Any]:
         cogs = 0.0
         remaining_to_sell = units_sold
         batches_used = []
 
-        for batch in self.inventory_batches:
+        batches = self.inventory_batches if commit else [dict(b) for b in self.inventory_batches]
+        for batch in batches:
             if remaining_to_sell <= 0:
                 break
             if batch["units"] <= 0:
@@ -146,7 +148,8 @@ class InventoryFIFOEngine:
             take_units = min(batch["units"], remaining_to_sell)
             batch_cogs = take_units * batch["unit_cost"]
             cogs += batch_cogs
-            batch["units"] -= take_units
+            if commit:
+                batch["units"] -= take_units
             remaining_to_sell -= take_units
             batches_used.append({"batch_id": batch["batch_id"], "units_taken": take_units, "unit_cost": batch["unit_cost"]})
 
@@ -772,12 +775,16 @@ class DeflationaryTokenomicsEngine:
 
 class RevenueCatSDKWebhookIngestionEngine:
     """17. RevenueCat SDK Webhook Ingestion Engine"""
-    def __init__(self, webhook_secret: str = "rc_whsec_live_sovereign_2026"):
-        self.webhook_secret = webhook_secret
+    def __init__(self, webhook_secret: str = None):
+        # The shared secret is the Authorization value configured in the
+        # RevenueCat dashboard. Unset means every webhook is rejected.
+        self.webhook_secret = webhook_secret or os.environ.get("REVENUECAT_WEBHOOK_SECRET", "")
         self.subscribers: Dict[str, Dict[str, Any]] = {}
 
     def verify_webhook_signature(self, payload_bytes: bytes, signature_header: Optional[str] = None) -> bool:
         if not signature_header:
+            return False
+        if not self.webhook_secret:
             return False
         expected_sig = hmac.new(self.webhook_secret.encode('utf-8'), payload_bytes, hashlib.sha256).hexdigest()
         sig_to_check = signature_header.replace("t=", "").replace("v1=", "").split(",")[-1].strip()

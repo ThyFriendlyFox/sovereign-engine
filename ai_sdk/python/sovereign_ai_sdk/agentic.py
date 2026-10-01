@@ -16,6 +16,11 @@ from pulse_engine import PULSEEngine
 from mint_engine import MINTEngine
 from grid_engine import GRIDEngine
 from nexs_engine import NEXSEngine
+from agentic_quickbooks_engine import (
+    AgenticQuickBooksEngine,
+    RevenueCatSubscriptionTierManager,
+    ComplianceAndTaxCreditsResearchEngine
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignAISDK")
@@ -101,13 +106,14 @@ class NEXSAgentSynthesizer:
         }
 
 class SovereignAgenticOrchestrator:
-    """Master Multi-Agent Orchestrator combining all 6 AI Agents"""
+    """Master Multi-Agent Orchestrator combining all 6 AI Agents + Agentic QuickBooks Bookkeeper"""
     def __init__(self):
         self.aura = AURARiskUnderwriterAgent()
         self.pulse = PULSERetentionAgent()
         self.xfin = XFINArbitrageAgent()
         self.mint = MINTBurnAgent()
         self.nexs = NEXSAgentSynthesizer()
+        self.quickbooks = AgenticQuickBooksEngine()
 
     def run_agentic_pipeline(self, user_id: str, user_spent_usd: float, region: str) -> Dict[str, Any]:
         logger.info(f"[AISDK] Executing Autonomous Multi-Agent Pipeline for subscriber: '{user_id}' in region '{region}'")
@@ -116,6 +122,7 @@ class SovereignAgenticOrchestrator:
         arbitrage = self.xfin.evaluate_currency_arbitrage(user_id, "EUR", user_spent_usd)
         burn = self.mint.execute_subscription_burn(user_id, user_spent_usd)
         synthesis = self.nexs.synthesize_offering(user_id, region, user_spent_usd)
+        bookkeeping_audit = self.quickbooks.run_comprehensive_bookkeeping_audit()
 
         return {
             "orchestrator": "Sovereign_Agentic_Master",
@@ -124,5 +131,6 @@ class SovereignAgenticOrchestrator:
             "xfin_arbitrage": arbitrage,
             "mint_burn": burn,
             "nexs_synthesis": synthesis,
+            "agentic_quickbooks_audit": bookkeeping_audit,
             "status": "ALL_AGENTS_SUCCESSFUL"
         }

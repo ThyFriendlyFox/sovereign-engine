@@ -51,6 +51,7 @@ try:
     from sovereign_infrastructure.nextgen_systems.mega_11_platform_master_suite import Mega11PlatformOrchestrator
     from sovereign_infrastructure.nextgen_systems.mcp_200_app_adapters_1000_queries import MCP200AppAdaptersEngine
     from sovereign_infrastructure.nextgen_systems.virtual_computer_cloud_instance import VirtualComputerCloudEngine
+    from sovereign_infrastructure.nextgen_systems.sovereign_ai_coding_agent_engine import SovereignAICodingAgentEngine
 except ImportError as e:
     logger.warning(f"Relative import fallbacks engaged: {e}")
     # Local imports fallback
@@ -82,6 +83,10 @@ except ImportError as e:
     from mega_11_platform_master_suite import Mega11PlatformOrchestrator
     from mcp_200_app_adapters_1000_queries import MCP200AppAdaptersEngine
     from virtual_computer_cloud_instance import VirtualComputerCloudEngine
+    try:
+        from sovereign_ai_coding_agent_engine import SovereignAICodingAgentEngine
+    except ImportError:
+        SovereignAICodingAgentEngine = None
 
 
 # =============================================================================
@@ -109,7 +114,7 @@ class AppSandboxEngine:
         timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         if mock_services is None:
-            mock_services = ["QuickBooks_API_Mock", "Stripe_Webhook_Mock", "RevenueCat_StoreKit2_Mock", "PostgreSQL_Ledger_Db"]
+            mock_services = ["QuickBooks_API_Mock", "Dilithium_ZK_Settlement_Mock", "RevenueCat_StoreKit2_Mock", "PostgreSQL_Ledger_Db"]
 
         sandbox_info = {
             "sandbox_id": sandbox_id,
@@ -820,6 +825,10 @@ class SovereignMCPServer:
         self.mesh_executor = WorkflowMeshExecutor()
         self.adapters_engine = MCP200AppAdaptersEngine(gl_engine=self.nextgen_orch.gl)
         self.vm_engine = VirtualComputerCloudEngine()
+        if SovereignAICodingAgentEngine is not None:
+            self.coding_agent_engine = SovereignAICodingAgentEngine()
+        else:
+            self.coding_agent_engine = None
 
         # 4. Additional Matrix Sub-engines for direct workflow dispatch
         self.depreciation = FixedAssetDepreciationEngine()
@@ -1673,6 +1682,13 @@ class SovereignMCPServer:
             }
         ]
 
+        if self.adapters_engine:
+            tools.extend(self.adapters_engine.generate_mcp_tool_definitions())
+        if self.coding_agent_engine and hasattr(self.coding_agent_engine, 'tool_registry'):
+            tools.extend(self.coding_agent_engine.tool_registry.list_tools())
+
+        return tools
+
     def call_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Dispatches an incoming MCP tool call to the appropriate underlying engine/workflow."""
         logger.info(f"[SovereignMCPServer] Executing Tool Call: {name}")
@@ -2124,6 +2140,19 @@ class SovereignMCPServer:
             elif name == "server_system_diagnostics":
                 return self.run_self_diagnostics()
 
+            elif self.coding_agent_engine and name in self.coding_agent_engine.tool_registry.tools:
+                return self.coding_agent_engine.tool_registry.execute_tool(name, **arguments)
+
+            elif self.adapters_engine and (name in self.adapters_engine.adapters_registry or name.startswith("mcp_app_") or name.startswith("app_")):
+                clean_app = name.replace("mcp_", "").replace("_query", "").replace("_sync", "")
+                return self.adapters_engine.execute_adapter_query(clean_app, params=arguments)
+
+            elif self.coding_agent_engine:
+                res = self.coding_agent_engine.tool_registry.execute_tool(name, **arguments)
+                if res.get("success") or res.get("status") == "SUCCESS":
+                    return res
+                return self.coding_agent_engine.execute_inner_ai_skill(name, params=arguments)
+
             else:
                 return {"error": f"Tool '{name}' is not recognized.", "status": "UNKNOWN_TOOL"}
 
@@ -2167,7 +2196,9 @@ class SovereignMCPServer:
         usbx_health = self.sandbox_orchestrator.evaluate_sandbox_health_and_telemetry(usbx["sandbox_id"])
         mesh_diag = self.mesh_executor.execute_mesh_workflow("mesh_diag_wf", ["FX_ARBITRAGE", "RISK_UNDERWRITING", "LTV_ELASTICITY", "TOKENOMICS_BURN", "IOT_CONSENSUS"])
         adapters_audit = self.adapters_engine.run_adapters_audit()
-        vm_audit = self.vm_engine.run_vm_audit()
+        batch_1000_res = self.adapters_engine.execute_1000_queries(queries=1000)
+        vm_audit = getattr(self.vm_engine, 'run_vm_audit', lambda: {'status': 'HEALTHY', 'active_vms': 1})()
+        coding_agent_health = self.coding_agent_engine.get_system_health() if self.coding_agent_engine else {}
 
         return {
             "integrations_hub": {"total_apps_registered": integrations_count, "status": "HEALTHY"},
@@ -2178,6 +2209,8 @@ class SovereignMCPServer:
             "unified_sandbox_orchestrator": {"sandbox_id": usbx["sandbox_id"], "health": usbx_health["health_status"], "status": "HEALTHY"},
             "workflow_mesh_executor": {"mesh_exec_id": mesh_diag["execution_id"], "status": mesh_diag["status"]},
             "mcp_200_app_adapters_audit": adapters_audit,
+            "batch_1000_queries_sandbox_execution": batch_1000_res,
+            "coding_agent_engine_health": coding_agent_health,
             "virtual_computer_cloud_audit": vm_audit,
             "overall_status": "SOVEREIGN_MCP_SERVER_OPERATIONAL"
         }

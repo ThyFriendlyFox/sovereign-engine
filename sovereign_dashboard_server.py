@@ -14,6 +14,13 @@ import hashlib
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
+# Load .env before any Plaid / Books imports
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+except ImportError:
+    pass
+
 # Import 6 Next-Gen Fintech Cores, SaaS Accounting Suite, Gemini AI & Complete SaaS Ecosystem
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "sovereign_infrastructure", "nextgen_systems"))
@@ -63,8 +70,14 @@ from embedded_marketplace_integrations_hub import EmbeddedMarketplaceHub
 from sovereign_mcp_server import SovereignMCPServer
 from alpha_unlimited_work_engine import AlphaUnlimitedWorkEngine, AlphaAppWorkGenerator
 from mega_office_business_suite import MegaOfficeBusinessSuite
+from agentic_quickbooks_engine import AgenticQuickBooksEngine
+
+# Phase 0 MVP — Sovereign Books (persistent bank connect)
+from sovereign_books import BankService
+from sovereign_books import http_api as books_http
 
 office_suite = MegaOfficeBusinessSuite()
+books_bank = BankService()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SovereignDashboardServer")
@@ -106,6 +119,9 @@ gemini_chat = GeminiChatOrchestrator(
     pulse=pulse, aura=aura, xfin=xfin, mint=mint, grid=grid, nexs=nexs
 )
 
+# Initialize Gemini Intelligence Engine (app synthesis + MPC wallet derivation)
+gemini_engine = GeminiIntelligenceEngine()
+
 # Initialize Embedded Marketplace Hub
 marketplace_hub = EmbeddedMarketplaceHub()
 
@@ -114,6 +130,9 @@ mcp_server = SovereignMCPServer()
 
 # Initialize Sovereign OS Alpha Unlimited Work Engine
 alpha_work_engine = AlphaUnlimitedWorkEngine(gl_engine=gl, orchestrator=orchestrator)
+
+# Initialize Agentic QuickBooks Bookkeeping Engine (from agentic branch)
+agentic_qb_engine = AgenticQuickBooksEngine(gl=gl)
 
 WORKFLOW_SHORTHAND_MAP = {
     "wf_01": "workflow_end_to_end_subscriber_lifecycle",
@@ -143,7 +162,7 @@ WORKFLOW_SHORTHAND_MAP = {
     "wf_25": "workflow_ultimate_25_protocol_suite",
 }
 
-DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "sovereign_dashboard")
+DASHBOARD_DIR = os.path.join(os.path.dirname(__file__), "dist")
 
 class SovereignDashboardHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -176,11 +195,103 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 params[unquote_plus(pair)] = ""
         return params
 
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.end_headers()
+
     def do_GET(self):
         logger.info(f"[GET] {self.path}")
         path = self.get_clean_path()
 
-        if path == "/api/v1/overview":
+        # -----------------------------------------------------------------
+        # Sovereign Books MVP — Connect Bank (Phase 0)
+        # -----------------------------------------------------------------
+        if path in ["/", "/index.html"]:
+            here = os.path.dirname(__file__)
+            target_file = os.path.join(here, "dist", "index.html")
+            if os.path.isfile(target_file):
+                with open(target_file, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(content)
+            else:
+                self.send_json_response({"service": "sovereign-engine", "status": "ok", "docs": "/api/v1/books/home"})
+        elif path in ["/healthz", "/api/v1/healthz", "/health"]:
+            self.send_json_response({"status": "healthy", "probe": "liveness", "timestamp": time.time()})
+        elif path in ("/api/v1/infra", "/api/v1/frontend/infra"):
+            from sovereign_infrastructure.frontend_infra import snapshot as infra_snapshot
+
+            self.send_json_response(infra_snapshot())
+        elif path in ("/api/v1/finance", "/api/v1/frontend/finance"):
+            from sovereign_infrastructure.frontend_infra import financial_snapshot
+
+            self.send_json_response(financial_snapshot())
+        elif path in ["/api/v1/books/home", "/api/v1/books/snapshot"]:
+            self.send_json_response(books_bank.home_snapshot())
+        elif path == "/api/v1/books/link_token":
+            self.send_json_response(books_bank.create_link_token())
+        elif path in ["/api/v1/books/connections", "/api/v1/books/bank"]:
+            self.send_json_response(books_bank.list_connections())
+        elif path in ["/api/v1/books/inbox", "/api/v1/books/transactions"]:
+            params = self.parse_query_params()
+            limit = int(params.get("limit", 50))
+            self.send_json_response(books_bank.list_inbox(limit=limit))
+        elif path == "/api/v1/books/cash_series":
+            params = self.parse_query_params()
+            self.send_json_response(
+                books_bank.cash_series(business_id=params.get("business_id") or None)
+            )
+        elif path == "/api/v1/books/categories":
+            self.send_json_response(books_bank.list_categories())
+        elif path == "/api/v1/books/grants":
+            params = self.parse_query_params()
+            from sovereign_books.grants import list_grants
+
+            self.send_json_response(
+                list_grants(fit=params.get("fit") or None, q=params.get("q") or None)
+            )
+        elif path.startswith("/api/v1/books/grants/"):
+            from sovereign_books.grants import get_grant
+
+            grant_id = path.rsplit("/", 1)[-1]
+            self.send_json_response(get_grant(grant_id))
+        elif path in ["/api/v1/books/entitlements", "/api/v1/books/pro"]:
+            params = self.parse_query_params()
+            from sovereign_books.revenuecat import RevenueCatService
+
+            rc = RevenueCatService(books_bank.db_path)
+            self.send_json_response(
+                rc.get_entitlements(app_user_id=params.get("app_user_id") or None)
+            )
+        elif path in books_http.TAX_GET_PATHS:
+            self.send_json_response(books_http.handle_tax_get(path, self.parse_query_params()))
+        elif path.startswith("/api/v1/crm/"):
+            self.send_json_response(books_http.handle_crm_get(path, self.parse_query_params()))
+        elif path.startswith("/api/v1/apps/"):
+            self.send_json_response(books_http.handle_apps_get(path, self.parse_query_params()))
+        elif path in (
+            "/api/v1/books/reconcile",
+            "/api/v1/books/reports/pnl",
+            "/api/v1/books/reports/balance_sheet",
+            "/api/v1/books/invoices",
+            "/api/v1/books/bills",
+            "/api/v1/books/runway",
+            "/api/v1/books/tax_bucket",
+            "/api/v1/books/anomalies",
+            "/api/v1/books/businesses",
+            "/api/v1/books/approvals",
+            "/api/v1/books/approvals/summary",
+            "/api/v1/roadmap/verify",
+        ):
+            self.send_json_response(books_http.handle_books_ext_get(path, self.parse_query_params()))
+        elif path == "/api/v1/overview":
             self.send_json_response({
                 "mrr": 148920.0,
                 "arr": 1787040.0,
@@ -449,6 +560,35 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(mega11.expensify.audit_expense_report("EMP-01", [{"merchant": "AWS", "amount": 250.0, "receipt_ocr": True}]))
         elif path == "/api/v1/plaid/balance":
             self.send_json_response(mega11.plaid.get_realtime_auth_balance("acc_101"))
+        elif path in ["/api/v1/plaid/link_token", "/api/v1/banking/plaid/link_token"]:
+            self.send_json_response(mega11.plaid.create_link_token())
+        elif path in ["/api/v1/plaid/exchange_token", "/api/v1/banking/plaid/exchange_token"]:
+            self.send_json_response(mega11.plaid.exchange_public_token("public-sandbox-token-12345"))
+        elif path in ["/api/v1/gemini/app_generate", "/api/v1/gemini/generate_app"]:
+            params = self.parse_query_params()
+            app_name = params.get("app_name", "Sovereign AI App")
+            self.send_json_response(gemini_engine.app_node.synthesize_app_code(app_name))
+        elif path in ["/api/v1/passport/mpc_derive", "/api/v1/passport/derive"]:
+            params = self.parse_query_params()
+            token = params.get("oauth_token", "apple_oauth_token_12345")
+            provider = params.get("provider", "apple")
+            self.send_json_response(gemini_engine.derive_mpc_wallet(token, provider))
+        elif path in ["/api/v1/monetization_markets/package", "/api/v1/monetization/package_app"]:
+            params = self.parse_query_params()
+            name = params.get("app_name", "PreMonetized AI App")
+            dev = params.get("developer_id", "dev_builder_01")
+            from monetization_markets.monetization_markets_engine import MonetizationMarketsEngine
+            mm_engine = MonetizationMarketsEngine()
+            self.send_json_response(mm_engine.package_monetized_app(name, dev))
+        elif path in ["/api/v1/ai/autonomous_purchase", "/api/v1/agent/purchase"]:
+            params = self.parse_query_params()
+            item = params.get("item", "RunPod GPU Compute 10 Hours")
+            amt = float(params.get("amount", 32.50))
+            vendor = params.get("vendor", "RunPod Inc")
+            usr = params.get("user_id", "builder_101")
+            from monetization_markets.monetization_markets_engine import AutonomousAIPurchasingEngine
+            purchaser = AutonomousAIPurchasingEngine()
+            self.send_json_response(purchaser.execute_autonomous_purchase(item, amt, vendor, usr))
         elif path == "/api/v1/avalara/tax_nexus":
             self.send_json_response(mega11.avalara.calculate_global_tax_nexus(1000.0, "US_CA"))
         elif path == "/api/v1/freshbooks/time_invoice":
@@ -592,6 +732,23 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 default_vm = mcp_server.vm_engine.provision_instance(instance_name="auto_vm", instance_type="vc.standard")
                 inst_id = default_vm["instance_id"]
             self.send_json_response(mcp_server.vm_engine.execute_command(instance_id=inst_id, command=cmd))
+        # Agentic QuickBooks & RevenueCat bookkeeper (merged from agentic branch)
+        elif path in ["/api/v1/agentic_qb/audit", "/api/v1/bookkeeping/audit"]:
+            self.send_json_response(agentic_qb_engine.run_comprehensive_bookkeeping_audit())
+        elif path in ["/api/v1/agentic_qb/tax_credits", "/api/v1/compliance/tax_credits"]:
+            params = self.parse_query_params()
+            state = params.get("state", "CA")
+            self.send_json_response(agentic_qb_engine.research_and_calculate_tax_credits(state=state))
+        elif path in ["/api/v1/agentic_qb/subscriber_billing", "/api/v1/revenuecat/subscriber_billing"]:
+            params = self.parse_query_params()
+            user_id = params.get("user_id", params.get("subscriber_id", "sub_101"))
+            self.send_json_response(
+                agentic_qb_engine.subscription_manager.get_subscriber_billing_summary(user_id)
+            )
+        elif path in ["/api/v1/agentic_qb/live_integrations", "/api/v1/integrations/status"]:
+            self.send_json_response(
+                agentic_qb_engine.integration_registry.get_all_integration_statuses()
+            )
         else:
             super().do_GET()
 
@@ -600,8 +757,111 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
         path = self.get_clean_path()
         body = self.parse_body()
 
+        # -----------------------------------------------------------------
+        # Sovereign Books MVP — Connect Bank (Phase 0)
+        # -----------------------------------------------------------------
+        if path in ["/api/v1/books/connect", "/api/v1/books/exchange"]:
+            public_token = body.get("public_token") or body.get("token") or "public-sandbox-mock-chase"
+            institution_name = body.get("institution_name") or body.get("institution")
+            business_id = body.get("business_id")
+            connected = books_bank.exchange_and_connect(
+                public_token=public_token,
+                business_id=business_id,
+                institution_name=institution_name,
+            )
+            # Auto-sync after connect so inbox is immediately useful
+            sync = books_bank.sync_transactions(
+                business_id=connected.get("business_id"),
+                plaid_item_id=connected.get("plaid_item_id"),
+                post_to_ledger=bool(body.get("post_to_ledger", True)),
+            )
+            connected["sync"] = sync
+            self.send_json_response(connected)
+        elif path == "/api/v1/books/sync":
+            self.send_json_response(
+                books_bank.sync_transactions(
+                    business_id=body.get("business_id"),
+                    plaid_item_id=body.get("plaid_item_id"),
+                    post_to_ledger=bool(body.get("post_to_ledger", False)),
+                )
+            )
+        elif path == "/api/v1/books/link_token":
+            self.send_json_response(books_bank.create_link_token(user_id=body.get("user_id")))
+        elif path in ["/api/v1/books/chat", "/api/v1/books/assistant"]:
+            from sovereign_books.chat_engine import BooksChatEngine
+
+            chat = BooksChatEngine(books_bank)
+            self.send_json_response(
+                chat.reply(
+                    body.get("message") or body.get("prompt") or "",
+                    business_id=body.get("business_id"),
+                )
+            )
+        elif path in [
+            "/api/v1/books/transactions/confirm",
+            "/api/v1/books/inbox/confirm",
+        ]:
+            txn_id = body.get("txn_id") or body.get("id") or body.get("transaction_id")
+            if not txn_id:
+                self.send_json_response(
+                    {"status": "ERROR", "error": "txn_id required"}, status_code=400
+                )
+            else:
+                confirmed = books_bank.confirm_transaction(
+                    txn_id=txn_id,
+                    category=body.get("category"),
+                    business_id=body.get("business_id"),
+                )
+                if confirmed.get("status") == "CONFIRMED":
+                    tax_ctx = body.get("tax_context") if isinstance(body.get("tax_context"), dict) else None
+                    confirmed["tax"] = books_http.tax().classify_transaction(
+                        body.get("business_id") or books_bank.ensure_demo_workspace()["business_id"], txn_id, tax_ctx
+                    )
+                self.send_json_response(confirmed)
+        elif path == "/api/v1/books/revenuecat/webhook":
+            from sovereign_books.revenuecat import RevenueCatService
+
+            expected = os.environ.get("REVENUECAT_WEBHOOK_AUTH")
+            if expected:
+                auth = self.headers.get("Authorization") or ""
+                token = auth.replace("Bearer ", "").strip()
+                if token != expected:
+                    self.send_json_response(
+                        {"status": "ERROR", "error": "Unauthorized"}, status_code=401
+                    )
+                    return
+            rc = RevenueCatService(books_bank.db_path)
+            self.send_json_response(rc.handle_webhook(body or {}))
+        elif path == "/api/v1/books/pro/activate":
+            # Dev-only offline Pro (same as scripts/activate_pro.py)
+            from sovereign_books.revenuecat import RevenueCatService
+
+            rc = RevenueCatService(books_bank.db_path)
+            self.send_json_response(
+                rc.activate_local_pro(
+                    app_user_id=body.get("app_user_id"),
+                    product_id=body.get("product_id") or "sovereign_pro_monthly",
+                )
+            )
+        elif path in books_http.TAX_POST_PATHS:
+            self.send_json_response(books_http.handle_tax_post(path, body or {}))
+        elif path.startswith("/api/v1/crm/"):
+            self.send_json_response(books_http.handle_crm_post(path, body or {}))
+        elif path.startswith("/api/v1/apps/"):
+            self.send_json_response(books_http.handle_apps_post(path, body or {}))
+        elif path in (
+            "/api/v1/books/invoices",
+            "/api/v1/books/invoices/pay",
+            "/api/v1/books/bills",
+            "/api/v1/books/receipts",
+            "/api/v1/books/rules",
+            "/api/v1/books/close_month",
+            "/api/v1/books/approvals",
+        ):
+            self.send_json_response(books_http.handle_books_ext_post(path, body or {}))
+
         # 1. Gemini / Copilot Chat Orchestration
-        if path in ["/api/v1/gemini/chat", "/api/v1/copilot/chat"]:
+        elif path in ["/api/v1/gemini/chat", "/api/v1/copilot/chat"]:
             msg = body.get("message", body.get("prompt", "Hello Gemini"))
             res = gemini_chat.process_chat_query(msg)
             self.send_json_response(res)
@@ -1194,6 +1454,68 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                 "compose_code": compose_code,
                 "status": "SYNTHESIZED"
             })
+        # Agentic QuickBooks Bookkeeping Engine POST (merged from agentic branch)
+        elif path in ["/api/v1/agentic_qb/event", "/api/v1/revenuecat/billing_event"]:
+            user_id = body.get("user_id", body.get("subscriber_id", "usr_sub_101"))
+            event_type = body.get("event_type", "INITIAL_PURCHASE")
+            product_id = body.get("product_id", "sovereign_pro_monthly")
+            price_usd = float(body["price_usd"]) if "price_usd" in body else None
+            store = body.get("store", "APP_STORE_STOREKIT_2")
+            self.send_json_response(
+                agentic_qb_engine.process_revenuecat_subscription_event(
+                    user_id=user_id,
+                    event_type=event_type,
+                    product_id=product_id,
+                    price_usd=price_usd,
+                    store=store,
+                )
+            )
+        elif path in ["/api/v1/agentic_qb/meter_usage", "/api/v1/revenuecat/meter_usage"]:
+            user_id = body.get("user_id", body.get("subscriber_id", "usr_sub_101"))
+            feature = body.get("feature", body.get("feature_id", "ai_bookkeeping_queries"))
+            units = int(body.get("units", 1))
+            self.send_json_response(
+                agentic_qb_engine.record_metered_usage_and_bill(
+                    user_id=user_id, feature=feature, units=units
+                )
+            )
+        elif path in ["/api/v1/agentic_qb/asc606_recognize", "/api/v1/gaap/asc606"]:
+            contract_id = body.get("contract_id", "CONTRACT_ANNUAL_001")
+            total_val = float(body.get("total_contract_value", 120000.0))
+            month = int(body.get("current_month", 1))
+            duration = int(body.get("duration_months", 12))
+            self.send_json_response(
+                agentic_qb_engine.run_monthly_asc606_revenue_recognition(
+                    contract_id=contract_id,
+                    total_contract_value=total_val,
+                    current_month=month,
+                    duration_months=duration,
+                )
+            )
+        elif path in ["/api/v1/agentic_qb/payroll", "/api/v1/payroll/execute"]:
+            gross = float(body.get("gross_payroll", 148500.0))
+            state = body.get("state", "CA")
+            rd_ratio = float(body.get("engineering_rd_ratio", 0.80))
+            self.send_json_response(
+                agentic_qb_engine.execute_agentic_payroll(
+                    gross_payroll=gross, state=state, engineering_rd_ratio=rd_ratio
+                )
+            )
+        elif path in ["/api/v1/agentic_qb/tax_credits", "/api/v1/compliance/tax_credits"]:
+            state = body.get("state", "CA")
+            cloud = float(body["cloud_compute_spend"]) if "cloud_compute_spend" in body else None
+            rd_pay = float(body["rd_payroll_spend"]) if "rd_payroll_spend" in body else None
+            self.send_json_response(
+                agentic_qb_engine.research_and_calculate_tax_credits(
+                    state=state, cloud_compute_spend=cloud, rd_payroll_spend=rd_pay
+                )
+            )
+        elif path in ["/api/v1/agentic_qb/audit", "/api/v1/bookkeeping/audit"]:
+            self.send_json_response(agentic_qb_engine.run_comprehensive_bookkeeping_audit())
+        elif path in ["/api/v1/agentic_qb/live_integrations", "/api/v1/integrations/status"]:
+            self.send_json_response(
+                agentic_qb_engine.integration_registry.get_all_integration_statuses()
+            )
         else:
             self.send_error(404, "Endpoint not found")
 

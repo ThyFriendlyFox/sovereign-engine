@@ -1,69 +1,142 @@
-// App Module build.gradle.kts with RevenueCat Android & Compose dependencies
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.roborazzi)
 }
 
+// Secrets and per-machine settings come from android-app/local.properties
+// (git-ignored) or from environment variables. Nothing sensitive is in source.
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.isFile) f.inputStream().use { load(it) }
+}
+
+fun setting(name: String, default: String = ""): String =
+    localProps.getProperty(name) ?: System.getenv(name) ?: default
+
 android {
-    namespace = "com.sovereign.app"
-    compileSdk = 34
+    namespace = "com.sovereignengine.books"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sovereign.app"
-        minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        applicationId = "com.sovereignengine.books"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = setting("VERSION_CODE", "1").toInt()
+        versionName = setting("VERSION_NAME", "1.0.0")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
+
+        // Public RevenueCat SDK key for the Google Play app (goog_...).
+        buildConfigField("String", "REVENUECAT_GOOGLE_API_KEY", "\"${setting("REVENUECAT_GOOGLE_API_KEY")}\"")
+        // Entitlement identifier configured in the RevenueCat dashboard.
+        buildConfigField("String", "REVENUECAT_ENTITLEMENT_ID", "\"${setting("REVENUECAT_ENTITLEMENT_ID", "pro_access")}\"")
+        // Base URL of the Sovereign Books API (sovereign_dashboard_server.py).
+        buildConfigField("String", "BOOKS_API_BASE_URL", "\"${setting("BOOKS_API_BASE_URL", "http://10.0.2.2:8090")}\"")
+    }
+
+    signingConfigs {
+        create("release") {
+            val storePath = setting("KEYSTORE_PATH")
+            if (storePath.isNotEmpty()) {
+                storeFile = file(storePath)
+                storePassword = setting("KEYSTORE_PASSWORD")
+                keyAlias = setting("KEY_ALIAS")
+                keyPassword = setting("KEY_PASSWORD")
+            }
         }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Only sign when a keystore is configured; unsigned bundles still build for CI.
+            if (setting("KEYSTORE_PATH").isNotEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+
+
     buildFeatures {
         compose = true
+        buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
-    }
-    packing {
+
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
+
+    bundle {
+        language { enableSplit = true }
+        density { enableSplit = true }
+        abi { enableSplit = true }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
-    
-    // Jetpack Compose UI
-    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    
-    // RevenueCat Official Android SDKs (Google Play Billing & Galaxy Store)
-    implementation("com.revenuecat.purchases:purchases:8.2.0")
-    implementation("com.revenuecat.purchases:purchases-ui-paywalls:8.2.0")
-    implementation("com.revenuecat.purchases:purchases-ui-customercenter:8.2.0")
-    
-    // OneSignal Push Notifications
-    implementation("com.onesignal:OneSignal:5.1.8")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.google.material)
+
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // RevenueCat: Google Play Billing plus Paywalls and Customer Center UI.
+    implementation(libs.revenuecat.purchases)
+    implementation(libs.revenuecat.purchases.ui)
+
+    testImplementation(libs.junit)
+    // Screenshot rendering on the JVM (no emulator): Robolectric + Roborazzi.
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Screenshots land in docs/play-store/screenshots so the store listing and the
+// walkthrough use real renders of the app.
+roborazzi {
+    outputDir.set(rootProject.file("../docs/play-store/screenshots"))
 }
