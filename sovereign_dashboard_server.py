@@ -270,6 +270,8 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
             self.send_json_response(
                 rc.get_entitlements(app_user_id=params.get("app_user_id") or None)
             )
+        elif path in books_http.TAX_GET_PATHS:
+            self.send_json_response(books_http.handle_tax_get(path, self.parse_query_params()))
         elif path.startswith("/api/v1/crm/"):
             self.send_json_response(books_http.handle_crm_get(path, self.parse_query_params()))
         elif path.startswith("/api/v1/apps/"):
@@ -805,13 +807,17 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                     {"status": "ERROR", "error": "txn_id required"}, status_code=400
                 )
             else:
-                self.send_json_response(
-                    books_bank.confirm_transaction(
-                        txn_id=txn_id,
-                        category=body.get("category"),
-                        business_id=body.get("business_id"),
-                    )
+                confirmed = books_bank.confirm_transaction(
+                    txn_id=txn_id,
+                    category=body.get("category"),
+                    business_id=body.get("business_id"),
                 )
+                if confirmed.get("status") == "CONFIRMED":
+                    tax_ctx = body.get("tax_context") if isinstance(body.get("tax_context"), dict) else None
+                    confirmed["tax"] = books_http.tax().classify_transaction(
+                        body.get("business_id") or books_bank.ensure_demo_workspace()["business_id"], txn_id, tax_ctx
+                    )
+                self.send_json_response(confirmed)
         elif path == "/api/v1/books/revenuecat/webhook":
             from sovereign_books.revenuecat import RevenueCatService
 
@@ -837,6 +843,8 @@ class SovereignDashboardHandler(SimpleHTTPRequestHandler):
                     product_id=body.get("product_id") or "sovereign_pro_monthly",
                 )
             )
+        elif path in books_http.TAX_POST_PATHS:
+            self.send_json_response(books_http.handle_tax_post(path, body or {}))
         elif path.startswith("/api/v1/crm/"):
             self.send_json_response(books_http.handle_crm_post(path, body or {}))
         elif path.startswith("/api/v1/apps/"):

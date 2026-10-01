@@ -10,11 +10,15 @@ from .apps_manager import AppsManager
 from .books_extended import BooksExtended
 from .crm_store import CRMStore
 from .roadmap_registry import verify_all
+from .tax_advisor import TaxAdvisor
+from .tax_classifier import TaxClassifier, rulebook as tax_rulebook
 
 _crm: Optional[CRMStore] = None
 _apps: Optional[AppsManager] = None
 _books_ext: Optional[BooksExtended] = None
 _approvals: Optional[ApprovalsLog] = None
+_tax: Optional[TaxClassifier] = None
+_advisor: Optional[TaxAdvisor] = None
 
 
 def crm() -> CRMStore:
@@ -43,6 +47,78 @@ def approvals() -> ApprovalsLog:
     if _approvals is None:
         _approvals = ApprovalsLog()
     return _approvals
+
+
+def tax() -> TaxClassifier:
+    global _tax
+    if _tax is None:
+        _tax = TaxClassifier()
+    return _tax
+
+
+def advisor() -> TaxAdvisor:
+    global _advisor
+    if _advisor is None:
+        _advisor = TaxAdvisor(classifier=tax())
+    return _advisor
+
+
+def _bid(business_id: Optional[str]) -> str:
+    return business_id or books_ext().bank.ensure_demo_workspace()["business_id"]
+
+
+TAX_GET_PATHS = (
+    "/api/v1/books/tax/classes",
+    "/api/v1/books/tax/classifications",
+    "/api/v1/books/tax/questions",
+    "/api/v1/books/tax/summary",
+    "/api/v1/books/tax/opportunities",
+)
+TAX_POST_PATHS = (
+    "/api/v1/books/tax/classify",
+    "/api/v1/books/tax/classify_all",
+)
+
+
+def handle_tax_get(path: str, params: Dict[str, str]) -> Dict[str, Any]:
+    bid = _bid(params.get("business_id"))
+    if path == "/api/v1/books/tax/classes":
+        return tax_rulebook()
+    if path == "/api/v1/books/tax/classifications":
+        nr = params.get("needs_review")
+        return tax().list(bid, limit=int(params.get("limit") or 100), needs_review=(nr == "1") if nr in ("0", "1") else None)
+    if path == "/api/v1/books/tax/questions":
+        tax().classify_all(bid)  # make sure every transaction has a first pass
+        return tax().questions(bid, limit=int(params.get("limit") or 20))
+    if path == "/api/v1/books/tax/summary":
+        tax().classify_all(bid)
+        return tax().summary(bid, int(params["year"]) if params.get("year") else None)
+    if path == "/api/v1/books/tax/opportunities":
+        tax().classify_all(bid)
+        return advisor().opportunities(
+            bid,
+            state=params.get("state") or "CA",
+            tax_year=int(params["year"]) if params.get("year") else None,
+            marginal_rate=float(params.get("marginal_rate") or 0.24),
+            employees=int(params["employees"]) if params.get("employees") else None,
+        )
+    return {"status": "ERROR", "error": f"Unknown tax GET {path}"}
+
+
+def handle_tax_post(path: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    bid = _bid(body.get("business_id"))
+    if path == "/api/v1/books/tax/classify":
+        txn_id = body.get("txn_id") or body.get("transaction_id")
+        if not txn_id:
+            return {"status": "ERROR", "error": "txn_id required"}
+        context = body.get("context") if isinstance(body.get("context"), dict) else {}
+        for k in ("attendees", "tax_class", "recipients", "traveling"):
+            if k in body and k not in context:
+                context[k] = body[k]
+        return tax().classify_transaction(bid, txn_id, context)
+    if path == "/api/v1/books/tax/classify_all":
+        return tax().classify_all(bid, only_missing=not bool(body.get("force")))
+    return {"status": "ERROR", "error": f"Unknown tax POST {path}"}
 
 
 def handle_crm_get(path: str, params: Dict[str, str]) -> Dict[str, Any]:
