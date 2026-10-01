@@ -226,7 +226,7 @@ class SovereignDilithiumSettlementModule:
         self.payments: List[Dict[str, Any]] = []
         self.settlements: List[Dict[str, Any]] = []
 
-    def process_payment(self, amount: float, currency: str, payment_method: str = "dilithium_zk") -> Dict[str, Any]:
+    def process_payment(self, amount: float, currency: str, payment_method: str = "card") -> Dict[str, Any]:
         zk_proof = f"dilithium_3_{uuid.uuid4().hex[:16]}"
         stripe_fee = round(amount * 0.029 + 0.30, 2) if payment_method != "dilithium_zk" else 0.00
         net_amt = round(amount - stripe_fee, 2)
